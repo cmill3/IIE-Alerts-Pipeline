@@ -1,0 +1,71 @@
+service: icarus-trading-engine
+configValidationMode: warn
+frameworkVersion: '3'
+
+
+provider:
+  name: aws
+  region: us-east-1
+  runtime: python3.7
+  timeout: 900
+  deploymentBucket: 
+    name: "yqalerts-serverless-bucket"
+  environment:
+    API_KEY: 'A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp'
+
+plugins:
+  - serverless-step-functions
+  - serverless-ignore
+
+functions:
+  analytics-production-line:
+    handler: analytics_production_line.analytics_runner
+    environment:
+      TRADING_DATA_BUCKET: "icarus-research-data"
+      USER: "CM3"
+    layers:
+      - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
+    role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
+    name: inv-analytics-production-line
+  historical-dataset-builder:
+    handler: historical_dataset_builder.analytics_runner
+    environment:
+      TRADING_DATA_BUCKET: "icarus-research-data"
+      USER: "CM3"
+    layers:
+      - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
+    role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
+    name: inv-historical-dataset-builder
+
+stepFunctions:
+  stateMachines:
+    inv-alerts-pipeline:
+      name: inv-alerts-pipeline
+      role: arn:aws:iam::456201388658:role/service-role/StepFunctions-Gainers-Production-Modeling-role-72889a0b
+      alarms:
+        topics:
+          alarm: arn:aws:sns:us-east-1:456201388658:yqalerts-production-modeling
+        metrics:
+          - executionsTimedOut
+          - executionsFailed
+          - executionsAborted
+          - executionThrottled
+        treatMissingData: missing
+      definition:
+        Comment: "This state machine constructs and executes trades based on results of the modeling engine"
+        StartAt: analytics-production-line
+        States:
+          analytics-production-line:
+            Type: Task
+            Resource: arn:aws:lambda:us-east-1:456201388658:inv-analytics-production-line
+            Retry:
+            - ErrorEquals:
+              - Lambda.ServiceException
+              - Lambda.AWSLambdaException
+              - Lambda.SdkClientException
+              IntervalSeconds: 5
+              MaxAttempts: 3
+              BackoffRate: 2
+            Next: End
+          End:
+              Type: Succeed
