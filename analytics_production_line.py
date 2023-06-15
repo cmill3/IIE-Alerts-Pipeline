@@ -4,6 +4,7 @@ from helpers.data import call_polygon, build_analytics, get_pcr
 from datetime import datetime, timedelta
 import os
 import logging
+import pandas as pd
 from botocore.exceptions import ClientError
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
@@ -21,8 +22,10 @@ def analytics_runner(event, context):
     full_list = index_list + leveraged_etfs + sp_500.tolist()
     from_stamp, to_stamp = generate_dates()
     aggregates, error_list = call_polygon(full_list, from_stamp, to_stamp, timespan="day", multiplier="1")
+    day_aggrgegates, error_list = call_polygon(full_list, from_stamp, to_stamp, timespan="minute", multiplier="30")
+    full_aggregates = build_full_df(aggregates, day_aggrgegates, to_stamp)
     logger.info(f"Error list: {error_list}")
-    analytics = build_analytics(aggregates, get_pcr)
+    analytics = build_analytics(full_aggregates, get_pcr)
     alerts_dict = build_alerts(analytics)
     for key, value in alerts_dict.items():
         try:
@@ -52,6 +55,27 @@ def build_alerts(df):
     most_active = v_sorted.head(50)
     volume_diff = vdiff_sorted.head(50)
     return {"all_alerts":alerts,"gainers": gainers, "losers": losers, "gt":gt, "lt":lt, "most_actives":most_active, "vdiff":volume_diff}
+
+def build_full_df(aggregates, day_aggregates, to_stamp):
+    symbols_list = aggregates["symbol"].unique()
+    temp_dfs = []
+    for symbol in symbols_list:
+        df = aggregates.loc[aggregates["symbol"] == symbol]
+        if to_stamp in df['date']:
+            temp_dfs.append(df)
+        else:
+            day_df = day_aggregates.loc[day_aggregates["symbol"] == symbol]
+            v = day_df["v"].sum()
+            c = day_df["c"].iloc[-1]
+            h = day_df["h"].max()
+            l = day_df["l"].min()
+            t = day_df["t"].iloc[-1]
+            vw = day_df["vw"].mean()
+            n = day_df["n"].sum()
+            df.append({"v":v, "c":c,"h":h,"l":l,"t":t,"vw":vw,"n":n}, ignore_index=True, inplace=True)
+            temp_dfs.append(df)
+    full_df = pd.concat(temp_dfs)
+    return full_df
 
 
 if __name__ == "__main__":
