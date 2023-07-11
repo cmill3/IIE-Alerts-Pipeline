@@ -145,6 +145,24 @@ def call_polygon_hist(symbol, from_stamp, to_stamp, timespan, multiplier):
 
     return results_df
 
+def calc_vdiff(row):
+    try:
+        to_stamp = datetime.strptime(row['date'], '%Y-%m-%d %H:%M:%S')
+        from_stamp = to_stamp - timedelta(days=10)
+        from_str = from_stamp.strftime("%Y-%m-%d")
+        to_str = row['date'].split(" ")[0]
+        aggs = call_polygon_hist([row['symbol']], from_str, to_str, "day", 1)
+        v = aggs.iloc[-1]['v']
+        v_1 = aggs.iloc[-2]['v']
+        v_1_avg = (v_1/7)
+        v_avg = (v/(abs(9-row['hour'])+1))
+        v_diff_pct = (v_avg - v_1_avg) / v_1_avg
+        return v_diff_pct
+    except Exception as e:
+        print(e)
+        print(row['symbol'])
+        return 0.111021999
+
 def build_analytics(aggregates, hour_aggregates, hour, pcr_func):
     indicators = []
 

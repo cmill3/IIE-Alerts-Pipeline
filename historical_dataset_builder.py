@@ -1,6 +1,6 @@
 import json
 from helpers.aws import pull_files_s3, get_s3_client
-from helpers.data import call_polygon, build_analytics, get_pcr_historic, calc_price_action
+from helpers.data import call_polygon, build_analytics, get_pcr_historic, calc_price_action, calc_vdiff
 from datetime import datetime, timedelta
 import os
 import pandas as pd
@@ -56,12 +56,12 @@ def run(date_stamp):
     # ma_df = helpers.build_unprocessed_df(date_stamp,"expanded_alert_values/most_actives/")
     for hour in hours:
         try:
-            gt_df = pull_df(date_stamp,"inv_alerts/gt/",hour)
-            lt_df = pull_df(date_stamp,"inv_alerts/lt/",hour)
-            gainers_df = pull_df(date_stamp,"inv_alerts/gainers/",hour)
-            losers_df = pull_df(date_stamp,"inv_alerts/losers/",hour)
-            ma_df = pull_df(date_stamp,"inv_alerts/most_actives/",hour)
-            vdiff_df = pull_df(date_stamp,"inv_alerts/vdiff/",hour)
+            gt_df = pull_df(date_stamp,"inv_alerts_with_price/gt/",hour)
+            lt_df = pull_df(date_stamp,"inv_alerts_with_price/lt/",hour)
+            gainers_df = pull_df(date_stamp,"inv_alerts_with_price/gainers/",hour)
+            losers_df = pull_df(date_stamp,"inv_alerts_with_price/losers/",hour)
+            ma_df = pull_df(date_stamp,"inv_alerts_with_price/most_actives/",hour)
+            vdiff_df = pull_df(date_stamp,"inv_alerts_with_price/vdiff/",hour)
             dfs = {"gt":gt_df,"lt":lt_df,"gainers":gainers_df,"losers":losers_df,"vdiff":vdiff_df,"most_actives":ma_df}
         except:
             return "NO DATA"
@@ -69,14 +69,16 @@ def run(date_stamp):
         for key, df in dfs.items():
             try:
                 # df[['one_max','one_min','one_pct','three_max','three_min','three_pct']] = df.apply(calc_price_action, axis=1)
-                result = df.apply(calc_price_action, axis=1).apply(pd.Series)
-                result.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
-                df = pd.concat([df, result], axis=1)
+                df['v_diff_pct'] = df.apply(calc_vdiff, axis=1).apply(pd.Series)
+                # result.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
+                # df = pd.concat([df, result], axis=1)
                 csv = df.to_csv()
                 put_response = s3.put_object(Bucket=alerts_bucket, Key=f"inv_alerts_with_price/{key}/{date_stamp}/{hour}.csv", Body=csv)
             except ClientError as e:
                 logging.error(f"error for {key} :{e})")
+                print(f"error for {key} :{e})")
                 continue
+    
     return put_response
 
 def generate_dates_historic(date_str):
@@ -111,7 +113,7 @@ def pull_df(date_stamp, prefix, hour):
 
 
 if __name__ == "__main__":
-    start_date = datetime(2021,1,1)
+    start_date = datetime(2021,1,4)
     end_date = datetime(2023,6,13)
     date_diff = end_date - start_date
     numdays = date_diff.days 
