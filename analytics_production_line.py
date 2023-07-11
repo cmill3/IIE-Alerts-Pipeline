@@ -16,11 +16,11 @@ now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 
 logger = logging.getLogger()
 
-def analytics_runner(event, context):
+def analytics_runner(event, context, date):
     s3 = get_s3_client()
     sp_500 = pull_files_s3(s3, "icarus-research-data", "index_lists/S&P500.csv")
     full_list = index_list + leveraged_etfs + sp_500.tolist()
-    from_stamp, to_stamp = generate_dates()
+    from_stamp, to_stamp = generate_dates(date)
     aggregates, error_list = call_polygon(full_list, from_stamp, to_stamp, timespan="day", multiplier="1")
     day_aggrgegates, error_list = call_polygon(full_list, from_stamp, to_stamp, timespan="minute", multiplier="30")
     full_aggregates = build_full_df(aggregates, day_aggrgegates, to_stamp)
@@ -36,8 +36,9 @@ def analytics_runner(event, context):
             continue
     return put_response
 
-def generate_dates():
-    now = datetime.now()
+def generate_dates(date):
+    now = date
+    # now = datetime.now()
     start = now - timedelta(weeks=6)
     to_stamp = now.strftime("%Y-%m-%d")
     from_stamp = start.strftime("%Y-%m-%d")
@@ -57,6 +58,7 @@ def build_alerts(df):
     return {"all_alerts":alerts,"gainers": gainers, "losers": losers, "gt":gt, "lt":lt, "most_actives":most_active, "vdiff":volume_diff}
 
 def build_full_df(aggregates, day_aggregates, to_stamp):
+    print(aggregates)
     symbols_list = aggregates["symbol"].unique()
     temp_dfs = []
     for symbol in symbols_list:
@@ -79,4 +81,18 @@ def build_full_df(aggregates, day_aggregates, to_stamp):
 
 
 if __name__ == "__main__":
-    analytics_runner("event", "context")
+    start_date = datetime(2023,6,12)
+    analytics_runner(None,None,start_date)
+    # end_date = datetime(2023,6,16)
+    # date_diff = end_date - start_date
+    # numdays = date_diff.days 
+    # date_list = []
+    # print(numdays)
+    # for x in range (0, numdays):
+    #     temp_date = start_date + timedelta(days = x)
+    #     if temp_date.weekday() < 5:
+    #         # date_str = temp_date.strftime("%Y/%m/%d")
+    #         date_list.append(temp_date)
+
+    # for date in date_list:
+    #     analytics_runner(None,None,date)
