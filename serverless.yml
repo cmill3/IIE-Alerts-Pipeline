@@ -1,4 +1,4 @@
-service: icarus-trading-engine
+service: inv-alerts-pipeline
 configValidationMode: warn
 frameworkVersion: '3'
 
@@ -57,7 +57,7 @@ stepFunctions:
         States:
           analytics-production-line:
             Type: Task
-            Resource: arn:aws:lambda:us-east-1:456201388658:inv-analytics-production-line
+            Resource: arn:aws:lambda:us-east-1:456201388658:function:inv-analytics-production-line
             Retry:
             - ErrorEquals:
               - Lambda.ServiceException

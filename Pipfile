@@ -8,6 +8,7 @@ pandas = "*"
 boto3 = "*"
 requests = "*"
 pandas-ta = "*"
+xgboost = "*"
 
 [dev-packages]
 
