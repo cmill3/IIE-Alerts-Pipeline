@@ -16,12 +16,13 @@ now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 
 logger = logging.getLogger()
 
-def analytics_runner(event, context, date):
+def analytics_runner(event, context):
     s3 = get_s3_client()
     sp_500 = pull_files_s3(s3, "icarus-research-data", "index_lists/S&P500.csv")
     full_list = index_list + leveraged_etfs + sp_500.tolist()
+    date = datetime.now()
     from_stamp, to_stamp = generate_dates(date)
-    hour = date.hour
+    hour = (date.hour - 4)
     aggregates, error_list = call_polygon(full_list, from_stamp, to_stamp, timespan="day", multiplier="1")
     logger.info(f"Error list: {error_list}")
     analytics = build_analytics(aggregates, get_pcr, hour)

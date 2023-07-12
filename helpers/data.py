@@ -164,8 +164,6 @@ def calc_vdiff(row):
         return 0.111021999
     
 def calc_vdiff_pipeline(volumes, hour):
-    print(volumes)
-    print(hour)
     metrics = []
     for index ,v in enumerate(volumes):
         if index == 0 or index == 1:
@@ -177,24 +175,8 @@ def calc_vdiff_pipeline(volumes, hour):
             v_avg = (v/(abs(9-hour)+1))
             v_diff_pct = (v_avg - v_1_avg) / v_1_avg
             metrics.append(v_diff_pct)
-        print(v)
-    # v = row.v[-1]
-    # v_1 = row.v[-2]
-    # v_1_avg = (v_1/7)
-    # v_avg = (v/(abs(9-row['hour'])+1))
-    # v_diff_pct = (v_avg - v_1_avg) / v_1_avg
     return metrics
-    # try:
-    #     v = row.v[-1]
-    #     v_1 = row.v[-2]
-    #     v_1_avg = (v_1/7)
-    #     v_avg = (v/(abs(9-row['hour'])+1))
-    #     v_diff_pct = (v_avg - v_1_avg) / v_1_avg
-    #     return v_diff_pct
-    # except Exception as e:
-    #     print(e)
-    #     print(row['symbol'],"vDiff")
-    #     return 0.111021999
+   
 
 def build_analytics(aggregates, pcr_func, hour):
     indicators = []
@@ -214,71 +196,41 @@ def build_analytics(aggregates, pcr_func, hour):
     #         print(e)
     #         continue
 
-        # try: 
-        #     d['price7'] = ta.slope(d['c'],7)    
-        #     d['price14'] = ta.slope(d['c'],14) 
-        #     d['vol7'] = ta.slope(d['v'],7)    
-        #     d['vol14'] = ta.slope(d['v'],14)
-        #     d['volume_10MA'] = d['v'].rolling(10).mean()
-        #     d['volume_25MA'] = d['v'].rolling(25).mean()
-        #     d['price_10MA'] = d['c'].rolling(10).mean()
-        #     d['price_25MA'] = d['c'].rolling(25).mean()
-        #     d['volume_10DDiff'] = d.apply(lambda x: x.v - x.volume_10MA, axis=1)
-        #     d['volume_25DDiff'] = d.apply(lambda x: x.v - x.volume_25MA, axis=1)
-        #     d['price_10DDiff'] = d.apply(lambda x: x.c - x.price_10MA, axis=1)
-        #     d['price_25DDiff'] = d.apply(lambda x: x.c - x.price_25MA, axis=1)
-        #     d['rsi'] = ta.rsi(d['c'])
-        #     d['roc'] = ta.roc(d['c'])
-        #     d['roc3'] = ta.roc(d['c'],length=3)
-        #     d['roc5'] = ta.roc(d['c'],length=5)
-        #     d['cmf'] = ta.cmf(d['h'], d['l'], d['c'], d['v'])
-        #     d['close_diff'] = ((d['c'] - d['c'].shift(1))/d['c'].shift(1))*100
-        #     d['v_diff_pct'] = d.apply(calc_vdiff_pipeline, axis=1).apply(pd.Series)
-        #     try:
-        #         pcr_list = pcr_func(d['symbol'],10,d['date'])
-        #         d['PCR'] = pcr_list
-        #     except Exception as e:
-        #         print(f"Error: {e}")
-        #         d['PCR'] = 111
-        #     adx = ta.adx(d['h'],d['l'],d['c'])
-        #     d['adx'] = adx['ADX_14']
-        #     # macd = ta.macd(d['c'])
-        #     # d['macd'] = macd.MACD_12_26_9
-        #     indicators.append(d)
-        # except Exception as e:
-        #     continue
-        #     print(f"Error: {e}")
-        
-        d['price7'] = ta.slope(d['c'],7)    
-        d['price14'] = ta.slope(d['c'],14) 
-        d['vol7'] = ta.slope(d['v'],7)    
-        d['vol14'] = ta.slope(d['v'],14)
-        d['volume_10MA'] = d['v'].rolling(10).mean()
-        d['volume_25MA'] = d['v'].rolling(25).mean()
-        d['price_10MA'] = d['c'].rolling(10).mean()
-        d['price_25MA'] = d['c'].rolling(25).mean()
-        d['volume_10DDiff'] = d.apply(lambda x: x.v - x.volume_10MA, axis=1)
-        d['volume_25DDiff'] = d.apply(lambda x: x.v - x.volume_25MA, axis=1)
-        d['price_10DDiff'] = d.apply(lambda x: x.c - x.price_10MA, axis=1)
-        d['price_25DDiff'] = d.apply(lambda x: x.c - x.price_25MA, axis=1)
-        d['rsi'] = ta.rsi(d['c'])
-        d['roc'] = ta.roc(d['c'])
-        d['roc3'] = ta.roc(d['c'],length=3)
-        d['roc5'] = ta.roc(d['c'],length=5)
-        d['cmf'] = ta.cmf(d['h'], d['l'], d['c'], d['v'])
-        d['close_diff'] = ((d['c'] - d['c'].shift(1))/d['c'].shift(1))*100
-        d['v_diff_pct'] = calc_vdiff_pipeline(d['v'].tolist(), hour)
-        try:
-            pcr_list = pcr_func(d['symbol'],10,d['date'])
-            d['PCR'] = pcr_list
+        try: 
+            d['price7'] = ta.slope(d['c'],7)    
+            d['price14'] = ta.slope(d['c'],14) 
+            d['vol7'] = ta.slope(d['v'],7)    
+            d['vol14'] = ta.slope(d['v'],14)
+            d['volume_10MA'] = d['v'].rolling(10).mean()
+            d['volume_25MA'] = d['v'].rolling(25).mean()
+            d['price_10MA'] = d['c'].rolling(10).mean()
+            d['price_25MA'] = d['c'].rolling(25).mean()
+            d['volume_10DDiff'] = d.apply(lambda x: x.v - x.volume_10MA, axis=1)
+            d['volume_25DDiff'] = d.apply(lambda x: x.v - x.volume_25MA, axis=1)
+            d['price_10DDiff'] = d.apply(lambda x: x.c - x.price_10MA, axis=1)
+            d['price_25DDiff'] = d.apply(lambda x: x.c - x.price_25MA, axis=1)
+            d['rsi'] = ta.rsi(d['c'])
+            d['roc'] = ta.roc(d['c'])
+            d['roc3'] = ta.roc(d['c'],length=3)
+            d['roc5'] = ta.roc(d['c'],length=5)
+            d['cmf'] = ta.cmf(d['h'], d['l'], d['c'], d['v'])
+            d['close_diff'] = ((d['c'] - d['c'].shift(1))/d['c'].shift(1))*100
+            d['v_diff_pct'] = calc_vdiff_pipeline(d['v'].tolist(), hour)
+            try:
+                pcr_list = pcr_func(d['symbol'],10,d['date'])
+                d['PCR'] = pcr_list
+            except Exception as e:
+                print(f"Error: {e}, PCR")
+                d['PCR'] = 111
+            adx = ta.adx(d['h'],d['l'],d['c'])
+            d['adx'] = adx['ADX_14']
+            # macd = ta.macd(d['c'])
+            # d['macd'] = macd.MACD_12_26_9
+            indicators.append(d)
         except Exception as e:
             print(f"Error: {e}")
-            d['PCR'] = 111
-        adx = ta.adx(d['h'],d['l'],d['c'])
-        d['adx'] = adx['ADX_14']
-        # macd = ta.macd(d['c'])
-        # d['macd'] = macd.MACD_12_26_9
-        indicators.append(d)
+            continue
+        
         
     
     df = pd.concat(indicators).round(3)
