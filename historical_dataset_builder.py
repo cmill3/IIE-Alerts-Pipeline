@@ -113,8 +113,8 @@ def pull_df(date_stamp, prefix, hour):
 
 
 if __name__ == "__main__":
-    start_date = datetime(2022,5,27)
-    end_date = datetime(2022,7,1)
+    start_date = datetime(2022,7,14)
+    end_date = datetime(2023,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []

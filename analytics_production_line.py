@@ -21,16 +21,15 @@ def analytics_runner(event, context, date):
     sp_500 = pull_files_s3(s3, "icarus-research-data", "index_lists/S&P500.csv")
     full_list = index_list + leveraged_etfs + sp_500.tolist()
     from_stamp, to_stamp = generate_dates(date)
+    hour = date.hour
     aggregates, error_list = call_polygon(full_list, from_stamp, to_stamp, timespan="day", multiplier="1")
-    day_aggrgegates, error_list = call_polygon(full_list, from_stamp, to_stamp, timespan="minute", multiplier="30")
-    full_aggregates = build_full_df(aggregates, day_aggrgegates, to_stamp)
     logger.info(f"Error list: {error_list}")
-    analytics = build_analytics(full_aggregates, get_pcr)
+    analytics = build_analytics(aggregates, get_pcr, hour)
     alerts_dict = build_alerts(analytics)
     for key, value in alerts_dict.items():
         try:
             csv = value.to_csv()
-            put_response = s3.put_object(Bucket=alerts_bucket, Key=f"inv_alerts/{key}/{now_str}.csv", Body=csv)
+            put_response = s3.put_object(Bucket=alerts_bucket, Key=f"{key}/{now_str}.csv", Body=csv)
         except ClientError as e:
             logging.error(f"error for {key} :{e})")
             continue
@@ -48,14 +47,15 @@ def build_alerts(df):
     alerts = df.groupby("symbol").tail(1)
     c_sorted = alerts.sort_values(by="close_diff", ascending=False)
     v_sorted = alerts.sort_values(by="v", ascending=False)
-    vdiff_sorted = alerts.sort_values(by="volume_diff", ascending=False)
+    vdiff_sorted = alerts.sort_values(by="v_diff_pct", ascending=False)
     gainers = c_sorted.head(50)
     losers = c_sorted.tail(50)
     gt = c_sorted.loc[c_sorted["close_diff"] > 0.025]
     lt = c_sorted.loc[c_sorted["close_diff"] < -0.025]
     most_active = v_sorted.head(50)
-    volume_diff = vdiff_sorted.head(50)
-    return {"all_alerts":alerts,"gainers": gainers, "losers": losers, "gt":gt, "lt":lt, "most_actives":most_active, "vdiff":volume_diff}
+    volume_gain = vdiff_sorted.head(50)
+    volume_loss = vdiff_sorted.tail(50)
+    return {"all_alerts":alerts,"gainers": gainers, "losers": losers, "gt":gt, "lt":lt, "most_actives":most_active, "vdiff_gain":volume_gain, "vdiff_loss":volume_loss}
 
 def build_full_df(aggregates, day_aggregates, to_stamp):
     print(aggregates)
@@ -81,7 +81,8 @@ def build_full_df(aggregates, day_aggregates, to_stamp):
 
 
 if __name__ == "__main__":
-    start_date = datetime(2023,6,12)
+    start_date = datetime.now()
+    print(start_date)
     analytics_runner(None,None,start_date)
     # end_date = datetime(2023,6,16)
     # date_diff = end_date - start_date
