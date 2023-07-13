@@ -31,7 +31,7 @@ def get_pcr(symbol, window, dates):
     return raw_list
 
 def get_pcr_historic(symbol, window, dates):
-    symbol = symbol.iloc[0]['v']
+    symbol = symbol.iloc[0]
     pcr_dates = format_pcr_dates(dates)
     url = f"https://www.alphaquery.com/data/option-statistic-chart?ticker={symbol}\
         &perType={window}-Day&identifier=put-call-ratio-volume"
@@ -48,9 +48,10 @@ def get_pcr_historic(symbol, window, dates):
     return raw_list
 
 def calc_price_action(row):
-    from_stamp = row['date'].split(" ")[0]
-    to_date = datetime.strptime(from_stamp, '%Y-%m-%d') + timedelta(days=7)
+    # from_stamp = row['date'].split(" ")[0]
+    to_date = row['date'] + timedelta(days=7)
     to_stamp = to_date.strftime("%Y-%m-%d")
+    from_stamp = row['date'].strftime("%Y-%m-%d")
     aggs = call_polygon_hist([row['symbol']], from_stamp, to_stamp, "hour", 1)
     one_day, three_day = build_date_dfs(aggs, row['t'])
     open = one_day.head(1)['o'].values[0]
@@ -66,7 +67,7 @@ def calc_price_action(row):
     three_high = (three_h - open)/ open
     three_low = (three_l - open)/ open
     three_pct = (three_c - row['c'])/row['c']
-    return one_high, one_low, one_pct, three_high, three_low, three_pct
+    return {"one_max": one_high, "one_min": one_low, "one_pct": one_pct, "three_max": three_high, "three_min": three_low, "three_pct": three_pct}
 
 def build_date_dfs(df, t):
     dt = df["date"].iloc[0]
@@ -92,7 +93,7 @@ def determine_num_days(dt):
     if day_of_week == 4:
         return 3,4,5
 
-def call_polygon(symbol_list, from_stamp, to_stamp, timespan, multiplier):
+def call_polygon(symbol_list, from_stamp, to_stamp, timespan, multiplier, hour):
     payload={}
     headers = {}
     dfs = []
@@ -116,7 +117,7 @@ def call_polygon(symbol_list, from_stamp, to_stamp, timespan, multiplier):
         results_df = pd.DataFrame(results)
         results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
         results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
-        results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
+        results_df['hour'] = hour
         results_df['symbol'] = symbol
         dfs.append(results_df)
 
@@ -205,10 +206,10 @@ def build_analytics(aggregates, pcr_func, hour):
             d['volume_25MA'] = d['v'].rolling(25).mean()
             d['price_10MA'] = d['c'].rolling(10).mean()
             d['price_25MA'] = d['c'].rolling(25).mean()
-            d['volume_10DDiff'] = d.apply(lambda x: x.v - x.volume_10MA, axis=1)
-            d['volume_25DDiff'] = d.apply(lambda x: x.v - x.volume_25MA, axis=1)
-            d['price_10DDiff'] = d.apply(lambda x: x.c - x.price_10MA, axis=1)
-            d['price_25DDiff'] = d.apply(lambda x: x.c - x.price_25MA, axis=1)
+            d['volume_10DDiff'] = d.apply(lambda x: ((x.v - x.volume_10MA)/x.volume_10MA)*100, axis=1)
+            d['volume_25DDiff'] = d.apply(lambda x: ((x.v - x.volume_25MA)/x.volume_25MA)*100, axis=1)
+            d['price_10DDiff'] = d.apply(lambda x: ((x.c - x.price_10MA)/x.price_10MA)*100, axis=1)
+            d['price_25DDiff'] = d.apply(lambda x: ((x.c - x.price_25MA)/x.price_25MA)*100, axis=1)
             d['rsi'] = ta.rsi(d['c'])
             d['roc'] = ta.roc(d['c'])
             d['roc3'] = ta.roc(d['c'],length=3)
