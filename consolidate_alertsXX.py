@@ -81,29 +81,34 @@ logger = logging.getLogger()
     
 #     return put_response
 
-def build_historic_data(event, context):
-    date_str = event["date"]
-    hour = event["hour"]
-    distibuted_number = 1
-    key_str = date_str.replace("-","/")
+def alerts_consolidation(date):
+    # date_str = event["date"]
+    # hour = event["hour"]
+    distibuted_numbers = [1,2,3,4,5,6,7,8,9,10]
+    hours = ["10","11","12","13","14","15"]
+    # key_str = date_str.replace("-","/")
     s3 = get_s3_client()
-    sp_500 = pull_files_s3(s3, "icarus-research-data", "index_lists/S&P500.csv")
-    full_list = index_list + leveraged_etfs + sp_500.tolist()
-    from_stamp, to_stamp, _ = generate_dates_historic(date_str)
-    aggregates, error_list = call_polygon_hist(full_list[0:100], from_stamp, to_stamp, timespan="day", multiplier="1",hour=hour)
-    logger.info(f"Error list: {error_list}")
-    analytics = build_analytics(aggregates, get_pcr_historic, hour)
-    distibuted_alert = build_price_action(analytics)
-    csv = distibuted_alert.to_csv()
-    put_response = s3.put_object(Bucket="inv-alerts", Key=f"distributed_alerts/{key_str}/{hour}_{distibuted_number}.csv", Body=csv)
-    # for key, df in alerts_dict.items():
-    #     try:
-    #         csv = df.to_csv()
-    #         put_response = s3.put_object(Bucket="inv-alerts", Key=f"{key}/{key_str}/{hour}.csv", Body=csv)
-    #         put_response = s3.put_object(Bucket="icarus-research-data", Key=f"inv_alerts_with_price_expanded/{key}/{key_str}/{hour}.csv", Body=csv)
-    #     except ClientError as e:
-    #         logging.error(f"error for {key} :{e})")
-    #         continue
+    dfs = []
+    try:
+        for hour in hours:
+            for distibuted_number in distibuted_numbers:
+                try:
+                    obj = s3.get_object(Bucket="inv-alerts", Key=f"distributed_alerts/{date}/{hour}_{distibuted_number}.csv")
+                    df = pd.read_csv(obj['Body'])
+                    dfs.append(df)
+                except ClientError as e:
+                    print(f"error for {date}/{hour}_{distibuted_number} :{e})")
+                    continue
+            full_df = pd.concat(dfs)
+            alerts_dict = build_alerts(full_df)
+            for key, df in alerts_dict.items():
+                try:
+                    csv = df.to_csv()
+                    put_response = s3.put_object(Bucket="inv-alerts", Key=f"{key}/{date}/{hour}.csv", Body=csv)
+                    put_response = s3.put_object(Bucket="icarus-research-data", Key=f"inv_alerts_with_price_expanded/{key}/{date}/{hour}.csv", Body=csv)
+                except ClientError as e:
+                    print(f"error for {date}/{hour}_{distibuted_number} :{e})")
+                    continue
         # try:
         #     # df[['one_max','one_min','one_pct','three_max','three_min','three_pct']] = df.apply(calc_price_action, axis=1)
         #     result = df.apply(calc_price_action, axis=1)
@@ -125,8 +130,12 @@ def build_historic_data(event, context):
         #     logging.error(f"error for {key} :{e})")
         #     print(f"error for {key} :{e})")
         #     continue
-    return put_response
+        return put_response
+    except:
+        return "NO DATA"
     
+
+
 def generate_dates_historic(date_str):
     end = datetime.strptime(date_str, "%Y-%m-%d")
     start = end - timedelta(weeks=6)
@@ -153,17 +162,17 @@ def build_price_action(df):
 
 def build_alerts(df):
     alerts = df.groupby("symbol").tail(1)
-    alerts.reset_index(drop=True, inplace=True)
-    result = alerts.apply(calc_price_action, axis=1)
-    result.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
-    result.reset_index()
-    price = pd.DataFrame(result.to_list())
-    alerts['one_max'] = price['one_max']
-    alerts['one_min'] = price['one_min']
-    alerts['one_pct'] = price['one_pct']
-    alerts['three_max'] = price['three_max']
-    alerts['three_min'] = price['three_min']
-    alerts['three_pct'] = price['three_pct']
+    # alerts.reset_index(drop=True, inplace=True)
+    # result = alerts.apply(calc_price_action, axis=1)
+    # result.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
+    # result.reset_index()
+    # price = pd.DataFrame(result.to_list())
+    # alerts['one_max'] = price['one_max']
+    # alerts['one_min'] = price['one_min']
+    # alerts['one_pct'] = price['one_pct']
+    # alerts['three_max'] = price['three_max']
+    # alerts['three_min'] = price['three_min']
+    # alerts['three_pct'] = price['three_pct']
     c_sorted = alerts.sort_values(by="close_diff", ascending=False)
     v_sorted = alerts.sort_values(by="v", ascending=False)
     vdiff_sorted = alerts.sort_values(by="v_diff_pct", ascending=False)
@@ -187,8 +196,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2023,1,1)
-    end_date = datetime(2023,7,7)
+    start_date = datetime(2023,7,7)
+    end_date = datetime(2023,7,8)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -196,9 +205,9 @@ if __name__ == "__main__":
     for x in range (0, numdays):
         temp_date = start_date + timedelta(days = x)
         if temp_date.weekday() < 5:
-            date_str = temp_date.strftime("%Y-%m-%d")
+            date_str = temp_date.strftime("%Y/%m/%d")
             date_list.append(date_str)
 
     for date_str in date_list:
         print(date_str)
-        build_historic_data(date_str)
+        alerts_consolidation(date_str)

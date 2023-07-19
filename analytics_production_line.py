@@ -13,6 +13,9 @@ index_list = ["SPY","IVV","VOO","VTI","QQQ","VEA","IEFA","VTV","BND","AGG","VUG"
     "VGT","VXUS","VO","IWM","BNDX","EFA","IWD","VYM","SCHD","XLK","ITOT","VB","VCIT","XLV","TLT","BSV","VCSH","LQD","XLE","VEU","RSP"]
 leveraged_etfs = ["TQQQ","SQQQ","SPXS","SPXL","SOXL","SOXS"]
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
+start_interval = os.getenv("START_RANGE")
+end_interval = os.getenv("END_RANGE")
+distributed_number = os.getenv("DISTRIBUTED_NUMBER")
 
 logger = logging.getLogger()
 
@@ -21,19 +24,14 @@ def analytics_runner(event, context):
     sp_500 = pull_files_s3(s3, "icarus-research-data", "index_lists/S&P500.csv")
     full_list = index_list + leveraged_etfs + sp_500.tolist()
     date = datetime.now()
+    key_str = date.strftime("%Y/%m/%d")
     from_stamp, to_stamp = generate_dates(date)
     hour = (date.hour - 4)
-    aggregates, error_list = call_polygon(full_list, from_stamp, to_stamp, timespan="day", multiplier="1")
+    aggregates, error_list = call_polygon(full_list[int(start_interval):int(end_interval)], from_stamp, to_stamp, timespan="day", multiplier="1")
     logger.info(f"Error list: {error_list}")
     analytics = build_analytics(aggregates, get_pcr, hour)
-    alerts_dict = build_alerts(analytics)
-    for key, value in alerts_dict.items():
-        try:
-            csv = value.to_csv()
-            put_response = s3.put_object(Bucket=alerts_bucket, Key=f"{key}/{now_str}.csv", Body=csv)
-        except ClientError as e:
-            logging.error(f"error for {key} :{e})")
-            continue
+    csv = analytics.to_csv()
+    put_response = s3.put_object(Bucket="inv-alerts", Key=f"distributed_alerts/{key_str}/{hour}_{distributed_number}.csv", Body=csv)
     return put_response
 
 def generate_dates(date):

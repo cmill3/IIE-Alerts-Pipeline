@@ -52,7 +52,7 @@ def calc_price_action(row):
     to_date = row['date'] + timedelta(days=7)
     to_stamp = to_date.strftime("%Y-%m-%d")
     from_stamp = row['date'].strftime("%Y-%m-%d")
-    aggs = call_polygon_hist([row['symbol']], from_stamp, to_stamp, "hour", 1)
+    aggs = call_polygon_price([row['symbol']], from_stamp, to_stamp, "hour", 1)
     one_day, three_day = build_date_dfs(aggs, row['t'])
     open = one_day.head(1)['o'].values[0]
     one_c = one_day.tail(1)['c'].values[0]
@@ -93,7 +93,37 @@ def determine_num_days(dt):
     if day_of_week == 4:
         return 3,4,5
 
-def call_polygon(symbol_list, from_stamp, to_stamp, timespan, multiplier, hour):
+def call_polygon(symbol_list, from_stamp, to_stamp, timespan, multiplier):
+    payload={}
+    headers = {}
+    dfs = []
+    
+    key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
+    error_list = []
+
+    if timespan == "minute":
+        from_stamp = to_stamp
+    for symbol in symbol_list:
+        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+
+        response = requests.request("GET", url, headers=headers, data=payload)
+
+        response_data = json.loads(response.text)
+        try:
+            results = response_data['results']
+        except:
+            error_list.append(symbol)
+            continue
+        results_df = pd.DataFrame(results)
+        results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
+        results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
+        results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
+        results_df['symbol'] = symbol
+        dfs.append(results_df)
+
+    return dfs, error_list
+
+def call_polygon_hist(symbol_list, from_stamp, to_stamp, timespan, multiplier, hour):
     payload={}
     headers = {}
     dfs = []
@@ -123,7 +153,7 @@ def call_polygon(symbol_list, from_stamp, to_stamp, timespan, multiplier, hour):
 
     return dfs, error_list
 
-def call_polygon_hist(symbol, from_stamp, to_stamp, timespan, multiplier):
+def call_polygon_price(symbol, from_stamp, to_stamp, timespan, multiplier):
     payload={}
     headers = {}
     dfs = []
