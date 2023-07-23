@@ -203,13 +203,13 @@ def calc_vdiff_pipeline(volumes, hour):
         else:
             v_1 = volumes[index-1]
             v_1_avg = (v_1/7)
-            v_avg = (v/(abs(9-hour)+1))
+            v_avg = (v/(abs(9-int(hour))+1))
             v_diff_pct = (v_avg - v_1_avg) / v_1_avg
             metrics.append(v_diff_pct)
     return metrics
    
 
-def build_analytics(aggregates, pcr_func, hour):
+def build_analytics(aggregates, hour):
     indicators = []
     for d in aggregates:
     #     try:
@@ -227,6 +227,26 @@ def build_analytics(aggregates, pcr_func, hour):
     #         print(e)
     #         continue
 
+        # d['price7'] = ta.slope(d['c'],7)    
+        # d['price14'] = ta.slope(d['c'],14) 
+        # d['vol7'] = ta.slope(d['v'],7)    
+        # d['vol14'] = ta.slope(d['v'],14)
+        # d['volume_10MA'] = d['v'].rolling(10).mean()
+        # d['volume_25MA'] = d['v'].rolling(25).mean()
+        # d['price_10MA'] = d['c'].rolling(10).mean()
+        # d['price_25MA'] = d['c'].rolling(25).mean()
+        # d['volume_10DDiff'] = d.apply(lambda x: ((x.v - x.volume_10MA)/x.volume_10MA)*100, axis=1)
+        # d['volume_25DDiff'] = d.apply(lambda x: ((x.v - x.volume_25MA)/x.volume_25MA)*100, axis=1)
+        # d['price_10DDiff'] = d.apply(lambda x: ((x.c - x.price_10MA)/x.price_10MA)*100, axis=1)
+        # d['price_25DDiff'] = d.apply(lambda x: ((x.c - x.price_25MA)/x.price_25MA)*100, axis=1)
+        # d['rsi'] = ta.rsi(d['c'])
+        # d['roc'] = ta.roc(d['c'])
+        # d['roc3'] = ta.roc(d['c'],length=3)
+        # d['roc5'] = ta.roc(d['c'],length=5)
+        # d['cmf'] = ta.cmf(d['h'], d['l'], d['c'], d['v'])
+        # d['close_diff'] = ((d['c'] - d['c'].shift(1))/d['c'].shift(1))*100
+        # d['v_diff_pct'] = calc_vdiff_pipeline(d['v'].tolist(), hour)
+        # indicators.append(d)
         try: 
             d['price7'] = ta.slope(d['c'],7)    
             d['price14'] = ta.slope(d['c'],14) 
@@ -247,12 +267,6 @@ def build_analytics(aggregates, pcr_func, hour):
             d['cmf'] = ta.cmf(d['h'], d['l'], d['c'], d['v'])
             d['close_diff'] = ((d['c'] - d['c'].shift(1))/d['c'].shift(1))*100
             d['v_diff_pct'] = calc_vdiff_pipeline(d['v'].tolist(), hour)
-            try:
-                pcr_list = pcr_func(d['symbol'],10,d['date'])
-                d['PCR'] = pcr_list
-            except Exception as e:
-                print(f"Error: {e}, PCR")
-                d['PCR'] = 111
             adx = ta.adx(d['h'],d['l'],d['c'])
             d['adx'] = adx['ADX_14']
             # macd = ta.macd(d['c'])
