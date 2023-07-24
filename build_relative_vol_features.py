@@ -27,6 +27,12 @@ def pull_files_s3(s3, bucket, key):
     data = pd.read_csv(response.get("Body"))
     return data['Unnamed: 0'].values[1:]
 
+def add_std_dev()
+    obj = s3.get_object(Bucket="icarus-research-data", Key=f"backtesting_data/inv_alerts/priceFeaturesnoPCR/{strategy}/{key}")
+    data = pd.read_csv(obj.get("Body"))
+    objstd = s3.get_object(Bucket="icarus-research-data", Key=f"backtesting_data/inv_alerts/priceFeaturesnoPCR/{strategy}/{key}")
+    datastd = pd.read_csv(obj.get("Body"))
+
 def generate_volatility_features(row):
     try:
         to_stamp = datetime.strptime(row['date'], '%Y-%m-%d %H:%M:%S')
@@ -137,8 +143,8 @@ def build_alerts(alerts):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2022,10,24)
-    end_date = datetime(2023,1,1)
+    start_date = datetime(2022,9,26)
+    end_date = datetime(2022,10,24)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -149,6 +155,6 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(build_relative_volatility_features, date_str) for date_str in date_list]

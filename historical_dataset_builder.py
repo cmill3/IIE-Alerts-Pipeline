@@ -25,33 +25,33 @@ now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
 
-# def build_historic_data(event, context):
-#     date_str = event["date"]
-#     hour = event["hour"]
-#     # date_str = "2022-07-29"
-#     key_str = date_str.replace("-","/")
-#     s3 = get_s3_client()
-#     sp_500 = pull_files_s3(s3, "icarus-research-data", "index_lists/S&P500.csv")
-#     full_list = index_list + leveraged_etfs + sp_500.tolist()
-#     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
-#     try:
-#         aggregates, error_list = call_polygon(full_list, from_stamp, to_stamp, timespan="day", multiplier="1")
-#         hour_aggregates, err = call_polygon(full_list, hour_stamp, hour_stamp, timespan="hour", multiplier="1")
-#         hour_df = pd.concat(hour_aggregates)
-#         logger.info(f"Error list: {error_list}")
-#     except Exception as e: 
-#         return "no records"
-#     # for hour in hours:
-#     analytics = build_analytics(aggregates, hour_df, hour, get_pcr_historic)
-#     alerts_dict = build_alerts(analytics)
-#     for key, value in alerts_dict.items():
-#         try:
-#             csv = value.to_csv()
-#             put_response = s3.put_object(Bucket=alerts_bucket, Key=f"inv_alerts/{key}/{key_str}/{hour}.csv", Body=csv)
-#         except ClientError as e:
-#             logging.error(f"error for {key} :{e})")
-#             continue
-#     return put_response
+def build_historic_data(event, context):
+    date_str = event["date"]
+    hour = event["hour"]
+    # date_str = "2022-07-29"
+    key_str = date_str.replace("-","/")
+    s3 = get_s3_client()
+    sp_500 = pull_files_s3(s3, "icarus-research-data", "index_lists/S&P500.csv")
+    full_list = index_list + leveraged_etfs + sp_500.tolist()
+    from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
+    try:
+        aggregates, error_list = call_polygon(full_list, from_stamp, to_stamp, timespan="day", multiplier="1")
+        hour_aggregates, err = call_polygon(full_list, hour_stamp, hour_stamp, timespan="hour", multiplier="1")
+        hour_df = pd.concat(hour_aggregates)
+        logger.info(f"Error list: {error_list}")
+    except Exception as e: 
+        return "no records"
+    # for hour in hours:
+    analytics = build_analytics(aggregates, hour_df, hour, get_pcr_historic)
+    alerts_dict = build_alerts(analytics)
+    for key, value in alerts_dict.items():
+        try:
+            csv = value.to_csv()
+            put_response = s3.put_object(Bucket=alerts_bucket, Key=f"inv_alerts/{key}/{key_str}/{hour}.csv", Body=csv)
+        except ClientError as e:
+            logging.error(f"error for {key} :{e})")
+            continue
+    return put_response
 
 # def run(date_stamp):
 #     # date_stamp = event['date']
