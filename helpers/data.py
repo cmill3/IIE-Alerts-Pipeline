@@ -67,7 +67,8 @@ def calc_price_action(row):
     three_high = (three_h - open)/ open
     three_low = (three_l - open)/ open
     three_pct = (three_c - row['c'])/row['c']
-    return {"one_max": one_high, "one_min": one_low, "one_pct": one_pct, "three_max": three_high, "three_min": three_low, "three_pct": three_pct}
+    return one_high, one_low, one_pct, three_high, three_low, three_pct
+    # return {"one_max": one_high, "one_min": one_low, "one_pct": one_pct, "three_max": three_high, "three_min": three_low, "three_pct": three_pct}
 
 def build_date_dfs(df, t):
     dt = df["date"].iloc[0]
@@ -123,7 +124,7 @@ def call_polygon(symbol_list, from_stamp, to_stamp, timespan, multiplier):
 
     return dfs, error_list
 
-def call_polygon_hist(symbol_list, from_stamp, to_stamp, timespan, multiplier, hour):
+def call_polygon_hist(symbol_list, from_stamp, to_stamp, timespan, multiplier):
     payload={}
     headers = {}
     dfs = []
@@ -147,7 +148,7 @@ def call_polygon_hist(symbol_list, from_stamp, to_stamp, timespan, multiplier, h
         results_df = pd.DataFrame(results)
         results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
         results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
-        results_df['hour'] = hour
+        results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
         results_df['symbol'] = symbol
         dfs.append(results_df)
 
