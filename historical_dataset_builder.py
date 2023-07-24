@@ -11,47 +11,50 @@ import concurrent.futures
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
 
-weekly_expiries = ['SPY', 'IVV', 'QQQ', 'GLD', 'IWM', 'EFA', 'XLK', 'XLV', 'TLT', 'LQD', 'XLE', 'TQQQ', 'SQQQ', 'SPXS', 'SPXL', 'SOXL', 'SOXS', 'MMM', 'ABT', 'ABBV', 'ACN', 'ATVI', 'ADM', 'ADBE', 'ADP', 
-                   'AAP', 'AFL', 'ALB', 'ALGN', 'GOOGL', 'GOOG', 'MO', 'AMZN', 'AMD', 'AAL', 'AXP', 'AIG', 'ABC', 'AMGN', 'ADI', 'APA', 'AAPL', 'AMAT', 'ANET', 'T', 'ADSK', 'BAC', 'BBWI', 'BAX', 'BBY', 'BIIB', 
-                   'BLK', 'BA', 'BKNG', 'BMY', 'AVGO', 'CZR', 'CPB', 'COF', 'CAH', 'KMX', 'CCL', 'CAT', 'CBOE', 'CNC', 'CF', 'SCHW', 'CHTR', 'CVX', 'CMG', 'CI', 'CSCO', 'C', 'CLX', 'CME', 'KO', 'CMCSA', 'CMA', 'CAG', 
-                   'COP', 'STZ', 'GLW', 'COST', 'CTRA', 'CSX', 'CVS', 'DHI', 'DHR', 'DE', 'DAL', 'DVN', 'DLR', 'DFS', 'DISH', 'DIS', 'DG', 'DLTR', 'DPZ', 'DOW', 'DD', 'EBAY', 'EA', 'ELV', 'LLY', 'EMR', 'ENPH', 'EOG', 'EQT', 
-                   'ETSY', 'EXPE', 'XOM', 'FDX', 'FITB', 'FSLR', 'FI', 'F', 'FTNT', 'FOXA', 'FCX', 'GEHC', 'GNRC', 'GD', 'GE', 'GM', 'GILD', 'GS', 'HAL', 'HSY', 'HES', 'HD', 'HON', 'HRL', 'HPQ', 'HUM', 'HBAN', 'IBM', 'ILMN', 
-                   'INTC', 'IP', 'INTU', 'ISRG', 'JNJ', 'JPM', 'JNPR', 'KEY', 'KMB', 'KMI', 'KLAC', 'KHC', 'KR', 'LRCX', 'LVS', 'LEN', 'LMT', 'LOW', 'MRO', 'MPC', 'MAR', 'MA', 'MTCH', 'MCD', 'MCK', 'MDT', 'MRK', 'META', 'MET', 
-                   'MGM', 'MU', 'MSFT', 'MRNA', 'MDLZ', 'MS', 'MOS', 'NTAP', 'NFLX', 'NEM', 'NKE', 'NSC', 'NOC', 'NCLH', 'NUE', 'NVDA', 'NXPI', 'OXY', 'ON', 'ORCL', 'PARA', 'PYPL', 'PEP', 'PFE', 'PCG', 'PM', 'PSX', 'PXD', 'PNC', 
-                   'PPG', 'PG', 'PHM', 'QCOM', 'RTX', 'REGN', 'ROST', 'RCL', 'SPGI', 'CRM', 'SLB', 'STX', 'NOW', 'SWKS', 'SEDG', 'SO', 'LUV', 'SBUX', 'TMUS', 'TROW', 'TTWO', 'TPR', 'TGT', 'TSLA', 'TXN', 'TMO', 'TJX', 'TSCO', 'TFC', 
-                   'TSN', 'USB', 'ULTA', 'UNP', 'UAL', 'UPS', 'URI', 'UNH', 'VLO', 'VZ', 'VRTX', 'VFC', 'V', 'WBA', 'WMT', 'WBD', 'WM', 'WFC', 'WDC', 'WHR', 'WMB', 'WYNN', 'ZION']
+# weekly_expiries = ['SPY', 'IVV', 'QQQ', 'GLD', 'IWM', 'EFA', 'XLK', 'XLV', 'TLT', 'LQD', 'XLE', 'TQQQ', 'SQQQ', 'SPXS', 'SPXL', 'SOXL', 'SOXS', 'MMM', 'ABT', 'ABBV', 'ACN', 'ATVI', 'ADM', 'ADBE', 'ADP', 
+#                    'AAP', 'AFL', 'ALB', 'ALGN', 'GOOGL', 'GOOG', 'MO', 'AMZN', 'AMD', 'AAL', 'AXP', 'AIG', 'ABC', 'AMGN', 'ADI', 'APA', 'AAPL', 'AMAT', 'ANET', 'T', 'ADSK', 'BAC', 'BBWI', 'BAX', 'BBY', 'BIIB', 
+#                    'BLK', 'BA', 'BKNG', 'BMY', 'AVGO', 'CZR', 'CPB', 'COF', 'CAH', 'KMX', 'CCL', 'CAT', 'CBOE', 'CNC', 'CF', 'SCHW', 'CHTR', 'CVX', 'CMG', 'CI', 'CSCO', 'C', 'CLX', 'CME', 'KO', 'CMCSA', 'CMA', 'CAG', 
+#                    'COP', 'STZ', 'GLW', 'COST', 'CTRA', 'CSX', 'CVS', 'DHI', 'DHR', 'DE', 'DAL', 'DVN', 'DLR', 'DFS', 'DISH', 'DIS', 'DG', 'DLTR', 'DPZ', 'DOW', 'DD', 'EBAY', 'EA', 'ELV', 'LLY', 'EMR', 'ENPH', 'EOG', 'EQT', 
+#                    'ETSY', 'EXPE', 'XOM', 'FDX', 'FITB', 'FSLR', 'FI', 'F', 'FTNT', 'FOXA', 'FCX', 'GEHC', 'GNRC', 'GD', 'GE', 'GM', 'GILD', 'GS', 'HAL', 'HSY', 'HES', 'HD', 'HON', 'HRL', 'HPQ', 'HUM', 'HBAN', 'IBM', 'ILMN', 
+#                    'INTC', 'IP', 'INTU', 'ISRG', 'JNJ', 'JPM', 'JNPR', 'KEY', 'KMB', 'KMI', 'KLAC', 'KHC', 'KR', 'LRCX', 'LVS', 'LEN', 'LMT', 'LOW', 'MRO', 'MPC', 'MAR', 'MA', 'MTCH', 'MCD', 'MCK', 'MDT', 'MRK', 'META', 'MET', 
+#                    'MGM', 'MU', 'MSFT', 'MRNA', 'MDLZ', 'MS', 'MOS', 'NTAP', 'NFLX', 'NEM', 'NKE', 'NSC', 'NOC', 'NCLH', 'NUE', 'NVDA', 'NXPI', 'OXY', 'ON', 'ORCL', 'PARA', 'PYPL', 'PEP', 'PFE', 'PCG', 'PM', 'PSX', 'PXD', 'PNC', 
+#                    'PPG', 'PG', 'PHM', 'QCOM', 'RTX', 'REGN', 'ROST', 'RCL', 'SPGI', 'CRM', 'SLB', 'STX', 'NOW', 'SWKS', 'SEDG', 'SO', 'LUV', 'SBUX', 'TMUS', 'TROW', 'TTWO', 'TPR', 'TGT', 'TSLA', 'TXN', 'TMO', 'TJX', 'TSCO', 'TFC', 
+#                    'TSN', 'USB', 'ULTA', 'UNP', 'UAL', 'UPS', 'URI', 'UNH', 'VLO', 'VZ', 'VRTX', 'VFC', 'V', 'WBA', 'WMT', 'WBD', 'WM', 'WFC', 'WDC', 'WHR', 'WMB', 'WYNN', 'ZION']
 # hours = [10,11,12,13,14,15]
+index_list = ["SPY","IVV","VOO","VTI","QQQ","VEA","IEFA","VTV","BND","AGG","VUG","VWO","IEMG","IWF","VIG","IJH","IJR","GLD",
+    "VGT","VXUS","VO","IWM","BNDX","EFA","IWD","VYM","SCHD","XLK","ITOT","VB","VCIT","XLV","TLT","BSV","VCSH","LQD","XLE","VEU","RSP"]
+leveraged_etfs = ["TQQQ","SQQQ","SPXS","SPXL","SOXL","SOXS"]
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
 
-def build_historic_data(event, context):
-    date_str = event["date"]
-    hour = event["hour"]
-    # date_str = "2022-07-29"
-    key_str = date_str.replace("-","/")
-    s3 = get_s3_client()
-    sp_500 = pull_files_s3(s3, "icarus-research-data", "index_lists/S&P500.csv")
-    full_list = index_list + leveraged_etfs + sp_500.tolist()
-    from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
-    try:
-        aggregates, error_list = call_polygon(full_list, from_stamp, to_stamp, timespan="day", multiplier="1")
-        hour_aggregates, err = call_polygon(full_list, hour_stamp, hour_stamp, timespan="hour", multiplier="1")
-        hour_df = pd.concat(hour_aggregates)
-        logger.info(f"Error list: {error_list}")
-    except Exception as e: 
-        return "no records"
-    # for hour in hours:
-    analytics = build_analytics(aggregates, hour_df, hour, get_pcr_historic)
-    alerts_dict = build_alerts(analytics)
-    for key, value in alerts_dict.items():
-        try:
-            csv = value.to_csv()
-            put_response = s3.put_object(Bucket=alerts_bucket, Key=f"inv_alerts/{key}/{key_str}/{hour}.csv", Body=csv)
-        except ClientError as e:
-            logging.error(f"error for {key} :{e})")
-            continue
-    return put_response
+# def build_historic_data(event, context):
+#     date_str = event["date"]
+#     hour = event["hour"]
+#     # date_str = "2022-07-29"
+#     key_str = date_str.replace("-","/")
+#     s3 = get_s3_client()
+#     sp_500 = pull_files_s3(s3, "icarus-research-data", "index_lists/S&P500.csv")
+#     full_list = index_list + leveraged_etfs + sp_500.tolist()
+#     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
+#     try:
+#         aggregates, error_list = call_polygon(full_list, from_stamp, to_stamp, timespan="day", multiplier="1")
+#         hour_aggregates, err = call_polygon(full_list, hour_stamp, hour_stamp, timespan="hour", multiplier="1")
+#         hour_df = pd.concat(hour_aggregates)
+#         logger.info(f"Error list: {error_list}")
+#     except Exception as e: 
+#         return "no records"
+#     # for hour in hours:
+#     analytics = build_analytics(aggregates, hour_df, hour, get_pcr_historic)
+#     alerts_dict = build_alerts(analytics)
+#     for key, value in alerts_dict.items():
+#         try:
+#             csv = value.to_csv()
+#             put_response = s3.put_object(Bucket=alerts_bucket, Key=f"inv_alerts/{key}/{key_str}/{hour}.csv", Body=csv)
+#         except ClientError as e:
+#             logging.error(f"error for {key} :{e})")
+#             continue
+#     return put_response
 
 # def run(date_stamp):
 #     # date_stamp = event['date']
@@ -141,18 +144,18 @@ def build_historic_data(date_str):
     hours = ["10","11","12","13","14","15"]
     key_str = date_str.replace("-","/")
     s3 = get_s3_client()
-    # sp_500 = pull_files_s3(s3, "icarus-research-data", "index_lists/S&P500.csv")
-    # full_list = index_list + sp_500.tolist()
+    sp_500 = pull_files_s3(s3, "icarus-research-data", "index_lists/S&P500.csv")
+    full_list = index_list + sp_500.tolist() + leveraged_etfs
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
     for hour in hours:
-        aggregates, error_list = call_polygon_hist(weekly_expiries, from_stamp, to_stamp, timespan="day", multiplier="1")
-        hour_aggregates, error_list = call_polygon_hist(weekly_expiries, hour_stamp, hour_stamp, timespan="hour", multiplier="1")
+        aggregates, error_list = call_polygon_hist(full_list, from_stamp, to_stamp, timespan="day", multiplier="1")
+        hour_aggregates, error_list = call_polygon_hist(full_list, hour_stamp, hour_stamp, timespan="hour", multiplier="1")
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
         analytics = build_analytics(full_aggs, hour)
         alerts_dict = build_alerts(analytics)
         for key, df in alerts_dict.items():
             csv = df.to_csv()
-            put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts/{key}/{key_str}/{hour}.csv", Body=csv)
+            put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/{key}/{key_str}/{hour}.csv", Body=csv)
     # for key, df in alerts_dict.items():
     #     try:
     #         csv = df.to_csv()
@@ -214,7 +217,6 @@ def combine_hour_aggs(aggregates, hour_aggregates, hour):
         hour_aggs = hour_aggregates[index]
         hour_aggs = hour_aggs.loc[hour_aggs["hour"] > 9]
         hour_aggs = hour_aggs.loc[hour_aggs["hour"] <= int(hour)]
-        print(hour_aggs)
         volume = hour_aggs.v.sum()
         open = hour_aggs.o.iloc[0]
         close = hour_aggs.c.iloc[-1]
@@ -225,7 +227,6 @@ def combine_hour_aggs(aggregates, hour_aggregates, hour):
         hour_dict = {"v": volume, "vw":0, "o":open, "c":close, "h":high, "l":low, "t":t,"n":n,"date":hour_aggs.date.iloc[-1],"hour":hour,"symbol":hour_aggs.symbol.iloc[-1]}
         aggs_list = [volume, 0, open, close, high, low, t, n, hour_aggs.date.iloc[-1], hour, hour_aggs.symbol.iloc[-1]]
         value.loc[len(value)] = aggs_list
-        print(value)
         full_aggs.append(value)
     return full_aggs
 
@@ -265,8 +266,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2022,8,9)
-    end_date = datetime(2023,7,15)
+    start_date = datetime(2021,1,1)
+    end_date = datetime(2023,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -280,6 +281,6 @@ if __name__ == "__main__":
     # for date_str in date_list:
     #     build_historic_data(date_str)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(build_historic_data, date_str) for date_str in date_list]

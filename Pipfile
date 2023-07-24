@@ -10,6 +10,7 @@ requests = "*"
 pandas-ta = "*"
 xgboost = "*"
 numpy = "*"
+yahooquery = "*"
 
 [dev-packages]
 
