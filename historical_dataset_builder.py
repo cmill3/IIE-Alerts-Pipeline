@@ -146,6 +146,10 @@ def build_historic_data(date_str):
     s3 = get_s3_client()
     sp_500 = pull_files_s3(s3, "icarus-research-data", "index_lists/S&P500.csv")
     full_list = index_list + sp_500.tolist() + leveraged_etfs
+    full_list.remove("AXON")
+    full_list.remove("OGN")
+    full_list.remove("BBWI")
+    full_list.remove("META")
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
     for hour in hours:
         aggregates, error_list = call_polygon_hist(full_list, from_stamp, to_stamp, timespan="day", multiplier="1")
@@ -266,8 +270,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2021,1,1)
-    end_date = datetime(2023,1,1)
+    start_date = datetime(2020,1,1)
+    end_date = datetime(2021,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -281,6 +285,6 @@ if __name__ == "__main__":
     # for date_str in date_list:
     #     build_historic_data(date_str)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(build_historic_data, date_str) for date_str in date_list]
