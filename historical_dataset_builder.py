@@ -1,6 +1,6 @@
 import json
 from helpers.aws import pull_files_s3, get_s3_client
-from helpers.data import call_polygon_hist, build_analytics, get_pcr_historic, calc_price_action, calc_vdiff
+from helpers.data import call_polygon_hist, build_analytics, get_pcr_historic, calc_price_action, calc_vdiff, build_new_price_features
 from datetime import datetime, timedelta
 import os
 import pandas as pd
@@ -152,14 +152,27 @@ def build_historic_data(date_str):
     full_list.remove("META")
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
     for hour in hours:
+        df = pull_df(key_str,"fixed_alerts_full/",hour)
         aggregates, error_list = call_polygon_hist(full_list, from_stamp, to_stamp, timespan="day", multiplier="1")
         hour_aggregates, error_list = call_polygon_hist(full_list, hour_stamp, hour_stamp, timespan="hour", multiplier="1")
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
-        analytics = build_analytics(full_aggs, hour)
-        alerts_dict = build_alerts(analytics)
+        spy_agg, error_list = call_polygon_hist(["SPY"], from_stamp, to_stamp, timespan="day", multiplier="1")
+        spy_aggH, error_list = call_polygon_hist(["SPY"], hour_stamp, hour_stamp, timespan="hour", multiplier="1")
+        spy_aggs = combine_hour_aggs(spy_agg, spy_aggH, hour)
+        # spy_aggs = full_aggs.loc[full_aggs['symbol']=="SPY"]
+        new_df = build_new_price_features(full_aggs, spy_aggs)
+        new_df.reset_index(drop=True, inplace=True)
+        df['rsi3'] = new_df['rsi3']
+        df['rsi5'] = new_df['rsi5']
+        df['close_diff3'] = new_df['close_diff3']
+        df['close_diff5'] = new_df['close_diff5']
+        df['SPY_diff'] = new_df['SPY_diff']
+        df['SPY_diff3'] = new_df['SPY_diff3']
+        df['SPY_diff5'] = new_df['SPY_diff5']
+        alerts_dict = build_alerts(df)
         for key, df in alerts_dict.items():
             csv = df.to_csv()
-            put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/{key}/{key_str}/{hour}.csv", Body=csv)
+            put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/{key}/{key_str}/{hour}.csv", Body=csv)
     # for key, df in alerts_dict.items():
     #     try:
     #         csv = df.to_csv()
@@ -235,13 +248,13 @@ def combine_hour_aggs(aggregates, hour_aggregates, hour):
     return full_aggs
 
 
-def build_alerts(df):
-    alerts = df.groupby("symbol").tail(1)
-    alerts.reset_index(drop=True, inplace=True)
-    price = alerts.apply(calc_price_action, axis=1)
-    price = pd.DataFrame(price.to_list())
-    price.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
-    alerts = alerts.join([price])
+def build_alerts(alerts):
+    # alerts = df.groupby("symbol").tail(1)
+    # alerts.reset_index(drop=True, inplace=True)
+    # price = alerts.apply(calc_price_action, axis=1)
+    # price = pd.DataFrame(price.to_list())
+    # price.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
+    # alerts = alerts.join([price])
     # alerts['one_max'] = price['one_max']
     # alerts['one_min'] = price['one_min']
     # alerts['one_pct'] = price['one_pct']
@@ -261,7 +274,7 @@ def build_alerts(df):
 
 def pull_df(date_stamp, prefix, hour):
     try: 
-        dataset = s3.get_object(Bucket=alerts_bucket, Key=f"{prefix}{date_stamp}/{hour}.csv")
+        dataset = s3.get_object(Bucket="inv-alerts", Key=f"{prefix}all_alerts/{date_stamp}/{hour}.csv")
         df = pd.read_csv(dataset.get("Body"))
     except Exception as e:
         print(f"HERE {e}")
@@ -270,8 +283,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2020,1,1)
-    end_date = datetime(2021,1,1)
+    start_date = datetime(2021,1,2)
+    end_date = datetime(2023,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -283,8 +296,8 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
     # for date_str in date_list:
-    #     build_historic_data(date_str)
+    #     build_historic_data("2023-03-13")
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(build_historic_data, date_str) for date_str in date_list]
