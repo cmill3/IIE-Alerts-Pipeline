@@ -10,7 +10,7 @@ from botocore.exceptions import ClientError
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
 
-weekly_expiries = ['SPY', 'IVV', 'QQQ', 'GLD', 'IWM', 'EFA', 'XLK', 'XLV', 'TLT', 'LQD', 'XLE', 'TQQQ', 'SQQQ', 'SPXS', 'SPXL', 'SOXL', 'SOXS', 'MMM', 'ABT', 'ABBV', 'ACN', 'ATVI', 'ADM', 'ADBE', 'ADP', 
+weekly_expiries = ['SPY', 'IVV', 'QQQ', 'GLD', 'IWM', 'EFA', 'XLK', 'XLV', 'TLT', 'LQD', 'XLE', 'MMM', 'ABT', 'ABBV', 'ACN', 'ATVI', 'ADM', 'ADBE', 'ADP', 
                    'AAP', 'AFL', 'ALB', 'ALGN', 'GOOGL', 'GOOG', 'MO', 'AMZN', 'AMD', 'AAL', 'AXP', 'AIG', 'ABC', 'AMGN', 'ADI', 'APA', 'AAPL', 'AMAT', 'ANET', 'T', 'ADSK', 'BAC', 'BBWI', 'BAX', 'BBY', 'BIIB', 
                    'BLK', 'BA', 'BKNG', 'BMY', 'AVGO', 'CZR', 'CPB', 'COF', 'CAH', 'KMX', 'CCL', 'CAT', 'CBOE', 'CNC', 'CF', 'SCHW', 'CHTR', 'CVX', 'CMG', 'CI', 'CSCO', 'C', 'CLX', 'CME', 'KO', 'CMCSA', 'CMA', 'CAG', 
                    'COP', 'STZ', 'GLW', 'COST', 'CTRA', 'CSX', 'CVS', 'DHI', 'DHR', 'DE', 'DAL', 'DVN', 'DLR', 'DFS', 'DISH', 'DIS', 'DG', 'DLTR', 'DPZ', 'DOW', 'DD', 'EBAY', 'EA', 'ELV', 'LLY', 'EMR', 'ENPH', 'EOG', 'EQT', 
@@ -47,16 +47,16 @@ def alerts_consolidation(event, context):
     return put_response
 
 def build_alerts(df):
-    alerts = alerts.loc[alerts["symbol"].isin(weekly_expiries)]
     alerts = df.groupby("symbol").tail(1)
+    alerts = alerts.loc[alerts["symbol"].isin(weekly_expiries)]
     c_sorted = alerts.sort_values(by="close_diff", ascending=False)
     v_sorted = alerts.sort_values(by="v", ascending=False)
     vdiff_sorted = alerts.sort_values(by="v_diff_pct", ascending=False)
-    gainers = c_sorted.head(50)
-    losers = c_sorted.tail(50)
+    gainers = c_sorted.head(30)
+    losers = c_sorted.tail(30)
     gt = c_sorted.loc[c_sorted["close_diff"] > 0.025]
     lt = c_sorted.loc[c_sorted["close_diff"] < -0.025]
-    most_active = v_sorted.head(50)
-    volume_gain = vdiff_sorted.head(50)
-    volume_loss = vdiff_sorted.tail(50)
+    most_active = v_sorted.head(30)
+    volume_gain = vdiff_sorted.head(30)
+    volume_loss = vdiff_sorted.tail(30)
     return {"all_alerts":alerts, "gainers": gainers, "losers": losers, "gt":gt, "lt":lt, "most_actives":most_active, "vdiff_gain":volume_gain, "vdiff_loss":volume_loss}

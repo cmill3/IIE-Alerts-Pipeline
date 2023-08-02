@@ -11,7 +11,6 @@ alerts_bucket = os.getenv("ALERTS_BUCKET")
 
 index_list = ["SPY","IVV","VOO","VTI","QQQ","VEA","IEFA","VTV","BND","AGG","VUG","VWO","IEMG","IWF","VIG","IJH","IJR","GLD",
     "VGT","VXUS","VO","IWM","BNDX","EFA","IWD","VYM","SCHD","XLK","ITOT","VB","VCIT","XLV","TLT","BSV","VCSH","LQD","XLE","VEU","RSP"]
-leveraged_etfs = ["TQQQ","SQQQ","SPXS","SPXL","SOXL","SOXS"]
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 start_interval = os.getenv("START_RANGE")
 end_interval = os.getenv("END_RANGE")
@@ -22,14 +21,14 @@ logger = logging.getLogger()
 def analytics_runner(event, context):
     s3 = get_s3_client()
     sp_500 = pull_files_s3(s3, "icarus-research-data", "index_lists/S&P500.csv")
-    full_list = index_list + leveraged_etfs + sp_500.tolist()
+    full_list = index_list  + sp_500.tolist()
     date = datetime.now()
     key_str = date.strftime("%Y/%m/%d")
     from_stamp, to_stamp = generate_dates(date)
     hour = (date.hour - 4)
     aggregates, error_list = call_polygon(full_list[int(start_interval):int(end_interval)], from_stamp, to_stamp, timespan="day", multiplier="1")
     logger.info(f"Error list: {error_list}")
-    analytics = build_analytics(aggregates, get_pcr, hour)
+    analytics = build_analytics(aggregates, hour)
     csv = analytics.to_csv()
     put_response = s3.put_object(Bucket="inv-alerts", Key=f"distributed_alerts/{key_str}/{hour}_{distributed_number}.csv", Body=csv)
     return put_response
@@ -42,19 +41,19 @@ def generate_dates(date):
     from_stamp = start.strftime("%Y-%m-%d")
     return from_stamp, to_stamp
 
-def build_alerts(df):
-    alerts = df.groupby("symbol").tail(1)
-    c_sorted = alerts.sort_values(by="close_diff", ascending=False)
-    v_sorted = alerts.sort_values(by="v", ascending=False)
-    vdiff_sorted = alerts.sort_values(by="v_diff_pct", ascending=False)
-    gainers = c_sorted.head(50)
-    losers = c_sorted.tail(50)
-    gt = c_sorted.loc[c_sorted["close_diff"] > 0.025]
-    lt = c_sorted.loc[c_sorted["close_diff"] < -0.025]
-    most_active = v_sorted.head(50)
-    volume_gain = vdiff_sorted.head(50)
-    volume_loss = vdiff_sorted.tail(50)
-    return {"all_alerts":alerts,"gainers": gainers, "losers": losers, "gt":gt, "lt":lt, "most_actives":most_active, "vdiff_gain":volume_gain, "vdiff_loss":volume_loss}
+# def build_alerts(df):
+#     alerts = df.groupby("symbol").tail(1)
+#     c_sorted = alerts.sort_values(by="close_diff", ascending=False)
+#     v_sorted = alerts.sort_values(by="v", ascending=False)
+#     vdiff_sorted = alerts.sort_values(by="v_diff_pct", ascending=False)
+#     gainers = c_sorted.head(30)
+#     losers = c_sorted.tail(30)
+#     gt = c_sorted.loc[c_sorted["close_diff"] > 0.025]
+#     lt = c_sorted.loc[c_sorted["close_diff"] < -0.025]
+#     most_active = v_sorted.head(30)
+#     volume_gain = vdiff_sorted.head(30)
+#     volume_loss = vdiff_sorted.tail(30)
+#     return {"all_alerts":alerts,"gainers": gainers, "losers": losers, "gt":gt, "lt":lt, "most_actives":most_active, "vdiff_gain":volume_gain, "vdiff_loss":volume_loss}
 
 def build_full_df(aggregates, day_aggregates, to_stamp):
     print(aggregates)
