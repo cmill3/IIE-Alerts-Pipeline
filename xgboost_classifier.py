@@ -22,6 +22,23 @@ title = os.getenv("TITLE")
 #     for name in endpoint_names:
 #         invoke_model(name)
 
+features = {
+    "invalerts-xgb-losers-classifier": ['rsi','roc','roc3','close_diff','price_10DDiff','close_diff3',
+                                        'SPY_diff','SPY_diff3','SPY_1D','SPY_3D'],
+    "invalerts-xgb-gainers-classifier": ['rsi','roc','roc3','close_diff','price_10DDiff','close_diff3',
+                                        'SPY_diff','SPY_diff3','SPY_1D','SPY_3D'],
+    "invalerts-xgb-MA-classifier": ['rsi', 'roc', 'roc5', 'v', 'price_10DDiff', 'price_25DDiff', 'close_diff', 'v_diff_pct', 
+                                        'rsi5', 'close_diff5', 'SPY_diff', 'SPY_diff5', 'SPY_1D', 'SPY_5D'],
+    "invalerts-xgb-MAP-classifier": ['rsi','roc','roc3','close_diff','price_10DDiff','close_diff3',
+                                    'SPY_diff','SPY_diff3','SPY_1D','SPY_3D'],
+    "invalerts-xgb-vdiff-gainC-classifier": ['rsi', 'roc', 'roc5', 'v', 'price_10DDiff', 'price_25DDiff', 'close_diff', 'v_diff_pct', 
+                                        'rsi5', 'close_diff5', 'SPY_diff', 'SPY_diff5', 'SPY_1D', 'SPY_5D'],
+    "invalerts-xgb-vdiff-gainP-classifier": ['rsi', 'roc', 'roc5', 'v', 'price_10DDiff', 'price_25DDiff', 'close_diff', 'v_diff_pct', 
+                                        'rsi5', 'close_diff5', 'SPY_diff', 'SPY_diff5', 'SPY_1D', 'SPY_5D'],
+            
+}
+
+
 def invoke_model(event, context):   
     endpoint_names = os.getenv("ENDPOINT_NAMES")
     endpoint_names = endpoint_names.split(",")
@@ -39,20 +56,17 @@ def invoke_model(event, context):
     dates = df['date'].unique()
     recent_date = dates[-1]
     symbol_list = df['symbol']
-    df['volume_10DDiff'] = df.apply(lambda x: x.v - x.volume_10MA, axis=1)
-    df['volume_25DDiff'] = df.apply(lambda x: x.v - x.volume_25MA, axis=1)
     df['dt'] = pd.to_datetime(df['date'])
     df['day_of_week'] = df['dt'].apply(lambda x: x.dayofweek)
     df['hour'] = df['dt'].apply(lambda x: x.hour)
-    # features = features[['rsi','cmf','macd','adx','roc','roc3','roc5','v','volume_10MA','volume_25MA','PCR','volume_10DDiff','volume_25DDiff']]
-    prediciton_data = df[['rsi','cmf','adx','roc','roc3','roc5','v','volume_10DDiff','volume_25DDiff','price_10DDiff','price_25DDiff','close_diff', 'v_diff_pct','day_of_week','hour']]
-    prediction_csv = prediciton_data.to_csv(header=False,index=False).encode()
+
     
     for name in endpoint_names:
         print(name)
         # strategy_name = name.split("-")[2]
         strat_name = name.strip('"')
-        print(strat_name)
+        prediciton_data = df[features[strat_name]]
+        prediction_csv = prediciton_data.to_csv(header=False,index=False).encode()
         response = runtime.invoke_endpoint(
             EndpointName=strat_name,
             ContentType="text/csv",

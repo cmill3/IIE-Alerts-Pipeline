@@ -1,6 +1,6 @@
 import json
 from helpers.aws import pull_files_s3, get_s3_client
-from helpers.data import call_polygon_hist, build_analytics, get_pcr_historic, calc_price_action, calc_vdiff, build_new_price_features
+from helpers.data import *
 from datetime import datetime, timedelta
 import os
 import pandas as pd
@@ -21,9 +21,12 @@ alerts_bucket = os.getenv("ALERTS_BUCKET")
 #                    'PPG', 'PG', 'PHM', 'QCOM', 'RTX', 'REGN', 'ROST', 'RCL', 'SPGI', 'CRM', 'SLB', 'STX', 'NOW', 'SWKS', 'SEDG', 'SO', 'LUV', 'SBUX', 'TMUS', 'TROW', 'TTWO', 'TPR', 'TGT', 'TSLA', 'TXN', 'TMO', 'TJX', 'TSCO', 'TFC', 
 #                    'TSN', 'USB', 'ULTA', 'UNP', 'UAL', 'UPS', 'URI', 'UNH', 'VLO', 'VZ', 'VRTX', 'VFC', 'V', 'WBA', 'WMT', 'WBD', 'WM', 'WFC', 'WDC', 'WHR', 'WMB', 'WYNN', 'ZION']
 # hours = [10,11,12,13,14,15]
-index_list = ["SPY","IVV","VOO","VTI","QQQ","VEA","IEFA","VTV","BND","AGG","VUG","VWO","IEMG","IWF","VIG","IJH","IJR","GLD",
-    "VGT","VXUS","VO","IWM","BNDX","EFA","IWD","VYM","SCHD","XLK","ITOT","VB","VCIT","XLV","TLT","BSV","VCSH","LQD","XLE","VEU","RSP"]
-leveraged_etfs = ["TQQQ","SQQQ","SPXS","SPXL","SOXL","SOXS"]
+# index_list = ["SPY","IVV","VOO","VTI","QQQ","VEA","IEFA","VTV","BND","AGG","VUG","VWO","IEMG","IWF","VIG","IJH","IJR","GLD",
+#     "VGT","VXUS","VO","IWM","BNDX","EFA","IWD","VYM","SCHD","XLK","ITOT","VB","VCIT","XLV","TLT","BSV","VCSH","LQD","XLE","VEU","RSP"]
+# leveraged_etfs = ["TQQQ","SQQQ","SPXS","SPXL","SOXL","SOXS"]
+big_fish =[
+            "TSLA","AMD","NVDA","AMC","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","TLT","AAPL","NFLX","IWM","QQQ","SPY","GME",
+            "MSFT","FB","META","V","MA","AMC","JNJ","DIS","LLY","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","FB","SNOW","T","VZ"]
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
@@ -64,26 +67,52 @@ logger = logging.getLogger()
 #     # gainers_df = helpers.build_unprocessed_df(date_stamp,"expanded_alert_values/day_gainers/")
 #     # losers_df = helpers.build_unprocessed_df(date_stamp,"expanded_alert_values/day_losers/")
 #     # ma_df = helpers.build_unprocessed_df(date_stamp,"expanded_alert_values/most_actives/")
+#     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_stamp)
+#     print(from_stamp, to_stamp, hour_stamp)
+#     key_stamp = date_stamp.replace("-","/")
 #     for hour in hours:
 #         try:
-#             gt_df = pull_df(date_stamp,"inv_alerts_with_price/gt/",hour)
-#             lt_df = pull_df(date_stamp,"inv_alerts_with_price/lt/",hour)
-#             gainers_df = pull_df(date_stamp,"inv_alerts_with_price/gainers/",hour)
-#             losers_df = pull_df(date_stamp,"inv_alerts_with_price/losers/",hour)
-#             ma_df = pull_df(date_stamp,"inv_alerts_with_price/most_actives/",hour)
-#             vdiff_df = pull_df(date_stamp,"inv_alerts_with_price/vdiff/",hour)
-#             dfs = {"gt":gt_df,"lt":lt_df,"gainers":gainers_df,"losers":losers_df,"vdiff":vdiff_df,"most_actives":ma_df}
+#             # gt_df = pull_df(date_stamp,"inv_alerts_with_price/gt/",hour)
+#             # lt_df = pull_df(date_stamp,"inv_alerts_with_price/lt/",hour)
+#             gainers_df = pull_df(hour_stamp,"gainers/",hour)
+#             losers_df = pull_df(hour_stamp,"losers/",hour)
+#             ma_df = pull_df(hour_stamp,"most_actives/",hour)
+#             vdiff_df = pull_df(hour_stamp,"vdiff_gain/",hour)
+#             dfs = {"gainers":gainers_df,"losers":losers_df,"vdiff":vdiff_df,"most_actives":ma_df}
 #         except:
 #             return "NO DATA"
     
 #         for key, df in dfs.items():
 #             try:
+#                 df = df.loc[df['symbol']!="RE"]
+#                 symbol_list = df['symbol'].to_list()
+#                 aggregates, error_list = call_polygon_hist(symbol_list, from_stamp, to_stamp, timespan="day", multiplier="1")
+#                 hour_aggregates, error_list = call_polygon_hist(symbol_list, hour_stamp, hour_stamp, timespan="hour", multiplier="1")
+#                 print(len(hour_aggregates))
+#                 print(len(aggregates))
+#                 full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
+#                 new_price_features = build_new_price_features(full_aggs)
+#                 df = pd.merge(df, new_price_features[['rsi3','rsi5','close_diff3','close_diff5','symbol']], on="symbol")
+#                 df['hour'] = hour
 #                 # df[['one_max','one_min','one_pct','three_max','three_min','three_pct']] = df.apply(calc_price_action, axis=1)
-#                 df['v_diff_pct'] = df.apply(calc_vdiff, axis=1).apply(pd.Series)
-#                 # result.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
-#                 # df = pd.concat([df, result], axis=1)
+#                 result = df.apply(calc_price_action, axis=1)
+#                 # df['v_diff_pct'] = df.apply(calc_vdiff, axis=1).apply(pd.Series)
+#                 spy_aggs = call_polygon_spy(from_stamp, to_stamp, timespan="day", multiplier="1")
+#                 current_spy = call_polygon_spyH(hour_stamp, hour_stamp, timespan="hour", multiplier="1", hour=hour)
+#                 current_spy = current_spy.values[0]
+#                 SPY_diff   = (current_spy - spy_aggs[-1])/spy_aggs[-1]
+#                 SPY_diff3  = (current_spy - spy_aggs[-3])/spy_aggs[-3]
+#                 SPY_diff5  = (current_spy - spy_aggs[-5])/spy_aggs[-5]
+#                 df['SPY_diff'] = (((df['close_diff']/100) - SPY_diff)/SPY_diff)
+#                 df['SPY_diff3'] = (((df['close_diff']/100) - SPY_diff3)/SPY_diff3)
+#                 df['SPY_diff5'] = (((df['close_diff']/100) - SPY_diff5)/SPY_diff5)
+#                 df['SPY_1D'] = SPY_diff
+#                 df['SPY_3D'] = SPY_diff3
+#                 df['SPY_5D'] = SPY_diff5
+#                 price_df = pd.DataFrame(result.to_list())
+#                 df = pd.merge(df, price_df, on="symbol")
 #                 csv = df.to_csv()
-#                 put_response = s3.put_object(Bucket=alerts_bucket, Key=f"inv_alerts_with_price/{key}/{date_stamp}/{hour}.csv", Body=csv)
+#                 put_response = s3.put_object(Bucket="inv-alerts", Key=f"inv_alerts_training_data/{key}/{key_stamp}/{hour}.csv", Body=csv)
 #             except ClientError as e:
 #                 logging.error(f"error for {key} :{e})")
 #                 print(f"error for {key} :{e})")
@@ -144,35 +173,43 @@ def build_historic_data(date_str):
     hours = ["10","11","12","13","14","15"]
     key_str = date_str.replace("-","/")
     s3 = get_s3_client()
-    sp_500 = pull_files_s3(s3, "icarus-research-data", "index_lists/S&P500.csv")
-    full_list = index_list + sp_500.tolist() + leveraged_etfs
-    full_list.remove("AXON")
-    full_list.remove("OGN")
-    full_list.remove("BBWI")
-    full_list.remove("META")
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
     for hour in hours:
-        df = pull_df(key_str,"fixed_alerts_full/",hour)
-        aggregates, error_list = call_polygon_hist(full_list, from_stamp, to_stamp, timespan="day", multiplier="1")
-        hour_aggregates, error_list = call_polygon_hist(full_list, hour_stamp, hour_stamp, timespan="hour", multiplier="1")
+        # df = pull_df(key_str,"fixed_alerts_full/",hour)
+        aggregates, error_list = call_polygon_hist(big_fish, from_stamp, to_stamp, timespan="day", multiplier="1")
+        hour_aggregates, error_list = call_polygon_hist(big_fish, hour_stamp, hour_stamp, timespan="hour", multiplier="1")
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
-        spy_agg, error_list = call_polygon_hist(["SPY"], from_stamp, to_stamp, timespan="day", multiplier="1")
-        spy_aggH, error_list = call_polygon_hist(["SPY"], hour_stamp, hour_stamp, timespan="hour", multiplier="1")
-        spy_aggs = combine_hour_aggs(spy_agg, spy_aggH, hour)
+        spy_aggs = call_polygon_spy(from_stamp, to_stamp, timespan="day", multiplier="1")
+        current_spy = call_polygon_spyH(hour_stamp, hour_stamp, timespan="hour", multiplier="1", hour=hour)
+        current_spy = current_spy.values[0]
         # spy_aggs = full_aggs.loc[full_aggs['symbol']=="SPY"]
-        new_df = build_new_price_features(full_aggs, spy_aggs)
-        new_df.reset_index(drop=True, inplace=True)
-        df['rsi3'] = new_df['rsi3']
-        df['rsi5'] = new_df['rsi5']
-        df['close_diff3'] = new_df['close_diff3']
-        df['close_diff5'] = new_df['close_diff5']
-        df['SPY_diff'] = new_df['SPY_diff']
-        df['SPY_diff3'] = new_df['SPY_diff3']
-        df['SPY_diff5'] = new_df['SPY_diff5']
-        alerts_dict = build_alerts(df)
-        for key, df in alerts_dict.items():
-            csv = df.to_csv()
-            put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/{key}/{key_str}/{hour}.csv", Body=csv)
+        df = build_analytics(full_aggs, hour)
+        df.reset_index(drop=True, inplace=True)
+        df = df.groupby("symbol").tail(1)
+        result = df.apply(calc_price_action, axis=1)
+        result.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
+        result.reset_index()
+        price = pd.DataFrame(result.to_list())
+        df.reset_index(drop=True, inplace=True)
+        df['one_max'] = price['one_max']
+        df['one_min'] = price['one_min']
+        df['one_pct'] = price['one_pct']
+        df['three_max'] = price['three_max']
+        df['three_min'] = price['three_min']
+        df['three_pct'] = price['three_pct']
+        SPY_diff   = (current_spy - spy_aggs[-1])/spy_aggs[-1]
+        SPY_diff3  = (current_spy - spy_aggs[-3])/spy_aggs[-3]
+        SPY_diff5  = (current_spy - spy_aggs[-5])/spy_aggs[-5]
+        df['SPY_diff'] = (((df['close_diff']/100) - SPY_diff)/SPY_diff)
+        df['SPY_diff3'] = (((df['close_diff']/100) - SPY_diff3)/SPY_diff3)
+        df['SPY_diff5'] = (((df['close_diff']/100) - SPY_diff5)/SPY_diff5)
+        df['SPY_1D'] = SPY_diff
+        df['SPY_3D'] = SPY_diff3
+        df['SPY_5D'] = SPY_diff5
+        # alerts_dict = build_alerts(df)
+        # for key, df in alerts_dict.items():
+        csv = df.to_csv()
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/big_fish/{key_str}/{hour}.csv", Body=csv)
     # for key, df in alerts_dict.items():
     #     try:
     #         csv = df.to_csv()
@@ -273,18 +310,20 @@ def build_alerts(alerts):
     return {"all_alerts":alerts, "gainers": gainers, "losers": losers, "most_actives":most_active, "vdiff_gain":volume_gain}
 
 def pull_df(date_stamp, prefix, hour):
+    date_stamp = date_stamp.replace("-","/")
     try: 
-        dataset = s3.get_object(Bucket="inv-alerts", Key=f"{prefix}all_alerts/{date_stamp}/{hour}.csv")
+        dataset = s3.get_object(Bucket="inv-alerts", Key=f"{prefix}{date_stamp}/{hour}.csv")
         df = pd.read_csv(dataset.get("Body"))
     except Exception as e:
+        print(f"{prefix}{date_stamp}/{hour}.csv")
         print(f"HERE {e}")
     return df
 
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2021,1,2)
-    end_date = datetime(2023,1,1)
+    start_date = datetime(2021,1,4)
+    end_date = datetime(2023,8,19)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -296,8 +335,8 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
     # for date_str in date_list:
-    #     build_historic_data("2023-03-13")
+    #     build_historic_data("2021-01-04")
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(build_historic_data, date_str) for date_str in date_list]

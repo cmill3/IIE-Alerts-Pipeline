@@ -1,6 +1,6 @@
 import json
 from helpers.aws import pull_files_s3, get_s3_client
-from helpers.data import call_polygon, build_analytics, get_pcr
+from helpers.data import call_polygon, build_analytics, call_polygon_spy, build_spy_features
 from datetime import datetime, timedelta
 import os
 import logging
@@ -27,8 +27,10 @@ def analytics_runner(event, context):
     from_stamp, to_stamp = generate_dates(date)
     hour = (date.hour - 4)
     aggregates, error_list = call_polygon(full_list[int(start_interval):int(end_interval)], from_stamp, to_stamp, timespan="day", multiplier="1")
+    spy_aggs = call_polygon_spy(from_stamp, to_stamp, timespan="day", multiplier="1")
     logger.info(f"Error list: {error_list}")
     analytics = build_analytics(aggregates, hour)
+    analytics = build_spy_features(analytics, spy_aggs)
     csv = analytics.to_csv()
     put_response = s3.put_object(Bucket="inv-alerts", Key=f"distributed_alerts/{key_str}/{hour}_{distributed_number}.csv", Body=csv)
     return put_response
