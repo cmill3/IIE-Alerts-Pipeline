@@ -24,9 +24,13 @@ alerts_bucket = os.getenv("ALERTS_BUCKET")
 # index_list = ["SPY","IVV","VOO","VTI","QQQ","VEA","IEFA","VTV","BND","AGG","VUG","VWO","IEMG","IWF","VIG","IJH","IJR","GLD",
 #     "VGT","VXUS","VO","IWM","BNDX","EFA","IWD","VYM","SCHD","XLK","ITOT","VB","VCIT","XLV","TLT","BSV","VCSH","LQD","XLE","VEU","RSP"]
 # leveraged_etfs = ["TQQQ","SQQQ","SPXS","SPXL","SOXL","SOXS"]
-big_fish =[
-            "TSLA","AMD","NVDA","AMC","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","TLT","AAPL","NFLX","IWM","QQQ","SPY","GME",
-            "MSFT","FB","META","V","MA","AMC","JNJ","DIS","LLY","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","FB","SNOW","T","VZ"]
+big_fish =  [
+            "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
+            "MSFT","FB","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","FB","SNOW","T","VZ","SOFI",
+            "UAL","DAL","AAL"
+            ]
+indexes = ['QQQ','SPY','IWM']
+memes = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID']
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
@@ -209,7 +213,7 @@ def build_historic_data(date_str):
         # alerts_dict = build_alerts(df)
         # for key, df in alerts_dict.items():
         csv = df.to_csv()
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/big_fish/{key_str}/{hour}.csv", Body=csv)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/big_fish_stable/{key_str}/{hour}.csv", Body=csv)
     # for key, df in alerts_dict.items():
     #     try:
     #         csv = df.to_csv()
@@ -322,8 +326,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2021,1,4)
-    end_date = datetime(2023,8,19)
+    start_date = datetime(2018,10,1)
+    end_date = datetime(2020,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -337,6 +341,6 @@ if __name__ == "__main__":
     # for date_str in date_list:
     #     build_historic_data("2021-01-04")
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(build_historic_data, date_str) for date_str in date_list]

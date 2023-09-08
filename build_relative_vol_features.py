@@ -40,8 +40,8 @@ def generate_volatility_features(row):
         from_str = from_stamp.strftime("%Y-%m-%d")
         to_str = row['date'].split(" ")[0]
         aggs = call_polygon_hist([row['symbol']], from_str, to_str, "day", 1)
-        range_vol = (aggs['h'] - aggs['l'])/ aggs['c']
-        range_vol5MA = aggs['range_vol'].rolling(10).mean()
+        aggs['range_vol'] = (aggs['h'] - aggs['l'])/ aggs['c']
+        range_vol5MA = aggs['range_vol'].rolling(5).mean()
         range_vol10MA = aggs['range_vol'].rolling(10).mean()
         range_vol25MA = aggs['range_vol'].rolling(25).mean()
         aggs['fiveD_returns_close'] = aggs['c'].pct_change(5)
@@ -57,7 +57,6 @@ def generate_volatility_features(row):
         range_vol5MA = range_vol5MA.values[-1]
         range_vol10MA = range_vol10MA.values[-1]
         range_vol25MA = range_vol25MA.values[-1]
-        print(fiveD_stddev30,fiveD_stddev50,threeD_stddev30,threeD_stddev50,oneD_stddev30,oneD_stddev50, range_vol, range_vol5MA, range_vol10MA, range_vol25MA)
         return fiveD_stddev30,fiveD_stddev50,threeD_stddev30,threeD_stddev50,oneD_stddev30,oneD_stddev50, range_vol, range_vol5MA, range_vol10MA, range_vol25MA
     except Exception as e:
         try:
@@ -98,7 +97,7 @@ def build_relative_volatility_features(date_str):
     key_str = date_str.replace("-","/")
     for hour in hours:
         try:
-            get_response = s3.get_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/big_fish/{key_str}/{hour}.csv")
+            get_response = s3.get_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/big_fish_stable/{key_str}/{hour}.csv")
             data = pd.read_csv(get_response.get("Body"))
     #         data = data.drop(columns=['fiveD_stddev100', 'fiveD_stddev50', 'threeD_stddev100',
     #    'threeD_stddev50', 'oneD_stddev100', 'oneD_stddev50', 'range_vol',
@@ -106,9 +105,10 @@ def build_relative_volatility_features(date_str):
             result = data.apply(generate_volatility_features, axis=1)
             result = pd.DataFrame(result.to_list())
             result.columns = ["fiveD_stddev100","fiveD_stddev50","threeD_stddev100","threeD_stddev50","oneD_stddev100","oneD_stddev50","range_vol", "range_vol5MA", "range_vol10MA", "range_vol25MA"]
+            print(result)
             df = data.join([result])
             csv = df.to_csv()
-            put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/big_fish/{key_str}/{hour}.csv", Body=csv)
+            put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/big_fish_stable/{key_str}/{hour}.csv", Body=csv)
             # put_response = s3.put_object(Bucket="icarus-research-data", Key=f"inv_alerts_with_price_expanded/stddev/{key}/{key_str}/{hour}.csv", Body=csv)
         except ClientError as e:
             logging.error(f"error for {key_str} :{e})")
@@ -158,8 +158,8 @@ def build_alerts(alerts):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2021,1,5)
-    end_date = datetime(2023,8,18)
+    start_date = datetime(2020,1,1)
+    end_date = datetime(2023,8,17)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -170,6 +170,7 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
-        # Submit the processing tasks to the ThreadPoolExecutor
-        processed_weeks_futures = [executor.submit(build_relative_volatility_features, date_str) for date_str in date_list]
+    build_relative_volatility_features("2020-01-02")
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+    #     # Submit the processing tasks to the ThreadPoolExecutor
+    #     processed_weeks_futures = [executor.submit(build_relative_volatility_features, date_str) for date_str in date_list]

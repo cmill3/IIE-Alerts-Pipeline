@@ -35,6 +35,10 @@ features = {
                                         'rsi5', 'close_diff5', 'SPY_diff', 'SPY_diff5', 'SPY_1D', 'SPY_5D'],
     "invalerts-xgb-vdiff-gainP-classifier": ['rsi', 'roc', 'roc5', 'v', 'price_10DDiff', 'price_25DDiff', 'close_diff', 'v_diff_pct', 
                                         'rsi5', 'close_diff5', 'SPY_diff', 'SPY_diff5', 'SPY_1D', 'SPY_5D'],
+    "invalerts-xgb-bfc-classifier": ['rsi', 'cmf', 'SPY_diff', 'roc', 'roc3', 'roc5', 'price_10DDiff', 'price_25DDiff', 'v_diff_pct', 'v', 
+                                     'close_diff', 'roc_diff', 'day_of_week', 'hour', 'volume_10DDiff', 'month', 'threeD_stddev50', 'range_vol'],
+    "invalerts-xgb-bfp-classifier": ['rsi', 'cmf', 'SPY_diff', 'roc', 'roc3', 'roc5', 'price_10DDiff', 'price_25DDiff', 'v_diff_pct', 'v', 'close_diff', 
+                                     'roc_diff', 'day_of_week', 'hour', 'volume_10DDiff', 'month', 'threeD_stddev50', 'range_vol', 'close_diff_deviation3']
             
 }
 
@@ -42,12 +46,8 @@ features = {
 def invoke_model(event, context):   
     endpoint_names = os.getenv("ENDPOINT_NAMES")
     endpoint_names = endpoint_names.split(",")
-    now = datetime.now()
-    year = now.year
-    # month = now.month
-    # day = now.day
-    # hour = now.hour 
-    keys = s3.list_objects(Bucket=alerts_bucket,Prefix=f"{title}/{year}")["Contents"]
+    year, month, day, hour = format_dates(datetime.now())
+    keys = s3.list_objects(Bucket=alerts_bucket,Prefix=f"bf_alerts/{year}/{month}/{day}")["Contents"]
     query_key = keys[-1]['Key']
     print(query_key)
     dataset = s3.get_object(Bucket=alerts_bucket, Key=query_key)
@@ -59,6 +59,9 @@ def invoke_model(event, context):
     df['dt'] = pd.to_datetime(df['date'])
     df['day_of_week'] = df['dt'].apply(lambda x: x.dayofweek)
     df['hour'] = df['dt'].apply(lambda x: x.hour)
+    df['roc_diff'] = df['roc'] - df['roc5']
+    df['month'] = df['dt'].apply(lambda x: x.month)
+    df['close_diff_deviation3'] = abs(df['close_diff3'])/(df['threeD_stddev50']*100)
 
     
     for name in endpoint_names:
@@ -79,7 +82,7 @@ def invoke_model(event, context):
         results_csv = results_df.to_csv().encode()
         
         try:
-            put_response = s3.put_object(Bucket=predictions_bucket, Key=f'classifier_predictions/{strat_name}/{query_key}.csv', Body=results_csv)
+            put_response = s3.put_object(Bucket=predictions_bucket, Key=f'classifier_predictions/{strat_name}/{query_key}', Body=results_csv)
         except:
             print("error")
             print(name)
@@ -97,3 +100,12 @@ def format_result(result_string, symbol_list, recent_date) -> pd.DataFrame:
         return results_df
     except Exception as e:
         print(e)
+
+def format_dates(now):
+    now_str = now.strftime("%Y-%m-%d-%H")
+    year, month, day, hour = now_str.split("-")
+    hour = int(hour) - 4
+    return year, month, day, hour
+
+if __name__ == "__main__":
+    year, month, day, hour = format_dates(datetime.now())
