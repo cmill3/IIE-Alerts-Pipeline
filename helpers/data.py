@@ -3,6 +3,7 @@ import json
 import pandas as pd
 from datetime import datetime, timedelta
 import pandas_ta as ta
+import numpy as np
 
 key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
 
@@ -276,6 +277,14 @@ def build_analytics(aggregates, hour):
             d['roc'] = ta.roc(d['c'])
             d['roc3'] = ta.roc(d['c'],length=3)
             d['roc5'] = ta.roc(d['c'],length=5)
+            d['threeD_returns_close'] = d['c'].pct_change(3)
+            d['oneD_returns_close'] = d['c'].pct_change(1)
+            d['range_vol'] = (d['h'] - d['l'])/ d['c']
+            d['range_vol5MA'] = d['range_vol'].rolling(5).mean()
+            d['range_vol10MA'] = d['range_vol'].rolling(10).mean()
+            d['range_vol25MA'] = d['range_vol'].rolling(25).mean()
+            d['oneD_stddev50'] = np.std(d['oneD_returns_close'])
+            d['threeD_stddev50'] = np.std(d['threeD_returns_close'])
             d['cmf'] = ta.cmf(d['h'], d['l'], d['c'], d['v'])
             d['close_diff'] = ((d['c'] - d['c'].shift(1))/d['c'].shift(1))*100
             d['close_diff3'] = ((d['c'] - d['c'].shift(3))/d['c'].shift(3))*100
