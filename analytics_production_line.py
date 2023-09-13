@@ -8,16 +8,12 @@ import pandas as pd
 from botocore.exceptions import ClientError
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
-
 big_fish =  ["AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
             "MSFT","FB","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","FB","SNOW","T","VZ","SOFI",
-            "UAL","DAL","AAL"]
+            "UAL","DAL","AAL","SPY","QQQ","IWM"]
+
 
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
-start_interval = os.getenv("START_RANGE")
-end_interval = os.getenv("END_RANGE")
-distributed_number = os.getenv("DISTRIBUTED_NUMBER")
-
 logger = logging.getLogger()
 
 def analytics_runner(event, context):

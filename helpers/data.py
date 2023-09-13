@@ -286,7 +286,10 @@ def build_analytics(aggregates, hour):
             d['oneD_stddev50'] = np.std(d['oneD_returns_close'])
             d['threeD_stddev50'] = np.std(d['threeD_returns_close'])
             d['cmf'] = ta.cmf(d['h'], d['l'], d['c'], d['v'])
-            d['close_diff'] = ((d['c'] - d['c'].shift(1))/d['c'].shift(1))*100
+            try:
+                d['close_diff'] = ((d['c'] - d['c'].shift(1))/d['c'].shift(1))*100
+            except:
+                d['close_diff'] = 0
             d['close_diff3'] = ((d['c'] - d['c'].shift(3))/d['c'].shift(3))*100
             d['close_diff5'] = ((d['c'] - d['c'].shift(5))/d['c'].shift(5))*100
             d['v_diff_pct'] = calc_vdiff_pipeline(d['v'].tolist(), hour)
