@@ -8,9 +8,11 @@ import pandas as pd
 from botocore.exceptions import ClientError
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
-big_fish =  ["AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
-            "MSFT","FB","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","FB","SNOW","T","VZ","SOFI",
-            "UAL","DAL","AAL","SPY","QQQ","IWM"]
+big_fish =  [
+            "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
+            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","SPY"
+            ,"QQQ","IWM"
+            ]
 
 
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
@@ -39,7 +41,6 @@ def generate_dates(now):
     return from_stamp, to_stamp
 
 def build_full_df(aggregates, day_aggregates, to_stamp):
-    print(aggregates)
     symbols_list = aggregates["symbol"].unique()
     temp_dfs = []
     for symbol in symbols_list:

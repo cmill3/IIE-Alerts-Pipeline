@@ -49,9 +49,7 @@ def get_pcr_historic(symbol, window, dates):
     return raw_list
 
 def calc_price_action(row):
-    # date = datetime.strptime(row['date'], '%Y-%m-%d %H:%M:%S')
     date = row['date']
-    # from_stamp = row['date'].split(" ")[0]
     to_date = date + timedelta(days=7)
     to_stamp = to_date.strftime("%Y-%m-%d")
     from_stamp = date.strftime("%Y-%m-%d")
@@ -70,20 +68,13 @@ def calc_price_action(row):
     three_high = (three_h - open)/ open
     three_low = (three_l - open)/ open
     three_pct = (three_c - row['c'])/row['c']
-    # return one_high, one_low, one_pct, three_high, three_low, three_pct
     return {"one_max": one_high, "one_min": one_low, "one_pct": one_pct, "three_max": three_high, "three_min": three_low, "three_pct": three_pct,"symbol": row['symbol']}
 
-def build_date_dfs(df, t):
-    dt = df["date"].iloc[0]
-    d1, d2, d3 = determine_num_days(dt)
-    one_day = (dt + timedelta(days=d1)).day
-    two_day = (dt + timedelta(days=d2)).day
-    three_day = (dt + timedelta(days=d3)).day
-    one_day_list = [dt.day, one_day]
-    three_day_list = [dt.day, one_day, two_day, three_day]
-    future = df.loc[df['t'] > t]
-    one_day_df = future.loc[future['date'].dt.day.isin(one_day_list)]
-    three_day_df = future.loc[future['date'].dt.day.isin(three_day_list)]
+def build_date_dfs(df, date):
+    sell_1d = calculate_sellby_date(date, 2)
+    sell_3d = calculate_sellby_date(date, 4)
+    one_day_df = df.loc[df['date'] < sell_1d]
+    three_day_df = df.loc[df['date'] < sell_3d]
     return one_day_df, three_day_df
 
 def determine_num_days(dt):
@@ -96,6 +87,18 @@ def determine_num_days(dt):
         return 1,4,5
     if day_of_week == 4:
         return 3,4,5
+    
+def calculate_sellby_date(current_date, trading_days_to_add): #End date, n days later for the data set built to include just trading days, but doesnt filter holiday
+    date_str = current_date.strftime("%Y-%m-%d %H:%M:%S")
+    date_str = date_str.split(" ")[0]
+    dt = datetime.strptime(date_str,"%Y-%m-%d")
+    while trading_days_to_add > 0:
+        dt += timedelta(days=1)
+        weekday = dt.weekday()
+        if weekday >= 5: # sunday = 6
+            continue
+        trading_days_to_add -= 1
+    return dt
 
 def call_polygon(symbol_list, from_stamp, to_stamp, timespan, multiplier):
     payload={}
@@ -127,10 +130,11 @@ def call_polygon(symbol_list, from_stamp, to_stamp, timespan, multiplier):
 
     return dfs, error_list
 
-def call_polygon_hist(symbol_list, from_stamp, to_stamp, timespan, multiplier):
+def call_polygon_histH(symbol_list, from_stamp, to_stamp, timespan, multiplier):
     payload={}
     headers = {}
     dfs = []
+    trading_hours = [9,10,11,12,13,14,15]
     
     key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
     error_list = []
@@ -153,19 +157,76 @@ def call_polygon_hist(symbol_list, from_stamp, to_stamp, timespan, multiplier):
         results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
         results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
         results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
+        results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
         results_df['symbol'] = symbol
-        dfs.append(results_df)
+        trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+        filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
+        dfs.append(filtered_df)
 
     return dfs, error_list
 
-def call_polygon_price(symbol, from_stamp, to_stamp, timespan, multiplier):
+def call_polygon_histD(symbol_list, from_stamp, to_stamp, timespan, multiplier):
     payload={}
     headers = {}
     dfs = []
+    trading_hours = [9,10,11,12,13,14,15]
     
     key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
     error_list = []
-    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol[0]}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+
+    for symbol in symbol_list:
+        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+
+        response = requests.request("GET", url, headers=headers, data=payload)
+
+        response_data = json.loads(response.text)
+        try:
+            results = response_data['results']
+        except:
+            print(symbol)
+            error_list.append(symbol)
+            continue
+        results_df = pd.DataFrame(results)
+        results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
+        results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
+        results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
+        results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
+        results_df['symbol'] = symbol
+        results_df['day_of_week'] = results_df['date'].apply(lambda x: x.weekday())
+        trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+        filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
+        filtered_df = filtered_df.loc[filtered_df['day_of_week'] < 5]
+        filtered_df.set_index('date',inplace=True)
+        agg_dict = {
+            'v': 'sum',
+            'o': 'first',
+            'c': 'last',
+            'h': 'max',
+            'l': 'min'
+        }
+
+        # Perform resampling and aggregation
+        daily_stats = filtered_df.resample('D').agg(agg_dict)
+        daily_stats.dropna(inplace=True)
+        daily_stats['date_stamp'] = daily_stats.index
+        daily_stats['hour'] = 0
+        daily_stats['symbol'] = symbol
+        daily_stats['t'] = 0
+        daily_stats.rename(columns={"date_stamp": "date"}, inplace=True)
+        daily_stats.reset_index(drop=True, inplace=True)
+        dfs.append(daily_stats)
+
+    return dfs, error_list
+
+def call_polygon_price(symbol, from_stamp, to_stamp, timespan, multiplier, date):
+    payload={}
+    headers = {}
+    trading_hours = [9,10,11,12,13,14,15]    
+    key = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
+    time_stamp = date.timestamp()
+    error_list = []
+    print(symbol)
+    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
 
     response = requests.request("GET", url, headers=headers, data=payload)
 
@@ -176,9 +237,10 @@ def call_polygon_price(symbol, from_stamp, to_stamp, timespan, multiplier):
     results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
     results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
     results_df['day'] = results_df['date'].apply(lambda x: x.day)
-    # results_df['symbol'] = row['symbol']
-    # dfs.append(results_df)
-
+    results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
+    results_df = results_df.loc[results_df['date'] >= date]
+    results_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+    results_df = results_df.loc[~((results_df['hour'] == 9) & (results_df['minute'] < 30))]
     return results_df
 
 def calc_vdiff(row):
@@ -230,41 +292,6 @@ def create_adjusted_volume(volumes, hour):
 def build_analytics(aggregates, hour):
     indicators = []
     for d in aggregates:
-    #     try:
-    #         d = data.copy()
-    #         symbol = d['symbol'].iloc[0]
-    #         hour_aggs = hour_aggregates.loc[hour_aggregates['symbol'] == symbol]
-    #         hour_aggs = hour_aggs.loc[hour_aggs['hour'] == hour]
-    #         values = hour_aggs.to_dict('records')[0]
-    #         d.loc[len(d.index)] = values
-    #         # d['t'] = d['t'].apply(lambda x: int(x/1000))
-    #         # d['date'] = d['t'].apply(lambda x: datetime.fromtimestamp(x))
-    #         d['time'] = d['date'].apply(lambda x: str(x).split(" ")[1])
-    #         # d['day'] = d.date.dt.day
-    #     except Exception as e:
-    #         print(e)
-    #         continue
-
-        # d['price7'] = ta.slope(d['c'],7)    
-        # d['price14'] = ta.slope(d['c'],14) 
-        # d['vol7'] = ta.slope(d['v'],7)    
-        # d['vol14'] = ta.slope(d['v'],14)
-        # d['volume_10MA'] = d['v'].rolling(10).mean()
-        # d['volume_25MA'] = d['v'].rolling(25).mean()
-        # d['price_10MA'] = d['c'].rolling(10).mean()
-        # d['price_25MA'] = d['c'].rolling(25).mean()
-        # d['volume_10DDiff'] = d.apply(lambda x: ((x.v - x.volume_10MA)/x.volume_10MA)*100, axis=1)
-        # d['volume_25DDiff'] = d.apply(lambda x: ((x.v - x.volume_25MA)/x.volume_25MA)*100, axis=1)
-        # d['price_10DDiff'] = d.apply(lambda x: ((x.c - x.price_10MA)/x.price_10MA)*100, axis=1)
-        # d['price_25DDiff'] = d.apply(lambda x: ((x.c - x.price_25MA)/x.price_25MA)*100, axis=1)
-        # d['rsi'] = ta.rsi(d['c'])
-        # d['roc'] = ta.roc(d['c'])
-        # d['roc3'] = ta.roc(d['c'],length=3)
-        # d['roc5'] = ta.roc(d['c'],length=5)
-        # d['cmf'] = ta.cmf(d['h'], d['l'], d['c'], d['v'])
-        # d['close_diff'] = ((d['c'] - d['c'].shift(1))/d['c'].shift(1))*100
-        # d['v_diff_pct'] = calc_vdiff_pipeline(d['v'].tolist(), hour)
-        # indicators.append(d)
         try: 
             d['price7'] = ta.slope(d['c'],7)    
             d['price14'] = ta.slope(d['c'],14) 
