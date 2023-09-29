@@ -23,21 +23,28 @@ title = os.getenv("TITLE")
 #         invoke_model(name)
 
 features = {
-    "invalerts-xgb-bfc-classifier": ['volume_10MA', 'threeD_returns_close', 'SPY_diff', 'range_vol_diff5', 'price_25MA', 'month', 'hour', 'oneD_stddev50',
-                                      'close_diff_deviation3', 'roc5', 'SPY_diff5', 'roc3', 'adx', 'vol14', 'close_diff', 'day_of_month', 'roc_diff', 'range_vol', 'adjusted_volume'],
-    "invalerts-xgb-bfp-classifier": ['close_diff_deviation', 'volume_10DDiff', 'vol14', 'volume_25MA', 'v_diff_pct', 'threeD_returns_close', 'SPY_1D', 'volume_10MA', 'range_vol25MA', 'price14'],
-    "invalerts-xgb-indexc-classifier": ['vol14', 'hour', 'roc', 'volume_25DDiff', 'range_vol_diff5', 'threeD_stddev50', 'close_diff5', 'range_vol10MA', 'price14', 'day_of_week', 'price_10MA'],
-    "invalerts-xgb-indexp-classifier": ['price_25MA', 'year', 'rsi5', 'hour', 'oneD_stddev50', 'roc5', 'adjusted_volume', 'roc3', 'volume_25DDiff', 'close_diff3'],
-    "invalerts-xgb-bfc-1d-classifier": ['price_25MA', 'adjusted_volume', 'price_25DDiff', 'volume_10DDiff', 'range_vol5MA', 'vol14', 'price_10MA', 'close_diff', 'volume_25DDiff', 'month', 'hour', 'rsi'],
-    "invalerts-xgb-bfp-1d-classifier": ['roc', 'close_diff5', 'SPY_3D', 'SPY_diff', 'volume_25DDiff', 'range_vol_diff5', 'volume_10DDiff', 'range_vol25MA', 'adjusted_volume', 'range_vol'],
-    "invalerts-xgb-indexc-1d-classifier": ['vol14', 'hour', 'roc', 'volume_25DDiff', 'range_vol_diff5', 'threeD_stddev50', 'close_diff5', 'range_vol10MA', 'price14', 'day_of_week', 'price_10MA'],
-    "invalerts-xgb-indexp-1d-classifier": ['price_25MA', 'year', 'rsi5', 'hour', 'oneD_stddev50', 'roc5', 'adjusted_volume', 'roc3', 'volume_25DDiff', 'close_diff3'],
+    "invalerts-xgb-bfc-classifier": ['price_25MA', 'close_diff', 'SPY_5D', 'range_vol25MA', 'SPY_diff3', 'close_diff_deviation', 'v_diff_pct', 'month', 'range_vol10MA', 
+                                     'threeD_stddev50', 'SPY_1D', 'range_vol', 'volume_25MA', 'adjusted_volume', 'roc3', 'cmf', 'range_vol5MA', 'day_of_month', 'roc5', 'SPY_diff'],
+    "invalerts-xgb-bfp-classifier": ['price7', 'month', 'adx', 'price_10MA', 'adjusted_volume', 'hour', 'threeD_stddev50', 'price_10DDiff', 'volume_10DDiff', 'close_diff', 
+                                     'range_vol', 'range_vol5MA', 'volume_10MA', 'close_diff5', 'volume_25DDiff', 'SPY_diff'],
+    "invalerts-xgb-indexc-classifier": ['range_vol10MA', 'volume_10MA', 'price_10MA', 'volume_25DDiff', 'roc5', 'rsi', 'close_diff_deviation3', 'roc_diff', 'volume_10DDiff', 
+                                        'vol14', 'close_diff_deviation', 'price14', 'cmf', 'price7', 'range_vol', 'month'],
+    "invalerts-xgb-indexp-classifier": ['price7', 'price_25MA', 'range_vol5MA', 'close_diff_deviation3', 'range_vol25MA', 'adx', 'close_diff5', 'threeD_stddev50', 
+                                        'oneD_returns_close', 'oneD_stddev50', 'range_vol_diff5'],
+    "invalerts-xgb-bfc-1d-classifier": ['range_vol_diff5', 'close_diff_deviation', 'range_vol5MA', 'SPY_5D', 'volume_25DDiff', 'range_vol10MA', 'volume_25MA', 'range_vol25MA', 
+                                        'roc', 'SPY_diff', 'volume_10MA', 'roc5', 'roc_diff', 'price_10DDiff', 'rsi3', 'roc3', 'adjusted_volume', 'month', 'cmf', 'day_of_week', 'close_diff_deviation3', 'v_diff_pct', 'close_diff', 'rsi'],
+    "invalerts-xgb-bfp-1d-classifier": ['roc3', 'oneD_returns_close', 'v_diff_pct', 'threeD_stddev50', 'range_vol_diff5', 'rsi5', 'close_diff3', 'close_diff_deviation3', 
+                                        'vol14', 'hour', 'roc_diff', 'threeD_returns_close', 'SPY_diff5', 'range_vol', 'price14', 'rsi', 'roc5', 'SPY_diff', 'rsi3'],
+    "invalerts-xgb-indexc-1d-classifier": ['roc_diff', 'close_diff5', 'range_vol10MA', 'adx', 'close_diff_deviation3', 'close_diff3', 'rsi5', 'adjusted_volume', 'volume_25DDiff', 
+                                           'day_of_month', 'cmf', 'volume_10DDiff', 'range_vol', 'range_vol25MA', 'roc', 'threeD_returns_close', 'oneD_stddev50', 'oneD_returns_close'],
+    "invalerts-xgb-indexp-1d-classifier": ['price7', 'price_25MA', 'range_vol5MA', 'close_diff_deviation3', 'range_vol25MA', 'adx', 'close_diff5', 'threeD_stddev50', 
+                                           'oneD_returns_close', 'oneD_stddev50', 'range_vol_diff5'],
             
 }
 
 big_fish =  [
             "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
-            "MSFT","FB","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","FB","SNOW","T","VZ","SOFI",
+            "MSFT","FB","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","FB","SNOW","SOFI",
             "UAL","DAL","AAL"
             ]
 indexes = ['QQQ','SPY','IWM']

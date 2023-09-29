@@ -123,7 +123,7 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
     # for date_str in date_list:
-    #     build_historic_data("2022-10-24")
+    #     build_historic_data("2023-09-15")
         
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:

@@ -53,8 +53,8 @@ def calc_price_action(row):
     to_date = date + timedelta(days=7)
     to_stamp = to_date.strftime("%Y-%m-%d")
     from_stamp = date.strftime("%Y-%m-%d")
-    aggs = call_polygon_price([row['symbol']], from_stamp, to_stamp, "hour", 1)
-    one_day, three_day = build_date_dfs(aggs, row['t'])
+    aggs = call_polygon_price(row['symbol'], from_stamp, to_stamp, "hour", 1, date)
+    one_day, three_day = build_date_dfs(aggs, date)
     open = one_day.head(1)['o'].values[0]
     one_c = one_day.tail(1)['c'].values[0]
     one_h = one_day['h'].max()
