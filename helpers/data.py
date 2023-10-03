@@ -130,12 +130,12 @@ def call_polygon(symbol_list, from_stamp, to_stamp, timespan, multiplier):
 
     return dfs, error_list
 
-def call_polygon_histH(symbol_list, from_stamp, to_stamp, timespan, multiplier):
+def call_polygon_histH(symbol_list, from_stamp, to_stamp, timespan, multiplier, hour):
     payload={}
     headers = {}
     dfs = []
     trading_hours = [9,10,11,12,13,14,15]
-    
+
     key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
     error_list = []
 
@@ -162,6 +162,50 @@ def call_polygon_histH(symbol_list, from_stamp, to_stamp, timespan, multiplier):
         trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
         filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
         dfs.append(filtered_df)
+
+    return dfs, error_list
+
+def call_polygon_vol(symbol_list, from_stamp, to_stamp, timespan, multiplier,hour):
+    payload={}
+    headers = {}
+    dfs = []
+    trading_hours = [9,10,11,12,13,14,15]
+    key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
+    error_list = []
+
+    year, month, day = to_stamp.split("-")
+    current_date = datetime(int(year), int(month), int(day), int(hour))
+
+    for symbol in symbol_list:
+        data = []
+        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+        with requests.Session() as session:
+            next_url = url
+            while next_url:
+                response = requests.request("GET", url, headers=headers, data=payload)
+                response_data = json.loads(response.text)
+                try:
+                    results = response_data['results']
+                except:
+                    print(symbol)
+                    error_list.append(symbol)
+                    continue
+                results_df = pd.DataFrame(results)
+                results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
+                results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
+                results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
+                results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
+                results_df['symbol'] = symbol
+                trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+                filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
+                filtered_df = filtered_df.loc[filtered_df['date'] <= current_date]
+                data.append(filtered_df)
+                try:
+                    next_url = response_data['next_url']
+                except:
+                    next_url = None
+            full_df = pd.concat(data, ignore_index=True)
+            dfs.append(full_df)
 
     return dfs, error_list
 
@@ -474,4 +518,80 @@ def build_spy_features(df, spy_aggs):
     df['SPY_3D'] = SPY_diff3
     df['SPY_5D'] = SPY_diff5
     return df
+
+def vol_feature_engineering(df, Min_aggs,Thirty_aggs):
+    features = []
+    agg_dict = {
+            'v': 'sum',
+            'o': 'first',
+            'c': 'last',
+            'h': 'max',
+            'l': 'min'
+        }
+    
+    for index,min_aggs in enumerate(Min_aggs):
+        min_aggs.reset_index(drop=True,inplace=True)
+        thirty_aggs = Thirty_aggs[index]
+        thirty_aggs.set_index('date',inplace=True)
+
+        # Perform resampling and aggregation
+        hour_aggs = thirty_aggs.resample('H').agg(agg_dict)
+        daily_aggs = thirty_aggs.resample('D').agg(agg_dict)
+
+        hour_aggs.dropna(inplace=True)
+        daily_aggs.dropna(inplace=True)
+
+        min_aggs['price_change'] = min_aggs['c'].diff()
+        min_aggs['volume_change'] = min_aggs['v'].diff()
+        hour_aggs['price_change'] = hour_aggs['c'].diff()
+        hour_aggs['volume_change'] = hour_aggs['v'].diff()
+        daily_aggs['price_change'] = daily_aggs['c'].diff()
+        daily_aggs['volume_change'] = daily_aggs['v'].diff()
+
+        min_aggs['return_vol_240M'] = min_aggs['price_change'].rolling(window=240).apply(lambda x: abs(x).mean(), raw=True)
+        min_aggs['volume_vol_240M'] = min_aggs['volume_change'].rolling(window=240).apply(lambda x: abs(x).mean(), raw=True)
+        min_aggs['return_vol_450M'] = min_aggs['price_change'].rolling(window=450).apply(lambda x: abs(x).mean(), raw=True)
+        min_aggs['volume_vol_450M'] = min_aggs['volume_change'].rolling(window=450).apply(lambda x: abs(x).mean(), raw=True)
+        hour_aggs['return_vol_8H'] = hour_aggs['price_change'].rolling(window=8).apply(lambda x: abs(x).mean(), raw=True)
+        hour_aggs['return_vol_16H'] = hour_aggs['price_change'].rolling(window=16).apply(lambda x: abs(x).mean(), raw=True)
+        hour_aggs['volume_vol_8H'] = hour_aggs['volume_change'].rolling(window=8).apply(lambda x: abs(x).mean(), raw=True)
+        hour_aggs['volume_vol_16H'] = hour_aggs['volume_change'].rolling(window=16).apply(lambda x: abs(x).mean(), raw=True)
+        daily_aggs['return_vol_5D'] = daily_aggs['price_change'].rolling(window=5).apply(lambda x: abs(x).mean(), raw=True)
+        daily_aggs['return_vol_10D'] = daily_aggs['price_change'].rolling(window=10).apply(lambda x: abs(x).mean(), raw=True)
+        daily_aggs['return_vol_30D'] = daily_aggs['price_change'].rolling(window=30).apply(lambda x: abs(x).mean(), raw=True)
+        daily_aggs['volume_vol_5D'] = daily_aggs['volume_change'].rolling(window=5).apply(lambda x: abs(x).mean(), raw=True)
+        daily_aggs['volume_vol_10D'] = daily_aggs['volume_change'].rolling(window=10).apply(lambda x: abs(x).mean(), raw=True)
+        daily_aggs['volume_vol_30D'] = daily_aggs['volume_change'].rolling(window=30).apply(lambda x: abs(x).mean(), raw=True)
+
+        min_aggs['min_vol_diff'] = min_aggs['return_vol_240M'] - min_aggs['return_vol_450M']
+        min_aggs['min_vol_diff_pct'] = min_aggs['min_vol_diff']/min_aggs['return_vol_450M']
+        hour_aggs['hour_vol_diff'] = hour_aggs['return_vol_8H'] - hour_aggs['return_vol_16H']
+        hour_aggs['hour_vol_diff_pct'] = hour_aggs['hour_vol_diff']/hour_aggs['return_vol_16H']
+        daily_aggs['daily_vol_diff'] = daily_aggs['return_vol_5D'] - daily_aggs['return_vol_10D']
+        daily_aggs['daily_vol_diff_pct'] = daily_aggs['daily_vol_diff']/daily_aggs['return_vol_10D']
+        daily_aggs['daily_vol_diff30'] = daily_aggs['return_vol_5D'] - daily_aggs['return_vol_30D']
+        daily_aggs['daily_vol_diff_pct30'] = daily_aggs['daily_vol_diff30']/daily_aggs['return_vol_30D']
+        min_aggs['min_volume_vol_diff'] = min_aggs['volume_vol_240M'] - min_aggs['volume_vol_450M']
+        min_aggs['min_volume_vol_diff_pct'] = min_aggs['min_volume_vol_diff']/min_aggs['volume_vol_450M']
+        hour_aggs['hour_volume_vol_diff'] = hour_aggs['volume_vol_8H'] - hour_aggs['volume_vol_16H']
+        hour_aggs['hour_volume_vol_diff_pct'] = hour_aggs['hour_volume_vol_diff']/hour_aggs['volume_vol_16H']
+        daily_aggs['daily_volume_vol_diff'] = daily_aggs['volume_vol_5D'] - daily_aggs['volume_vol_10D']
+        daily_aggs['daily_volume_vol_diff_pct'] = daily_aggs['daily_volume_vol_diff']/daily_aggs['volume_vol_10D']
+        daily_aggs['daily_volume_vol_diff30'] = daily_aggs['volume_vol_5D'] - daily_aggs['volume_vol_30D']
+        daily_aggs['daily_volume_vol_diff_pct30'] = daily_aggs['daily_volume_vol_diff30']/daily_aggs['volume_vol_30D']
+
+        min_features = min_aggs.iloc[-1]
+        hour_features = hour_aggs.iloc[-1]
+        daily_features = daily_aggs.iloc[-1]
+        min_features.drop(['t','o','h','l','v','c','price_change','volume_change','hour','minute'], inplace=True)
+        hour_features.drop(['o','h','l','v','c','price_change','volume_change'], inplace=True)
+        daily_features.drop(['o','h','l','v','c','price_change','volume_change'], inplace=True)
+        df_combined = pd.concat([min_features, hour_features, daily_features])
+        features.append(df_combined)
+    
+    features_df = pd.DataFrame(features)
+    results_df = pd.merge(df, features_df, on=['symbol'], how='outer')
+    return results_df
+
+
 

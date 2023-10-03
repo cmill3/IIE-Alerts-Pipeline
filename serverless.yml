@@ -65,7 +65,7 @@ functions:
       PREDICTIONS_BUCKET: "inv-alerts-trading-data"
       ALERTS_BUCKET: "inv-alerts"
       TITLE: "indexC"
-      ENDPOINT_NAMES: "invalerts-xgb-indexc-classifier"
+      ENDPOINT_NAMES: "invalerts-xgb-indexc-classifier,invalerts-xgb-indexc-1d-classifier"
     layers:
       - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
@@ -76,7 +76,7 @@ functions:
       PREDICTIONS_BUCKET: "inv-alerts-trading-data"
       ALERTS_BUCKET: "inv-alerts"
       TITLE: "indexP"
-      ENDPOINT_NAMES: "invalerts-xgb-indexp-classifier"
+      ENDPOINT_NAMES: "invalerts-xgb-indexp-classifier,invalerts-xgb-indexp-1d-classifier"
     layers:
       - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole

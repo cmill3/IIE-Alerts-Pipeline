@@ -1,0 +1,93 @@
+import json
+from helpers.aws import pull_files_s3, get_s3_client
+from helpers.data import *
+from datetime import datetime, timedelta
+import os
+import pandas as pd
+import boto3
+import logging
+from botocore.exceptions import ClientError
+import concurrent.futures
+
+alerts_bucket = os.getenv("ALERTS_BUCKET")
+## add FB for historical
+
+big_fish =  [
+            "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","FB"
+            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","META",'QQQ','SPY','IWM'
+            ]
+indexes = ['QQQ','SPY','IWM']
+memes = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID']
+now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
+s3 = boto3.client('s3')
+logger = logging.getLogger()
+
+def build_vol_features(date_str):
+    print(date_str)
+    hours = ["10","11","12","13","14","15"]
+    key_str = date_str.replace("-","/")
+    s3 = get_s3_client()
+    from_stamp, to_stamp, hour_stamp = generate_dates_historic_vol(date_str)
+
+    for hour in hours:
+        df = s3.get_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/bf_mktHours/{key_str}/{hour}.csv")
+        df = pd.read_csv(df['Body'])
+        min_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
+        hour_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+        results_df = vol_feature_engineering(df, min_aggs, hour_aggs)
+        csv = results_df.to_csv()
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/bf_mktHours/{key_str}/{hour}.csv", Body=csv)
+    return put_response
+
+
+def combine_hour_aggs(aggregates, hour_aggregates, hour):
+    full_aggs = []
+    for index, value in enumerate(aggregates):
+        hour_aggs = hour_aggregates[index]
+        hour_aggs = hour_aggs.loc[hour_aggs["hour"] <= int(hour)]
+        hour_aggs = hour_aggs.iloc[:-1]
+        volume = hour_aggs.v.sum()
+        open = hour_aggs.o.iloc[0]
+        close = hour_aggs.c.iloc[-1]
+        high = hour_aggs.h.max()
+        low = hour_aggs.l.min()
+        n = hour_aggs.n.sum()
+        t = hour_aggs.t.iloc[-1]
+        # hour_dict = {"v": volume, "vw":0, "o":open, "c":close, "h":high, "l":low, "t":t,"n":n,"date":hour_aggs.date.iloc[-1],"hour":hour,"minute":0,"symbol":hour_aggs.symbol.iloc[-1]}
+        aggs_list = [volume, open, close, high, low, hour_aggs.date.iloc[-1], hour,hour_aggs.symbol.iloc[-1],t]
+        value.loc[len(value)] = aggs_list
+        full_aggs.append(value)
+    return full_aggs
+
+
+def generate_dates_historic_vol(date_str):
+    end = datetime.strptime(date_str, "%Y-%m-%d")
+    start = end - timedelta(weeks=8)
+    # end_day = end - timedelta(days=1)
+    to_stamp = end.strftime("%Y-%m-%d")
+    hour_stamp = end.strftime("%Y-%m-%d")
+    from_stamp = start.strftime("%Y-%m-%d")
+    return from_stamp, to_stamp, hour_stamp
+
+
+if __name__ == "__main__":
+    # build_historic_data(None, None)
+    start_date = datetime(2020,8,21)
+    end_date = datetime(2023,9,23)
+    date_diff = end_date - start_date
+    numdays = date_diff.days 
+    date_list = []
+    print(numdays)
+    for x in range (0, numdays):
+        temp_date = start_date + timedelta(days = x)
+        if temp_date.weekday() < 5:
+            date_str = temp_date.strftime("%Y-%m-%d")
+            date_list.append(date_str)
+
+    # for date_str in date_list:
+    # build_vol_features("2023-09-15")
+        
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+        # Submit the processing tasks to the ThreadPoolExecutor
+        processed_weeks_futures = [executor.submit(build_vol_features, date_str) for date_str in date_list]
