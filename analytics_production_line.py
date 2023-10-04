@@ -11,8 +11,7 @@ alerts_bucket = os.getenv("ALERTS_BUCKET")
 big_fish =  [
             "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
             "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","SPY"
-            ,"QQQ","IWM"
-            ]
+            ,"QQQ","IWM"]
 
 
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
