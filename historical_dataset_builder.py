@@ -26,8 +26,7 @@ alerts_bucket = os.getenv("ALERTS_BUCKET")
 # leveraged_etfs = ["TQQQ","SQQQ","SPXS","SPXL","SOXL","SOXS"]
 big_fish =  [
             "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
-            "MSFT","FB","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","FB","SNOW","T","VZ","SOFI",
-            "UAL","DAL","AAL"
+            "MSFT","FB","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","FB","SNOW","SOFI",
             ]
 indexes = ['QQQ','SPY','IWM']
 memes = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID']
