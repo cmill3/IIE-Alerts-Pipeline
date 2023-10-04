@@ -8,16 +8,13 @@ import pandas as pd
 from botocore.exceptions import ClientError
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
+big_fish =  [
+            "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
+            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","SPY"
+            ,"QQQ","IWM"]
 
-big_fish =  ["AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
-            "MSFT","FB","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","FB","SNOW","T","VZ","SOFI",
-            "UAL","DAL","AAL"]
 
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
-start_interval = os.getenv("START_RANGE")
-end_interval = os.getenv("END_RANGE")
-distributed_number = os.getenv("DISTRIBUTED_NUMBER")
-
 logger = logging.getLogger()
 
 def analytics_runner(event, context):
@@ -43,7 +40,6 @@ def generate_dates(now):
     return from_stamp, to_stamp
 
 def build_full_df(aggregates, day_aggregates, to_stamp):
-    print(aggregates)
     symbols_list = aggregates["symbol"].unique()
     temp_dfs = []
     for symbol in symbols_list:

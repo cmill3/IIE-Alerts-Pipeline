@@ -23,25 +23,34 @@ title = os.getenv("TITLE")
 #         invoke_model(name)
 
 features = {
-    "invalerts-xgb-losers-classifier": ['rsi','roc','roc3','close_diff','price_10DDiff','close_diff3',
-                                        'SPY_diff','SPY_diff3','SPY_1D','SPY_3D'],
-    "invalerts-xgb-gainers-classifier": ['rsi','roc','roc3','close_diff','price_10DDiff','close_diff3',
-                                        'SPY_diff','SPY_diff3','SPY_1D','SPY_3D'],
-    "invalerts-xgb-MA-classifier": ['rsi', 'roc', 'roc5', 'v', 'price_10DDiff', 'price_25DDiff', 'close_diff', 'v_diff_pct', 
-                                        'rsi5', 'close_diff5', 'SPY_diff', 'SPY_diff5', 'SPY_1D', 'SPY_5D'],
-    "invalerts-xgb-MAP-classifier": ['rsi','roc','roc3','close_diff','price_10DDiff','close_diff3',
-                                    'SPY_diff','SPY_diff3','SPY_1D','SPY_3D'],
-    "invalerts-xgb-vdiff-gainC-classifier": ['rsi', 'roc', 'roc5', 'v', 'price_10DDiff', 'price_25DDiff', 'close_diff', 'v_diff_pct', 
-                                        'rsi5', 'close_diff5', 'SPY_diff', 'SPY_diff5', 'SPY_1D', 'SPY_5D'],
-    "invalerts-xgb-vdiff-gainP-classifier": ['rsi', 'roc', 'roc5', 'v', 'price_10DDiff', 'price_25DDiff', 'close_diff', 'v_diff_pct', 
-                                        'rsi5', 'close_diff5', 'SPY_diff', 'SPY_diff5', 'SPY_1D', 'SPY_5D'],
-    "invalerts-xgb-bfc-classifier": ['rsi', 'cmf', 'SPY_diff', 'roc', 'roc3', 'roc5', 'price_10DDiff', 'price_25DDiff', 'v_diff_pct', 'v', 
-                                     'close_diff', 'roc_diff', 'day_of_week', 'hour', 'volume_10DDiff', 'month', 'threeD_stddev50', 'range_vol'],
-    "invalerts-xgb-bfp-classifier": ['rsi', 'cmf', 'SPY_diff', 'roc', 'roc3', 'roc5', 'price_10DDiff', 'price_25DDiff', 'v_diff_pct', 'v', 'close_diff', 
-                                     'roc_diff', 'day_of_week', 'hour', 'volume_10DDiff', 'month', 'threeD_stddev50', 'range_vol', 'close_diff_deviation3']
+    "invalerts-xgb-bfc-classifier": ['price_25MA', 'close_diff', 'SPY_5D', 'range_vol25MA', 'SPY_diff3', 'close_diff_deviation', 'v_diff_pct', 'month', 'range_vol10MA', 
+                                     'threeD_stddev50', 'SPY_1D', 'range_vol', 'volume_25MA', 'adjusted_volume', 'roc3', 'cmf', 'range_vol5MA', 'day_of_month', 'roc5', 'SPY_diff'],
+    "invalerts-xgb-bfp-classifier": ['price7', 'month', 'adx', 'price_10MA', 'adjusted_volume', 'hour', 'threeD_stddev50', 'price_10DDiff', 'volume_10DDiff', 'close_diff', 
+                                     'range_vol', 'range_vol5MA', 'volume_10MA', 'close_diff5', 'volume_25DDiff', 'SPY_diff'],
+    "invalerts-xgb-indexc-classifier": ['range_vol10MA', 'volume_10MA', 'price_10MA', 'volume_25DDiff', 'roc5', 'rsi', 'close_diff_deviation3', 'roc_diff', 'volume_10DDiff', 
+                                        'vol14', 'close_diff_deviation', 'price14', 'cmf', 'price7', 'range_vol', 'month'],
+    "invalerts-xgb-indexp-classifier": ['price7', 'price_25MA', 'range_vol5MA', 'close_diff_deviation3', 'range_vol25MA', 'adx', 'close_diff5', 'threeD_stddev50', 
+                                        'oneD_returns_close', 'oneD_stddev50', 'range_vol_diff5'],
+    "invalerts-xgb-bfc-1d-classifier": ['range_vol_diff5', 'close_diff_deviation', 'range_vol5MA', 'SPY_5D', 'volume_25DDiff', 'range_vol10MA', 'volume_25MA', 'range_vol25MA', 
+                                        'roc', 'SPY_diff', 'volume_10MA', 'roc5', 'roc_diff', 'price_10DDiff', 'rsi3', 'roc3', 'adjusted_volume', 'month', 'cmf', 'day_of_week', 'close_diff_deviation3', 'v_diff_pct', 'close_diff', 'rsi'],
+    "invalerts-xgb-bfp-1d-classifier": ['roc3', 'oneD_returns_close', 'v_diff_pct', 'threeD_stddev50', 'range_vol_diff5', 'rsi5', 'close_diff3', 'close_diff_deviation3', 
+                                        'vol14', 'hour', 'roc_diff', 'threeD_returns_close', 'SPY_diff5', 'range_vol', 'price14', 'rsi', 'roc5', 'SPY_diff', 'rsi3'],
+    "invalerts-xgb-indexc-1d-classifier": ['roc_diff', 'close_diff5', 'range_vol10MA', 'adx', 'close_diff_deviation3', 'close_diff3', 'rsi5', 'adjusted_volume', 'volume_25DDiff', 
+                                           'day_of_month', 'cmf', 'volume_10DDiff', 'range_vol', 'range_vol25MA', 'roc', 'threeD_returns_close', 'oneD_stddev50', 'oneD_returns_close'],
+    "invalerts-xgb-indexp-1d-classifier": ['price7', 'price_25MA', 'range_vol5MA', 'close_diff_deviation3', 'range_vol25MA', 'adx', 'close_diff5', 'threeD_stddev50', 
+                                           'oneD_returns_close', 'oneD_stddev50', 'range_vol_diff5'],
             
 }
 
+big_fish =  [
+            "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
+            "MSFT","FB","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","FB","SNOW","SOFI",
+            "UAL","DAL","AAL"
+            ]
+indexes = ['QQQ','SPY','IWM']
+
+index_strategies = ["indexP_1d","indexC_1d","indexP","indexC"]
+bf_strategies = ["bfP_1d","bfC_1d","bfP","bfC"]
 
 def invoke_model(event, context):   
     endpoint_names = os.getenv("ENDPOINT_NAMES")
@@ -49,26 +58,32 @@ def invoke_model(event, context):
     year, month, day, hour = format_dates(datetime.now())
     keys = s3.list_objects(Bucket=alerts_bucket,Prefix=f"bf_alerts/{year}/{month}/{day}")["Contents"]
     query_key = keys[-1]['Key']
-    print(query_key)
     dataset = s3.get_object(Bucket=alerts_bucket, Key=query_key)
-    df = pd.read_csv(dataset.get("Body"))
+    data = pd.read_csv(dataset.get("Body"))
 
-    dates = df['date'].unique()
+    dates = data['date'].unique()
     recent_date = dates[-1]
-    symbol_list = df['symbol']
-    df['dt'] = pd.to_datetime(df['date'])
-    df['day_of_week'] = df['dt'].apply(lambda x: x.dayofweek)
-    df['hour'] = df['dt'].apply(lambda x: x.hour)
-    df['roc_diff'] = df['roc'] - df['roc5']
-    df['month'] = df['dt'].apply(lambda x: x.month)
-    df['close_diff_deviation3'] = abs(df['close_diff3'])/(df['threeD_stddev50']*100)
+    data['dt'] = pd.to_datetime(data['date'])
+    data['roc_diff'] = data['roc'] - data['roc5']
+    data['range_vol_diff5'] = (data['range_vol'] - data['range_vol5MA'])
+    data['close_diff_deviation3'] = abs(data['close_diff3'])/(data['threeD_stddev50']*100)
+    data['close_diff_deviation'] = abs(data['close_diff'])/(data['oneD_stddev50']*100)
+    data['day_of_week'] = data['dt'].apply(lambda x: x.dayofweek).astype(int)
+    data['day_of_month'] = data['dt'].apply(lambda x: x.day).astype(int)
+    data['month'] = data['dt'].apply(lambda x: x.month).astype(int)
+    data['year'] = data['dt'].apply(lambda x: x.year).astype(int)
+
+    if title in bf_strategies:
+        data = data[data['symbol'].isin(big_fish)]
+        symbol_list = data['symbol']
+    elif title in index_strategies:
+        data = data[data['symbol'].isin(indexes)]
+        symbol_list = data['symbol']
 
     
     for name in endpoint_names:
-        print(name)
-        # strategy_name = name.split("-")[2]
         strat_name = name.strip('"')
-        prediciton_data = df[features[strat_name]]
+        prediciton_data = data[features[strat_name]]
         prediction_csv = prediciton_data.to_csv(header=False,index=False).encode()
         response = runtime.invoke_endpoint(
             EndpointName=strat_name,
@@ -94,7 +109,7 @@ def format_result(result_string, symbol_list, recent_date) -> pd.DataFrame:
         result_string = result_string.decode("utf-8") 
         array = result_string.split(",")
         results_df = pd.DataFrame({'classifier_prediction': array})
-        results_df['symbol'] = symbol_list
+        results_df['symbol'] = symbol_list.values
         results_df['recent_date'] = recent_date
 
         return results_df

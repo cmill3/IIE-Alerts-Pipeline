@@ -43,7 +43,7 @@ functions:
       PREDICTIONS_BUCKET: "inv-alerts-trading-data"
       ALERTS_BUCKET: "inv-alerts"
       TITLE: "bfC"
-      ENDPOINT_NAMES: "invalerts-xgb-bfc-classifier"
+      ENDPOINT_NAMES: "invalerts-xgb-bfc-classifier,invalerts-xgb-bfc-1d-classifier"
     layers:
       - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
@@ -54,19 +54,33 @@ functions:
       PREDICTIONS_BUCKET: "inv-alerts-trading-data"
       ALERTS_BUCKET: "inv-alerts"
       TITLE: "bfP"
-      ENDPOINT_NAMES: "invalerts-xgb-bfp-classifier"
+      ENDPOINT_NAMES: "invalerts-xgb-bfp-classifier,invalerts-xgb-bfp-1d-classifier"
     layers:
       - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
     name: bfp-xgboost-classifier
-  full-prediction-aggregator:
-    handler: full_prediction_aggregator.aggregate
+  indexc-xgboost-classifier:
+    handler: xgboost_classifier.invoke_model
     environment:
-      TRADING_BUCKET: "inv-alerts-trading-data"
+      PREDICTIONS_BUCKET: "inv-alerts-trading-data"
+      ALERTS_BUCKET: "inv-alerts"
+      TITLE: "indexC"
+      ENDPOINT_NAMES: "invalerts-xgb-indexc-classifier,invalerts-xgb-indexc-1d-classifier"
     layers:
       - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
-    name: full-prediction-aggregator-inv
+    name: indexc-xgboost-classifier
+  indexp-xgboost-classifier:
+    handler: xgboost_classifier.invoke_model
+    environment:
+      PREDICTIONS_BUCKET: "inv-alerts-trading-data"
+      ALERTS_BUCKET: "inv-alerts"
+      TITLE: "indexP"
+      ENDPOINT_NAMES: "invalerts-xgb-indexp-classifier,invalerts-xgb-indexp-1d-classifier"
+    layers:
+      - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
+    role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
+    name: indexp-xgboost-classifier
 
 stepFunctions:
   stateMachines:
@@ -159,16 +173,32 @@ stepFunctions:
                         MaxAttempts: 3
                         BackoffRate: 2
                     End: true
-            Next: full-prediction-aggregator
-          full-prediction-aggregator:
-            Type: Task
-            Resource:  "arn:aws:lambda:us-east-1:456201388658:function:full-prediction-aggregator-inv:$LATEST"
-            Retry:
-              - ErrorEquals:
-                - Lambda.ServiceException
-                - Lambda.AWSLambdaException
-                - Lambda.SdkClientException
-                IntervalSeconds: 5
-                MaxAttempts: 3
-                BackoffRate: 2
+              - StartAt: indexc-xgboost-classifier
+                States:
+                  indexc-xgboost-classifier:
+                    Type: Task
+                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:indexc-xgboost-classifier:$LATEST"
+                    Retry:
+                      - ErrorEquals:
+                        - Lambda.ServiceException
+                        - Lambda.AWSLambdaException
+                        - Lambda.SdkClientException
+                        IntervalSeconds: 5
+                        MaxAttempts: 3
+                        BackoffRate: 2
+                    End: true
+              - StartAt: indexp-xgboost-classifier
+                States:
+                  indexp-xgboost-classifier:
+                    Type: Task
+                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:indexp-xgboost-classifier:$LATEST"
+                    Retry:
+                      - ErrorEquals:
+                        - Lambda.ServiceException
+                        - Lambda.AWSLambdaException
+                        - Lambda.SdkClientException
+                        IntervalSeconds: 5
+                        MaxAttempts: 3
+                        BackoffRate: 2
+                    End: true
             End: true
