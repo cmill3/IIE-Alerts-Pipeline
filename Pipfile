@@ -11,6 +11,7 @@ pandas-ta = "*"
 xgboost = "*"
 numpy = "*"
 yahooquery = "*"
+pytz = "*"
 
 [dev-packages]
 
