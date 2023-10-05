@@ -269,7 +269,6 @@ def call_polygon_price(symbol, from_stamp, to_stamp, timespan, multiplier, date)
     key = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
     time_stamp = date.timestamp()
     error_list = []
-    print(symbol)
     url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
 
     response = requests.request("GET", url, headers=headers, data=payload)
@@ -284,6 +283,40 @@ def call_polygon_price(symbol, from_stamp, to_stamp, timespan, multiplier, date)
     results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
     results_df = results_df.loc[results_df['date'] >= date]
     results_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+    results_df = results_df.loc[~((results_df['hour'] == 9) & (results_df['minute'] < 30))]
+    return results_df
+
+
+def call_polygon_price_day(symbol, from_stamp, to_stamp, timespan, multiplier):
+    payload={}
+    headers = {}
+    key = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
+    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+
+    response = requests.request("GET", url, headers=headers, data=payload)
+
+    response_data = json.loads(response.text)
+    results = response_data['results']
+    results_df = pd.DataFrame(results)
+    return results_df['c'].iloc[-1]
+
+
+def call_polygon_PCR(symbol, from_stamp, to_stamp, timespan, multiplier, hour):
+    trading_hours = [9,10,11,12,13,14,15]    
+    key = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
+    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+
+    response = requests.request("GET", url, headers={}, data={})
+
+    response_data = json.loads(response.text)
+    results = response_data['results']
+    results_df = pd.DataFrame(results)
+    results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
+    results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
+    results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
+    results_df['day'] = results_df['date'].apply(lambda x: x.day)
+    results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
+    results_df = results_df.loc[results_df['hour'] <= int(hour)]
     results_df = results_df.loc[~((results_df['hour'] == 9) & (results_df['minute'] < 30))]
     return results_df
 
