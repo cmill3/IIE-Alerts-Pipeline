@@ -13,7 +13,7 @@ alerts_bucket = os.getenv("ALERTS_BUCKET")
 ## add FB for historical
 
 big_fish =  [
-            "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
+            "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","FB","CRM",
             "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","META",'QQQ','SPY','IWM'
             ]
 indexes = ['QQQ','SPY','IWM']
@@ -59,8 +59,6 @@ def build_historic_data(date_str):
         df['SPY_1D'] = SPY_diff
         df['SPY_3D'] = SPY_diff3
         df['SPY_5D'] = SPY_diff5
-        # alerts_dict = build_alerts(df)
-        # for key, df in alerts_dict.items():
         csv = df.to_csv()
         put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/bf_mktHours/{key_str}/{hour}.csv", Body=csv)
     return put_response
@@ -79,8 +77,9 @@ def combine_hour_aggs(aggregates, hour_aggregates, hour):
     full_aggs = []
     for index, value in enumerate(aggregates):
         hour_aggs = hour_aggregates[index]
-        hour_aggs = hour_aggs.loc[hour_aggs["hour"] <= int(hour)]
-        hour_aggs = hour_aggs.iloc[:-1]
+        hour_aggs = hour_aggs.loc[hour_aggs["hour"] < int(hour)]
+        if len(hour_aggs) > 1:
+            hour_aggs = hour_aggs.iloc[:-1]
         volume = hour_aggs.v.sum()
         open = hour_aggs.o.iloc[0]
         close = hour_aggs.c.iloc[-1]
@@ -88,7 +87,6 @@ def combine_hour_aggs(aggregates, hour_aggregates, hour):
         low = hour_aggs.l.min()
         n = hour_aggs.n.sum()
         t = hour_aggs.t.iloc[-1]
-        # hour_dict = {"v": volume, "vw":0, "o":open, "c":close, "h":high, "l":low, "t":t,"n":n,"date":hour_aggs.date.iloc[-1],"hour":hour,"minute":0,"symbol":hour_aggs.symbol.iloc[-1]}
         aggs_list = [volume, open, close, high, low, hour_aggs.date.iloc[-1], hour,hour_aggs.symbol.iloc[-1],t]
         value.loc[len(value)] = aggs_list
         full_aggs.append(value)
@@ -110,7 +108,7 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2023,9,15)
+    start_date = datetime(2018,1,1)
     end_date = datetime(2023,9,23)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -124,8 +122,9 @@ if __name__ == "__main__":
 
     # for date_str in date_list:
     #     build_historic_data("2023-09-15")
+    #     breakk
         
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(build_historic_data, date_str) for date_str in date_list]

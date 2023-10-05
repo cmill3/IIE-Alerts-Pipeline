@@ -1,9 +1,10 @@
 import requests
 import json
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import pandas_ta as ta
 import numpy as np
+import pytz
 
 key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
 
@@ -49,12 +50,14 @@ def get_pcr_historic(symbol, window, dates):
     return raw_list
 
 def calc_price_action(row):
+    t = row['t']
     date = row['date']
     to_date = date + timedelta(days=7)
     to_stamp = to_date.strftime("%Y-%m-%d")
     from_stamp = date.strftime("%Y-%m-%d")
-    aggs = call_polygon_price(row['symbol'], from_stamp, to_stamp, "hour", 1, date)
-    one_day, three_day = build_date_dfs(aggs, date)
+    date = date.astimezone(pytz.timezone('US/Eastern'))
+    aggs = call_polygon_price(row['symbol'], from_stamp, to_stamp, "hour", 1, t)
+    one_day, three_day = build_date_dfs(aggs, t)
     open = one_day.head(1)['o'].values[0]
     one_c = one_day.tail(1)['c'].values[0]
     one_h = one_day['h'].max()
@@ -70,7 +73,8 @@ def calc_price_action(row):
     three_pct = (three_c - row['c'])/row['c']
     return {"one_max": one_high, "one_min": one_low, "one_pct": one_pct, "three_max": three_high, "three_min": three_low, "three_pct": three_pct,"symbol": row['symbol']}
 
-def build_date_dfs(df, date):
+def build_date_dfs(df, t):
+    date = convert_timestamp_est(t)
     sell_1d = calculate_sellby_date(date, 2)
     sell_3d = calculate_sellby_date(date, 4)
     one_day_df = df.loc[df['date'] < sell_1d]
@@ -88,10 +92,10 @@ def determine_num_days(dt):
     if day_of_week == 4:
         return 3,4,5
     
-def calculate_sellby_date(current_date, trading_days_to_add): #End date, n days later for the data set built to include just trading days, but doesnt filter holiday
-    date_str = current_date.strftime("%Y-%m-%d %H:%M:%S")
-    date_str = date_str.split(" ")[0]
-    dt = datetime.strptime(date_str,"%Y-%m-%d")
+def calculate_sellby_date(dt, trading_days_to_add): #End date, n days later for the data set built to include just trading days, but doesnt filter holiday
+    # date_str = current_date.strftime("%Y-%m-%d %H:%M:%S")
+    # date_str = date_str.split(" ")[0]
+    # dt = datetime.strptime(date_str,"%Y-%m-%d")
     while trading_days_to_add > 0:
         dt += timedelta(days=1)
         weekday = dt.weekday()
@@ -130,12 +134,10 @@ def call_polygon(symbol_list, from_stamp, to_stamp, timespan, multiplier):
 
     return dfs, error_list
 
-def call_polygon_histH(symbol_list, from_stamp, to_stamp, timespan, multiplier, hour):
+def call_polygon_histH(symbol_list, from_stamp, to_stamp, timespan, multiplier):
     payload={}
     headers = {}
     dfs = []
-    trading_hours = [9,10,11,12,13,14,15]
-
     key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
     error_list = []
 
@@ -155,11 +157,11 @@ def call_polygon_histH(symbol_list, from_stamp, to_stamp, timespan, multiplier, 
             continue
         results_df = pd.DataFrame(results)
         results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
-        results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
+        results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
         results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
         results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
         results_df['symbol'] = symbol
-        trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+        trimmed_df = results_df.loc[results_df['hour'].isin([9,10,11,12,13,14,15])]
         filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
         dfs.append(filtered_df)
 
@@ -192,7 +194,7 @@ def call_polygon_vol(symbol_list, from_stamp, to_stamp, timespan, multiplier,hou
                     continue
                 results_df = pd.DataFrame(results)
                 results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
-                results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
+                results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
                 results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
                 results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
                 results_df['symbol'] = symbol
@@ -237,8 +239,10 @@ def call_polygon_histD(symbol_list, from_stamp, to_stamp, timespan, multiplier):
         results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
         results_df['symbol'] = symbol
         results_df['day_of_week'] = results_df['date'].apply(lambda x: x.weekday())
-        trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
-        filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
+        results_df['mkt_open'] = results_df['t'].apply(lambda x: is_market_open(x))
+        filtered_df = results_df.loc[results_df['mkt_open'] == True]
+        # trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+        # filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
         filtered_df = filtered_df.loc[filtered_df['day_of_week'] < 5]
         filtered_df.set_index('date',inplace=True)
         agg_dict = {
@@ -262,29 +266,25 @@ def call_polygon_histD(symbol_list, from_stamp, to_stamp, timespan, multiplier):
 
     return dfs, error_list
 
-def call_polygon_price(symbol, from_stamp, to_stamp, timespan, multiplier, date):
-    payload={}
-    headers = {}
-    trading_hours = [9,10,11,12,13,14,15]    
+def call_polygon_price(symbol, from_stamp, to_stamp, timespan, multiplier, t):
     key = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
-    time_stamp = date.timestamp()
-    error_list = []
     url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
 
-    response = requests.request("GET", url, headers=headers, data=payload)
+    response = requests.request("GET", url, headers={}, data={})
 
     response_data = json.loads(response.text)
     results = response_data['results']
     results_df = pd.DataFrame(results)
     results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
-    results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
+    # results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
+    results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
     results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
     results_df['day'] = results_df['date'].apply(lambda x: x.day)
     results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
-    results_df = results_df.loc[results_df['date'] >= date]
-    results_df = results_df.loc[results_df['hour'].isin(trading_hours)]
-    results_df = results_df.loc[~((results_df['hour'] == 9) & (results_df['minute'] < 30))]
-    return results_df
+    results_df = results_df.loc[results_df['t'] > t]
+    results_df['mkt_open'] = results_df['t'].apply(lambda x: is_market_open(x))
+    filtered_df = results_df.loc[results_df['mkt_open'] == True]
+    return filtered_df
 
 
 def call_polygon_price_day(symbol, from_stamp, to_stamp, timespan, multiplier):
@@ -301,24 +301,26 @@ def call_polygon_price_day(symbol, from_stamp, to_stamp, timespan, multiplier):
     return results_df['c'].iloc[-1]
 
 
-def call_polygon_PCR(symbol, from_stamp, to_stamp, timespan, multiplier, hour):
-    trading_hours = [9,10,11,12,13,14,15]    
+def call_polygon_PCR(symbols, from_stamp, to_stamp, timespan, multiplier, hour):
     key = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
-    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+    values = []
+    for symbol in symbols:
+        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+        response = requests.request("GET", url, headers={}, data={})
+        response_data = json.loads(response.text)
+        try:
+            results = response_data['results']
+            results_df = pd.DataFrame(results)
+            results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
+            results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
+            results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
+            results_df = results_df.loc[results_df['hour'] <= int(hour)]
+        except:
+            continue
+        values.append({"high": results_df['h'].max(),"low": results_df['l'].min(),"volume": results_df['v'].sum(),"symbol": symbol})
 
-    response = requests.request("GET", url, headers={}, data={})
-
-    response_data = json.loads(response.text)
-    results = response_data['results']
-    results_df = pd.DataFrame(results)
-    results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
-    results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
-    results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
-    results_df['day'] = results_df['date'].apply(lambda x: x.day)
-    results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
-    results_df = results_df.loc[results_df['hour'] <= int(hour)]
-    results_df = results_df.loc[~((results_df['hour'] == 9) & (results_df['minute'] < 30))]
-    return results_df
+    full_df = pd.DataFrame(values)
+    return full_df
 
 def calc_vdiff(row):
     try:
@@ -508,8 +510,9 @@ def call_polygon_spy(from_stamp, to_stamp, timespan, multiplier):
     results_df = pd.DataFrame(results)
     results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
     results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
-    results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
     results_df['symbol'] = "SPY"
+    # results_df['mkt_open'] = results_df['t'].apply(lambda x: is_market_open(x))
+    # filtered_df = results_df.loc[results_df['mkt_open'] == True]
 
     return results_df['c'].to_list()
 
@@ -520,9 +523,6 @@ def call_polygon_spyH(from_stamp, to_stamp, timespan, multiplier, hour):
 
     key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
     error_list = []
-
-    if timespan == "minute":
-        from_stamp = to_stamp
     url = f"https://api.polygon.io/v2/aggs/ticker/SPY/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
 
     response = requests.request("GET", url, headers=headers, data=payload)
@@ -532,7 +532,7 @@ def call_polygon_spyH(from_stamp, to_stamp, timespan, multiplier, hour):
 
     results_df = pd.DataFrame(results)
     results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
-    results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
+    results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
     results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
     results_df['symbol'] = "SPY"
     results_df = results_df.loc[results_df['hour'] == int(hour)]
@@ -628,3 +628,29 @@ def vol_feature_engineering(df, Min_aggs,Thirty_aggs):
 
 
 
+def is_market_open(timestamp):
+    # Convert Unix Msec timestamp to datetime, we already divide by 1000
+    dt = datetime.utcfromtimestamp(timestamp) 
+
+    # Adjust to New York (Eastern) Time
+    eastern = pytz.timezone('US/Eastern')
+    dt_eastern = dt.astimezone(eastern)
+
+    # Define market open and close times
+    market_open = time(9, 30)
+    market_close = time(16, 0)
+
+    # Check if the time is within the market hours
+    return market_open <= dt_eastern.timetz() < market_close
+
+
+
+def convert_timestamp_est(timestamp):
+    # Create a naive datetime object from the UNIX timestamp
+    dt_naive = datetime.utcfromtimestamp(timestamp)
+    # Convert the naive datetime object to a timezone-aware one (UTC)
+    dt_utc = pytz.utc.localize(dt_naive)
+    # Convert the UTC datetime to EST
+    dt_est = dt_utc.astimezone(pytz.timezone('US/Eastern'))
+    
+    return dt_est

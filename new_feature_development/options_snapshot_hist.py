@@ -17,6 +17,8 @@ big_fish =  [
             ]
 indexes = ['QQQ','SPY','IWM']
 
+s3 = boto3.client('s3')
+
 def options_snapshot_runner(monday):
     # dates = build_dates(monday)
     fridays = find_fridays(monday)
@@ -31,11 +33,12 @@ def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
         date = monday + timedelta(days=day)
         date_stamp = datetime.strptime(date, "%Y-%m-%d")
         for hour in hours:
-            for call in call_tickers:
-                call_df = data.call_polygon_PCR(call,from_stamp=date_stamp,to_stamp=date_stamp,timespan="hour",multiplier="1",hour=hour)
-            for put in put_tickers:
-                put_df = data.call_polygon_PCR(put,from_stamp=date_stamp,to_stamp=date_stamp,timespan="hour",multiplier="1",hour=hour)
-            final_df = pd.concat([call_df,put_df])
+            call_df = data.call_polygon_PCR(call_tickers,from_stamp=date_stamp,to_stamp=date_stamp,timespan="hour",multiplier="1",hour=hour)
+            put_df = data.call_polygon_PCR(put_tickers,from_stamp=date_stamp,to_stamp=date_stamp,timespan="hour",multiplier="1",hour=hour)
+            call_df['option_type'] = 'call'
+            put_df['option_type'] = 'put'
+            final_df = pd.concat([call_df,put_df],ignore_index=True)
+            put_response = s3.put_object(Bucket='icarus-reaearch-data', Key=f'options_snapshot/{date}/{hour}/{symbol}.csv', Body=final_df.to_csv(index=False))
 
 def build_strikes(monday,ticker):
     last_price = data.call_polygon_price_day(ticker,from_stamp=monday,to_stamp=monday,timespan="day",multiplier="1")
