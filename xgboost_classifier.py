@@ -73,9 +73,8 @@ def invoke_model(event, context):
     dataset = s3.get_object(Bucket=alerts_bucket, Key=query_key)
     data = pd.read_csv(dataset.get("Body"))
 
-    dates = data['date'].unique()
-    recent_date = dates[-1]
-    data['dt'] = pd.to_datetime(data['date'])
+    data['dt'] = pd.to_datetime(data['date_x'])
+    recent_date = data['dt'].iloc[-1]
     data['roc_diff'] = data['roc'] - data['roc5']
     data['range_vol_diff5'] = (data['range_vol'] - data['range_vol5MA'])
     data['close_diff_deviation3'] = abs(data['close_diff3'])/(data['threeD_stddev50']*100)
