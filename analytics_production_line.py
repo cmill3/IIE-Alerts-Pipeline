@@ -42,10 +42,7 @@ def combine_hour_aggs(aggregates, hour_aggregates, hour):
     full_aggs = []
     for index, value in enumerate(aggregates):
         hour_aggs = hour_aggregates[index]
-        print(hour_aggs)
-        print(hour)
         hour_aggs = hour_aggs.loc[hour_aggs["hour"] < int(hour)]
-        print(hour_aggs)
         if len(hour_aggs) > 1:
             hour_aggs = hour_aggs.iloc[:-1]
         volume = hour_aggs.v.sum()
