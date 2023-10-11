@@ -121,10 +121,10 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
     # for date_str in date_list:
-    #     build_historic_data("2023-09-15")
+    build_historic_data("2018-08-15")
     #     breakk
         
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
-        # Submit the processing tasks to the ThreadPoolExecutor
-        processed_weeks_futures = [executor.submit(build_historic_data, date_str) for date_str in date_list]
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+    #     # Submit the processing tasks to the ThreadPoolExecutor
+    #     processed_weeks_futures = [executor.submit(build_historic_data, date_str) for date_str in date_list]
