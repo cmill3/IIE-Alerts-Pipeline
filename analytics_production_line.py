@@ -19,7 +19,8 @@ logger = logging.getLogger()
 
 def analytics_runner(event, context):
     s3 = get_s3_client()
-    date = datetime.now()
+    est = pytz.timezone('US/Eastern')
+    date = datetime.now(est)
     year, month, day, hour = format_dates(date)
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date)
     aggregates, error_list = call_polygon_histD(big_fish, from_stamp, to_stamp, timespan="minute", multiplier="30")
@@ -35,7 +36,7 @@ def analytics_runner(event, context):
     df = vol_feature_engineering(df, min_aggs, hour_aggs)
     df['hour'] = hour
     csv = df.to_csv()
-    put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/test/{year}/{month}/{day}/{hour}.csv", Body=csv)
+    put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/{year}/{month}/{day}/{hour}.csv", Body=csv)
     return put_response
 
 def combine_hour_aggs(aggregates, hour_aggregates, hour):
