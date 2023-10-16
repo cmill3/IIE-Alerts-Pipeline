@@ -44,13 +44,13 @@ features = {
                                          'adx', 'volume_10MA'],
     "invalerts-xgb-bfp-1d-classifier": ['cmf', 'range_vol10MA', 'daily_vol_diff30', 'adx', 'daily_volume_vol_diff', 'min_volume_vol_diff', 'threeD_stddev50', 'range_vol5MA', 'oneD_stddev50', 
                                         'price_10MA', 'close_diff5', 'daily_vol_diff_pct30', 'hour_vol_diff', 'hour_vol_diff_pct'],
-    "invalerts-xgb-indexc-1d-classifier": ['v_diff_pct', 'close_diff', 'hour_vol_diff_pct', 'oneD_stddev50', 'return_vol_5D', 'close_diff3', 'return_vol_450M', 'cmf', 'close_diff5', 
-                                            'return_vol_30D', 'return_vol_8H', 'range_vol', 'threeD_returns_close', 'rsi5', 'roc3', 'volume_vol_16H', 'volume_vol_30D', 'hour', 'daily_vol_diff_pct', 
-                                            'return_vol_240M', 'price_25DDiff', 'day_of_week', 'volume_vol_5D', 'min_vol_diff_pct'],
-    "invalerts-xgb-indexp-1d-classifier": ['return_vol_450M', 'volume_vol_10D', 'rsi3', 'volume_vol_30D', 'day_of_month', 'min_vol_diff_pct', 'price7', 'adx', 'return_vol_5D', 'return_vol_16H', 
+    "invalerts-xgb-indexc-1d-classifier": ['return_vol_450M', 'volume_vol_10D', 'rsi3', 'volume_vol_30D', 'day_of_month', 'min_vol_diff_pct', 'price7', 'adx', 'return_vol_5D', 'return_vol_16H', 
                                             'close_diff', 'min_volume_vol_diff_pct', 'daily_volume_vol_diff_pct30', 'volume_vol_8H', 'roc5', 'threeD_returns_close', 'volume_vol_16H', 'volume_vol_240M', 
                                             'v_diff_pct', 'hour', 'volume_vol_5D', 'hour_volume_vol_diff_pct', 'hour_vol_diff_pct', 'daily_vol_diff_pct30', 'roc_diff', 'rsi5', 'price_10DDiff', 'range_vol', 
-                                            'oneD_stddev50', 'roc3', 'price_25DDiff', 'cmf', 'close_diff_deviation', 'close_diff3', 'month', 'range_vol_diff5']
+                                            'oneD_stddev50', 'roc3', 'price_25DDiff', 'cmf', 'close_diff_deviation', 'close_diff3', 'month', 'range_vol_diff5'],
+    "invalerts-xgb-indexp-1d-classifier": ['v_diff_pct', 'close_diff', 'hour_vol_diff_pct', 'oneD_stddev50', 'return_vol_5D', 'close_diff3', 'return_vol_450M', 'cmf', 'close_diff5', 
+                                            'return_vol_30D', 'return_vol_8H', 'range_vol', 'threeD_returns_close', 'rsi5', 'roc3', 'volume_vol_16H', 'volume_vol_30D', 'hour', 'daily_vol_diff_pct', 
+                                            'return_vol_240M', 'price_25DDiff', 'day_of_week', 'volume_vol_5D', 'min_vol_diff_pct']
             
 }
 
@@ -60,7 +60,6 @@ big_fish =  [
             "UAL","DAL","AAL"
             ]
 indexes = ['QQQ','SPY','IWM']
-
 index_strategies = ["indexP_1d","indexC_1d","indexP","indexC"]
 bf_strategies = ["bfP_1d","bfC_1d","bfP","bfC"]
 
