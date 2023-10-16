@@ -127,7 +127,7 @@ def call_polygon(symbol_list, from_stamp, to_stamp, timespan, multiplier):
             continue
         results_df = pd.DataFrame(results)
         results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
-        results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
+        results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
         results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
         results_df['symbol'] = symbol
         dfs.append(results_df)
@@ -176,7 +176,7 @@ def call_polygon_vol(symbol_list, from_stamp, to_stamp, timespan, multiplier,hou
     error_list = []
 
     year, month, day = to_stamp.split("-")
-    current_date = datetime(int(year), int(month), int(day), int(hour))
+    current_date = datetime(int(year), int(month), int(day), int(hour),tzinfo=pytz.timezone('US/Eastern'))
 
     for symbol in symbol_list:
         data = []
@@ -513,7 +513,7 @@ def call_polygon_spy(from_stamp, to_stamp, timespan, multiplier):
 
     results_df = pd.DataFrame(results)
     results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
-    results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
+    results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
     results_df['symbol'] = "SPY"
     # results_df['mkt_open'] = results_df['t'].apply(lambda x: is_market_open(x))
     # filtered_df = results_df.loc[results_df['mkt_open'] == True]

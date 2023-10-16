@@ -65,7 +65,7 @@ def build_historic_data(date_str):
     
 def generate_dates_historic(date_str):
     end = datetime.strptime(date_str, "%Y-%m-%d")
-    start = end - timedelta(weeks=6)
+    start = end - timedelta(weeks=8)
     end_day = end - timedelta(days=1)
     to_stamp = end_day.strftime("%Y-%m-%d")
     hour_stamp = end.strftime("%Y-%m-%d")
@@ -108,8 +108,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2018,1,1)
-    end_date = datetime(2023,9,23)
+    start_date = datetime(2023,9,25)
+    end_date = datetime(2023,9,30)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -119,11 +119,6 @@ if __name__ == "__main__":
         if temp_date.weekday() < 5:
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
-
-    # for date_str in date_list:
-    #     build_historic_data("2023-09-15")
-    #     breakk
-        
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor

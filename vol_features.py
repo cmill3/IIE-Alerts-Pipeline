@@ -72,7 +72,7 @@ def generate_dates_historic_vol(date_str):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2020,8,21)
+    start_date = datetime(2018,8,15)
     end_date = datetime(2023,9,23)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -85,9 +85,9 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
     # for date_str in date_list:
-    # build_vol_features("2023-09-15")
+    build_vol_features("2018-08-15")
         
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
-        # Submit the processing tasks to the ThreadPoolExecutor
-        processed_weeks_futures = [executor.submit(build_vol_features, date_str) for date_str in date_list]
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    #     # Submit the processing tasks to the ThreadPoolExecutor
+    #     processed_weeks_futures = [executor.submit(build_vol_features, date_str) for date_str in date_list]
