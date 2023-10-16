@@ -312,14 +312,18 @@ def call_polygon_PCR(symbols, from_stamp, to_stamp, timespan, multiplier, hour):
             results = response_data['results']
             results_df = pd.DataFrame(results)
             results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
-            results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
+            results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
             results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
             results_df = results_df.loc[results_df['hour'] <= int(hour)]
-        except:
+            print(results_df)
+            print(symbol)
+            print()
+        except Exception as e:
+            print(f"{e} for {symbol}")
             continue
         values.append({"high": results_df['h'].max(),"low": results_df['l'].min(),"volume": results_df['v'].sum(),"symbol": symbol})
 
-    full_df = pd.DataFrame(values)
+    full_df = pd.DataFrame.from_dict(values)
     return full_df
 
 def calc_vdiff(row):

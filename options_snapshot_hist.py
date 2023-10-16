@@ -8,6 +8,7 @@ import logging
 from botocore.exceptions import ClientError
 import concurrent.futures
 import math
+import numpy as np
 
 api_key = 'XpqF6xBLLrj6WALk4SS1UlkgphXmHQec'
 
@@ -20,31 +21,39 @@ indexes = ['QQQ','SPY','IWM']
 s3 = boto3.client('s3')
 
 def options_snapshot_runner(monday):
-    # dates = build_dates(monday)
+    print(monday)
     fridays = find_fridays(monday)
     for symbol in big_fish:
-        call_tickers, put_tickers = build_options_tickers(symbol, fridays)
+        call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
         call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
+    return "done"
 
 def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
     hours = ["10","11","12","13","14","15"]
     timedelta_to_add = [0,1,2,3,4]
+    dt = datetime.strptime(monday, "%Y-%m-%d")
     for day in timedelta_to_add:
-        date = monday + timedelta(days=day)
-        date_stamp = datetime.strptime(date, "%Y-%m-%d")
+        date = dt + timedelta(days=day)
+        date_stamp = date.strftime("%Y-%m-%d")
         for hour in hours:
             call_df = data.call_polygon_PCR(call_tickers,from_stamp=date_stamp,to_stamp=date_stamp,timespan="hour",multiplier="1",hour=hour)
             put_df = data.call_polygon_PCR(put_tickers,from_stamp=date_stamp,to_stamp=date_stamp,timespan="hour",multiplier="1",hour=hour)
             call_df['option_type'] = 'call'
             put_df['option_type'] = 'put'
             final_df = pd.concat([call_df,put_df],ignore_index=True)
-            put_response = s3.put_object(Bucket='icarus-reaearch-data', Key=f'options_snapshot/{date}/{hour}/{symbol}.csv', Body=final_df.to_csv(index=False))
+            csv = final_df.to_csv()
+            date_str = date.strftime("%Y-%m-%d %H:%M:%S").split(' ')[0]
+            key_str = date_str.replace('-','/')
+            put_response = s3.put_object(Bucket='icarus-research-data', Key=f'options_snapshot/{key_str}/{hour}/{symbol}.csv', Body=csv)
 
 def build_strikes(monday,ticker):
     last_price = data.call_polygon_price_day(ticker,from_stamp=monday,to_stamp=monday,timespan="day",multiplier="1")
+    print(last_price)
     price_floor = math.floor(last_price *.5)
     price_ceil = math.ceil(last_price *1.5)
-    return list(range(price_floor,price_ceil,.5))
+    strikes = np.arange(price_floor, price_ceil, .5)
+    print(strikes)
+    return strikes
 
 def build_options_tickers(symbol, fridays, monday):
     call_tickers = []
@@ -54,15 +63,36 @@ def build_options_tickers(symbol, fridays, monday):
         for friday in fridays:
             call_tickers.append(build_option_symbol(symbol,friday,strike,"call"))
             put_tickers.append(build_option_symbol(symbol,friday,strike,"put"))
+    print(call_tickers)
+    print(put_tickers) 
     return call_tickers, put_tickers
 
 def build_option_symbol(ticker, date, strike, option_type):
     #Extract the year, month, and day from the date
     year, month, day = date.split('-')
     short_year = year[-2:]
+    str_strk = str(strike)
 
     # Convert the strike price
-    strike_formatted = "00000" + str(int(strike * 100)).zfill(5)
+    if '.5' in str_strk:
+        str_strk = str_strk.split('.')[0]
+        if len(str_strk) == 4:
+            strike_formatted = f"00{str_strk}500"
+        elif len(str_strk) == 3:
+            strike_formatted = f"000{str_strk}500"
+        elif len(str_strk) == 2:
+            strike_formatted = f"0000{str_strk}500"
+    else:
+        str_strk = str_strk.split('.')[0]
+        if len(str_strk) == 4:
+            strike_formatted = f"0{str_strk}000"
+        elif len(str_strk) == 3:
+            strike_formatted = f"00{str_strk}000"
+        elif len(str_strk) == 2:
+            strike_formatted = f"000{str_strk}000"
+        elif len(str_strk) == 1:
+            strike_formatted = f"0000{str_strk}000"
+
 
     # Determine the option type character
     if option_type.lower() == 'call':
@@ -72,7 +102,7 @@ def build_option_symbol(ticker, date, strike, option_type):
     else:
         raise ValueError("Invalid option type. Must be 'call' or 'put'.")
 
-    return f"{ticker}{short_year}{month}{day}{type_char}{strike_formatted}"
+    return f"O:{ticker}{short_year}{month}{day}{type_char}{strike_formatted}"
 
 def find_fridays(monday):
     monday = datetime.strptime(monday, "%Y-%m-%d")
@@ -85,13 +115,13 @@ def find_fridays(monday):
     second_friday = first_friday + timedelta(days=7)
     third_friday = second_friday + timedelta(days=7)
     
-    return [first_friday.strf, second_friday, third_friday]
+    return [first_friday.strftime("%Y-%m-%d"), second_friday.strftime("%Y-%m-%d"), third_friday.strftime("%Y-%m-%d")]
 
 
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2020,8,21)
+    start_date = datetime(2021,1,1)
     end_date = datetime(2023,9,23)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -103,6 +133,8 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
-        # Submit the processing tasks to the ThreadPoolExecutor
-        processed_weeks_futures = [executor.submit(options_snapshot_runner, date_str) for date_str in date_list]
+    options_snapshot_runner("2022-02-07")
+
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+    #     # Submit the processing tasks to the ThreadPoolExecutor
+    #     processed_weeks_futures = [executor.submit(options_snapshot_runner, date_str) for date_str in date_list]
