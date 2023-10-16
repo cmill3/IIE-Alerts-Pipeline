@@ -115,13 +115,13 @@ def find_fridays(monday):
     second_friday = first_friday + timedelta(days=7)
     third_friday = second_friday + timedelta(days=7)
     
-    return [first_friday.strftime("%Y-%m-%d"), second_friday.strftime("%Y-%m-%d"), third_friday.strftime("%Y-%m-%d")]
+    return [first_friday, second_friday, third_friday]
 
 
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2021,1,1)
+    start_date = datetime(2022,10,24)
     end_date = datetime(2023,9,23)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -133,8 +133,8 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    options_snapshot_runner("2022-02-07")
+    options_snapshot_runner("2022-10-24")
 
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
     #     # Submit the processing tasks to the ThreadPoolExecutor
     #     processed_weeks_futures = [executor.submit(options_snapshot_runner, date_str) for date_str in date_list]
