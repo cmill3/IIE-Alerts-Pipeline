@@ -37,8 +37,7 @@ def build_historic_data(date_str):
         df.reset_index(drop=True, inplace=True)
         df = df.groupby("symbol").tail(1)
         spy_aggs = call_polygon_spy(from_stamp, to_stamp, timespan="minute", multiplier="30")
-        current_spy = call_polygon_spyH(hour_stamp, hour_stamp, timespan="hour", multiplier="1", hour=hour)
-        print(current_spy)
+        current_spy = call_polygon_spyH(hour_stamp, hour_stamp, timespan="hour", multiplier="1", hour=int(hour))
         current_spy = current_spy.values[0]
         result = df.apply(calc_price_action, axis=1)
         result.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
@@ -121,8 +120,8 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # build_historic_data("2023-08-24")
+    build_historic_data("2023-08-24")
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
-        # Submit the processing tasks to the ThreadPoolExecutor
-        processed_weeks_futures = [executor.submit(build_historic_data, date_str) for date_str in date_list]
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+    #     # Submit the processing tasks to the ThreadPoolExecutor
+    #     processed_weeks_futures = [executor.submit(build_historic_data, date_str) for date_str in date_list]

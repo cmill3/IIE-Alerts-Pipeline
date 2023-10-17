@@ -486,9 +486,7 @@ def call_polygon_spyH(from_stamp, to_stamp, timespan, multiplier, hour):
     results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
     results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
     results_df['symbol'] = "SPY"
-    print(results_df.head(5))
     results_df = results_df.loc[results_df['hour'] == int(hour-1)]
-    print(results_df.head(5))
 
 
     return results_df['c']
