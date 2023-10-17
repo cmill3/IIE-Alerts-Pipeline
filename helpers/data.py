@@ -232,15 +232,13 @@ def call_polygon_histD(symbol_list, from_stamp, to_stamp, timespan, multiplier):
             continue
         results_df = pd.DataFrame(results)
         results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
-        results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
+        results_df['date'] = results_df['t'].apply(lambda x:convert_timestamp_est(x))
         results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
         results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
         results_df['symbol'] = symbol
         results_df['day_of_week'] = results_df['date'].apply(lambda x: x.weekday())
-        results_df['mkt_open'] = results_df['t'].apply(lambda x: is_market_open(x))
-        filtered_df = results_df.loc[results_df['mkt_open'] == True]
-        # trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
-        # filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
+        trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+        filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
         filtered_df = filtered_df.loc[filtered_df['day_of_week'] < 5]
         filtered_df.set_index('date',inplace=True)
         agg_dict = {
