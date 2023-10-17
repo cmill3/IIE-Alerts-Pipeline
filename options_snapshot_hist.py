@@ -9,6 +9,7 @@ from botocore.exceptions import ClientError
 import concurrent.futures
 import math
 import numpy as np
+import pandas_market_calendars as mcal
 
 api_key = 'XpqF6xBLLrj6WALk4SS1UlkgphXmHQec'
 
@@ -18,12 +19,17 @@ big_fish =  [
             ]
 indexes = ['QQQ','SPY','IWM']
 
+nyse = mcal.get_calendar('NYSE')
+holidays = nyse.holidays()
+holidays_multiyear = holidays.holidays
+
 s3 = boto3.client('s3')
 
 def options_snapshot_runner(monday):
     print(monday)
     fridays = find_fridays(monday)
     for symbol in big_fish:
+        print(symbol)
         call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
         call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
     return "done"
@@ -32,9 +38,14 @@ def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
     hours = ["10","11","12","13","14","15"]
     timedelta_to_add = [0,1,2,3,4]
     dt = datetime.strptime(monday, "%Y-%m-%d")
+    monday_np = np.datetime64(monday)
+    if monday_np in holidays_multiyear:
+        timedelta_to_add  = [1,2,3,4]
+    
     for day in timedelta_to_add:
         date = dt + timedelta(days=day)
         date_stamp = date.strftime("%Y-%m-%d")
+        print(date_stamp)
         for hour in hours:
             call_df = data.call_polygon_PCR(call_tickers,from_stamp=date_stamp,to_stamp=date_stamp,timespan="hour",multiplier="1",hour=hour)
             put_df = data.call_polygon_PCR(put_tickers,from_stamp=date_stamp,to_stamp=date_stamp,timespan="hour",multiplier="1",hour=hour)
@@ -48,27 +59,33 @@ def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
 
 def build_strikes(monday,ticker):
     last_price = data.call_polygon_price_day(ticker,from_stamp=monday,to_stamp=monday,timespan="day",multiplier="1")
-    print(last_price)
     price_floor = math.floor(last_price *.5)
     price_ceil = math.ceil(last_price *1.5)
     strikes = np.arange(price_floor, price_ceil, .5)
-    print(strikes)
     return strikes
 
 def build_options_tickers(symbol, fridays, monday):
     call_tickers = []
     put_tickers = []
-    strikes = build_strikes(monday,symbol)
+    monday_np = np.datetime64(monday)
+    if monday_np in holidays_multiyear:
+        monday_dt = pd.to_datetime(monday_np)
+        tuesday_dt = monday_dt + timedelta(days=1)
+        tuesday = tuesday_dt.strftime("%Y-%m-%d")
+        print(tuesday)
+        strikes = build_strikes(tuesday,symbol)
+    else:
+        strikes = build_strikes(monday,symbol)
+
     for strike in strikes:
         for friday in fridays:
             call_tickers.append(build_option_symbol(symbol,friday,strike,"call"))
             put_tickers.append(build_option_symbol(symbol,friday,strike,"put"))
-    print(call_tickers)
-    print(put_tickers) 
     return call_tickers, put_tickers
 
 def build_option_symbol(ticker, date, strike, option_type):
     #Extract the year, month, and day from the date
+    date = date.strftime("%Y-%m-%d")
     year, month, day = date.split('-')
     short_year = year[-2:]
     str_strk = str(strike)
@@ -133,8 +150,8 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    options_snapshot_runner("2022-10-24")
 
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
-    #     # Submit the processing tasks to the ThreadPoolExecutor
-    #     processed_weeks_futures = [executor.submit(options_snapshot_runner, date_str) for date_str in date_list]
+    # options_snapshot_runner("2023-01-02")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+        # Submit the processing tasks to the ThreadPoolExecutor
+        processed_weeks_futures = [executor.submit(options_snapshot_runner, date_str) for date_str in date_list]
