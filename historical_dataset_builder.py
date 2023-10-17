@@ -29,6 +29,7 @@ def build_historic_data(date_str):
     s3 = get_s3_client()
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
     for hour in hours:
+        print(hour)
         aggregates, error_list = call_polygon_histD(big_fish, from_stamp, to_stamp, timespan="minute", multiplier="30")
         hour_aggregates, error_list = call_polygon_histH(big_fish, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
@@ -36,7 +37,8 @@ def build_historic_data(date_str):
         df.reset_index(drop=True, inplace=True)
         df = df.groupby("symbol").tail(1)
         spy_aggs = call_polygon_spy(from_stamp, to_stamp, timespan="minute", multiplier="30")
-        current_spy = call_polygon_spyH(hour_stamp, hour_stamp, timespan="hour", multiplier="30", hour=hour)
+        current_spy = call_polygon_spyH(hour_stamp, hour_stamp, timespan="hour", multiplier="1", hour=hour)
+        print(current_spy)
         current_spy = current_spy.values[0]
         result = df.apply(calc_price_action, axis=1)
         result.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
