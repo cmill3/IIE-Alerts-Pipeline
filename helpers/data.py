@@ -323,6 +323,28 @@ def call_polygon_PCR(symbols, from_stamp, to_stamp, timespan, multiplier, hour):
     full_df = pd.DataFrame.from_dict(values)
     return full_df
 
+
+def call_polygon_backtest(symbols, from_stamp, to_stamp, timespan, multiplier):
+    key = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
+    values = []
+    for symbol in symbols:
+        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+        response = requests.request("GET", url, headers={}, data={})
+        response_data = json.loads(response.text)
+        try:
+            results = response_data['results']
+            results_df = pd.DataFrame(results)
+            results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
+            results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
+            # results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
+        except Exception as e:
+            # print(f"{e} for {symbol}")
+            continue
+        values.append({"high": results_df['h'].max(),"low": results_df['l'].min(),"volume": results_df['v'].sum(),"symbol": symbol})
+
+    full_df = pd.DataFrame.from_dict(values)
+    return full_df
+
 def calc_vdiff(row):
     try:
         to_stamp = datetime.strptime(row['date'], '%Y-%m-%d %H:%M:%S')
