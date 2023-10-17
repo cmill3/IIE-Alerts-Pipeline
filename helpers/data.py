@@ -465,6 +465,7 @@ def call_polygon_spy(from_stamp, to_stamp, timespan, multiplier):
     results_df = pd.DataFrame(results)
     results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
     results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
+    results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
     results_df['symbol'] = "SPY"
     results_df = results_df.loc[results_df['hour'].isin(trading_hours)]
     results_df = results_df.loc[~((results_df['hour'] == 9) & (results_df['minute'] < 30))]
