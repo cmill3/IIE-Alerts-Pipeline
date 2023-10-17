@@ -12,6 +12,7 @@ xgboost = "*"
 numpy = "*"
 yahooquery = "*"
 pytz = "*"
+pandas-market-calendars = "*"
 
 [dev-packages]
 
