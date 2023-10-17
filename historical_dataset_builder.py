@@ -35,6 +35,9 @@ def build_historic_data(date_str):
         df = build_analytics(full_aggs, hour)
         df.reset_index(drop=True, inplace=True)
         df = df.groupby("symbol").tail(1)
+        spy_aggs = call_polygon_spy(from_stamp, to_stamp, timespan="minute", multiplier="30")
+        current_spy = call_polygon_spyH(hour_stamp, hour_stamp, timespan="hour", multiplier="30", hour=hour)
+        current_spy = current_spy.values[0]
         result = df.apply(calc_price_action, axis=1)
         result.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
         result.reset_index()
@@ -46,6 +49,15 @@ def build_historic_data(date_str):
         df['three_max'] = price['three_max']
         df['three_min'] = price['three_min']
         df['three_pct'] = price['three_pct']
+        SPY_diff   = (current_spy - spy_aggs[-1])/spy_aggs[-1]
+        SPY_diff3  = (current_spy - spy_aggs[-3])/spy_aggs[-3]
+        SPY_diff5  = (current_spy - spy_aggs[-5])/spy_aggs[-5]
+        df['SPY_diff'] = (((df['close_diff']/100) - SPY_diff)/SPY_diff)
+        df['SPY_diff3'] = (((df['close_diff']/100) - SPY_diff3)/SPY_diff3)
+        df['SPY_diff5'] = (((df['close_diff']/100) - SPY_diff5)/SPY_diff5)
+        df['SPY_1D'] = SPY_diff
+        df['SPY_3D'] = SPY_diff3
+        df['SPY_5D'] = SPY_diff5
         csv = df.to_csv()
         put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/bf_mktHours/{key_str}/{hour}.csv", Body=csv)
     return put_response

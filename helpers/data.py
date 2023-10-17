@@ -452,84 +452,12 @@ def build_analytics(aggregates, hour):
 
     return df
 
-
-def build_new_price_features(aggregates):
-    indicators = []
-    # spy_aggregates = spy_aggregates[0]
-    # SPY_diff = ((spy_aggregates['c'] - spy_aggregates['c'].shift(1))/spy_aggregates['c'].shift(1))*100
-    # SPY_diff3 = ((spy_aggregates['c'] - spy_aggregates['c'].shift(3))/spy_aggregates['c'].shift(3))*100
-    # SPY_diff5 = ((spy_aggregates['c'] - spy_aggregates['c'].shift(5))/spy_aggregates['c'].shift(5))*100
-    for d in aggregates:
-    #     try:
-    #         d = data.copy()
-    #         symbol = d['symbol'].iloc[0]
-    #         hour_aggs = hour_aggregates.loc[hour_aggregates['symbol'] == symbol]
-    #         hour_aggs = hour_aggs.loc[hour_aggs['hour'] == hour]
-    #         values = hour_aggs.to_dict('records')[0]
-    #         d.loc[len(d.index)] = values
-    #         # d['t'] = d['t'].apply(lambda x: int(x/1000))
-    #         # d['date'] = d['t'].apply(lambda x: datetime.fromtimestamp(x))
-    #         d['time'] = d['date'].apply(lambda x: str(x).split(" ")[1])
-    #         # d['day'] = d.date.dt.day
-    #     except Exception as e:
-    #         print(e)
-    #         continue
-
-        # d['price7'] = ta.slope(d['c'],7)    
-        # d['price14'] = ta.slope(d['c'],14) 
-        # d['vol7'] = ta.slope(d['v'],7)    
-        # d['vol14'] = ta.slope(d['v'],14)
-        # d['volume_10MA'] = d['v'].rolling(10).mean()
-        # d['volume_25MA'] = d['v'].rolling(25).mean()
-        # d['price_10MA'] = d['c'].rolling(10).mean()
-        # d['price_25MA'] = d['c'].rolling(25).mean()
-        # d['volume_10DDiff'] = d.apply(lambda x: ((x.v - x.volume_10MA)/x.volume_10MA)*100, axis=1)
-        # d['volume_25DDiff'] = d.apply(lambda x: ((x.v - x.volume_25MA)/x.volume_25MA)*100, axis=1)
-        # d['price_10DDiff'] = d.apply(lambda x: ((x.c - x.price_10MA)/x.price_10MA)*100, axis=1)
-        # d['price_25DDiff'] = d.apply(lambda x: ((x.c - x.price_25MA)/x.price_25MA)*100, axis=1)
-        # d['rsi'] = ta.rsi(d['c'])
-        # d['roc'] = ta.roc(d['c'])
-        # d['roc3'] = ta.roc(d['c'],length=3)
-        # d['roc5'] = ta.roc(d['c'],length=5)
-        # d['cmf'] = ta.cmf(d['h'], d['l'], d['c'], d['v'])
-        # d['close_diff'] = ((d['c'] - d['c'].shift(1))/d['c'].shift(1))*100
-        # d['v_diff_pct'] = calc_vdiff_pipeline(d['v'].tolist(), hour)
-        # indicators.append(d)
-        try: 
-            d['rsi3'] = ta.rsi(d['c'],length=3)
-            d['rsi5'] = ta.rsi(d['c'],length=5)
-            d['close_diff3'] = ((d['c'] - d['c'].shift(3))/d['c'].shift(3))*100
-            d['close_diff5'] = ((d['c'] - d['c'].shift(5))/d['c'].shift(5))*100
-            # d['SPY_diff'] = ((d['c'] - SPY_diff)/SPY_diff)*100
-            # d['SPY_diff3'] = ((d['close_diff3'] - SPY_diff3)/SPY_diff3)*100
-            # d['SPY_diff5'] = ((d['close_diff5'] - SPY_diff5)/SPY_diff5)*100
-            indicators.append(d.tail(1))
-        except Exception as e:
-            print(d.symbol)
-            print('')
-            print(f"In Aggs: {e}")
-            indicators.append(d)
-            continue
-        
-        
-    
-    df = pd.concat(indicators).round(3)
-
-    return df
-
 def call_polygon_spy(from_stamp, to_stamp, timespan, multiplier):   
-    payload={}
-    headers = {}
-    dfs = []
-
     key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
-    error_list = []
-
-    if timespan == "minute":
-        from_stamp = to_stamp
+    trading_hours = [9,10,11,12,13,14,15]
     url = f"https://api.polygon.io/v2/aggs/ticker/SPY/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
 
-    response = requests.request("GET", url, headers=headers, data=payload)
+    response = requests.request("GET", url, headers={}, data={})
 
     response_data = json.loads(response.text)
     results = response_data['results']
@@ -538,21 +466,15 @@ def call_polygon_spy(from_stamp, to_stamp, timespan, multiplier):
     results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
     results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
     results_df['symbol'] = "SPY"
-    # results_df['mkt_open'] = results_df['t'].apply(lambda x: is_market_open(x))
-    # filtered_df = results_df.loc[results_df['mkt_open'] == True]
-
+    results_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+    results_df = results_df.loc[~((results_df['hour'] == 9) & (results_df['minute'] < 30))]
     return results_df['c'].to_list()
 
 def call_polygon_spyH(from_stamp, to_stamp, timespan, multiplier, hour):
-    payload={}
-    headers = {}
-    dfs = []
-
     key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
-    error_list = []
     url = f"https://api.polygon.io/v2/aggs/ticker/SPY/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
 
-    response = requests.request("GET", url, headers=headers, data=payload)
+    response = requests.request("GET", url, headers={}, data={})
 
     response_data = json.loads(response.text)
     results = response_data['results']
