@@ -52,11 +52,9 @@ def get_pcr_historic(symbol, window, dates):
 def calc_price_action(row):
     t = row['t']
     date = row['date']
-    to_date = date + timedelta(days=7)
-    to_stamp = to_date.strftime("%Y-%m-%d")
     from_stamp = date.strftime("%Y-%m-%d")
     date = date.astimezone(pytz.timezone('US/Eastern'))
-    aggs = call_polygon_price(row['symbol'], from_stamp, to_stamp, "hour", 1, t)
+    aggs = call_polygon_price(row['symbol'], from_stamp, "hour", 1, row['hour'])
     one_day, three_day = build_date_dfs(aggs, t)
     open = one_day.head(1)['o'].values[0]
     one_c = one_day.tail(1)['c'].values[0]
@@ -266,25 +264,33 @@ def call_polygon_histD(symbol_list, from_stamp, to_stamp, timespan, multiplier):
 
     return dfs, error_list
 
-def call_polygon_price(symbol, from_stamp, to_stamp, timespan, multiplier, t):
-    key = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
+def call_polygon_price(symbol, date_stamp, timespan, multiplier, hour):
+    from_stamp = date_stamp.split(' ')[0]
+    sell_by = calculate_sellby_date(datetime.strptime(from_stamp,"%Y-%m-%d"),4)
+    to_stamp = sell_by.strftime("%Y-%m-%d %H:%M:%S").split(" ")[0]
+    year, month, day = from_stamp.split("-")
+    time_stamp = datetime(int(year),int(month),int(day),int(hour)).timestamp()
+    trading_hours = [9,10,11,12,13,14,15]
+    key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
+    error_list = []
     url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
-
     response = requests.request("GET", url, headers={}, data={})
 
     response_data = json.loads(response.text)
     results = response_data['results']
     results_df = pd.DataFrame(results)
     results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
-    # results_df['date'] = results_df['t'].apply(lambda x: datetime.fromtimestamp(x))
     results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
     results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
     results_df['day'] = results_df['date'].apply(lambda x: x.day)
     results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
-    results_df = results_df.loc[results_df['t'] > t]
-    results_df['mkt_open'] = results_df['t'].apply(lambda x: is_market_open(x))
-    filtered_df = results_df.loc[results_df['mkt_open'] == True]
-    return filtered_df
+    results_df = results_df.loc[results_df['t'] >= time_stamp]
+    results_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+    results_df = results_df.loc[~((results_df['hour'] == 9) & (results_df['minute'] < 30))]
+    # results_df['symbol'] = row['symbol']
+    # dfs.append(results_df)
+
+    return results_df
 
 
 def call_polygon_price_day(symbol, from_stamp, to_stamp, timespan, multiplier):
@@ -677,3 +683,7 @@ def convert_timestamp_est(timestamp):
     dt_est = dt_utc.astimezone(pytz.timezone('US/Eastern'))
     
     return dt_est
+
+if __name__ == "__main__":
+    row = {"t":1692896400,"date":"2023-08-24","symbol":"AMZN","c":132.74}
+    result = calc_price_action(row)

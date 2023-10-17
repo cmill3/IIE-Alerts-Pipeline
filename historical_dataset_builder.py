@@ -32,10 +32,6 @@ def build_historic_data(date_str):
         aggregates, error_list = call_polygon_histD(big_fish, from_stamp, to_stamp, timespan="minute", multiplier="30")
         hour_aggregates, error_list = call_polygon_histH(big_fish, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
-        spy_aggs = call_polygon_spy(from_stamp, to_stamp, timespan="day", multiplier="1")
-        current_spy = call_polygon_spyH(hour_stamp, hour_stamp, timespan="hour", multiplier="1", hour=hour)
-        current_spy = current_spy.values[0]
-        # spy_aggs = full_aggs.loc[full_aggs['symbol']=="SPY"]
         df = build_analytics(full_aggs, hour)
         df.reset_index(drop=True, inplace=True)
         df = df.groupby("symbol").tail(1)
@@ -50,15 +46,6 @@ def build_historic_data(date_str):
         df['three_max'] = price['three_max']
         df['three_min'] = price['three_min']
         df['three_pct'] = price['three_pct']
-        SPY_diff   = (current_spy - spy_aggs[-1])/spy_aggs[-1]
-        SPY_diff3  = (current_spy - spy_aggs[-3])/spy_aggs[-3]
-        SPY_diff5  = (current_spy - spy_aggs[-5])/spy_aggs[-5]
-        df['SPY_diff'] = (((df['close_diff']/100) - SPY_diff)/SPY_diff)
-        df['SPY_diff3'] = (((df['close_diff']/100) - SPY_diff3)/SPY_diff3)
-        df['SPY_diff5'] = (((df['close_diff']/100) - SPY_diff5)/SPY_diff5)
-        df['SPY_1D'] = SPY_diff
-        df['SPY_3D'] = SPY_diff3
-        df['SPY_5D'] = SPY_diff5
         csv = df.to_csv()
         put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/bf_mktHours/{key_str}/{hour}.csv", Body=csv)
     return put_response
@@ -108,8 +95,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2023,9,25)
-    end_date = datetime(2023,9,30)
+    start_date = datetime(2018,1,1)
+    end_date = datetime(2023,10,10)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -119,6 +106,8 @@ if __name__ == "__main__":
         if temp_date.weekday() < 5:
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
+
+    # build_historic_data("2023-08-24")
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
