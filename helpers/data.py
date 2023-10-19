@@ -13,6 +13,13 @@ warnings.filterwarnings("ignore",category=FutureWarning)
 
 KEY = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
 
+class CustomRetry(Retry):
+    def is_retry(self, method, status_code, has_retry_after=False):
+        """ Return True if we should retry the request, otherwise False. """
+        if status_code != 200:
+            return True
+        return super().is_retry(method, status_code, has_retry_after)
+
 def format_pcr_dates(dates):
     date_str = dates.apply(lambda x: x.strftime("%Y-%m-%d"))
     # cut_date = date_str.apply(lambda x: x.split(" ")[0])
@@ -123,7 +130,7 @@ def setup_session_retries(
     Returns:
     - A requests Session object with retry configuration.
     """
-    retry_strategy = Retry(
+    retry_strategy = CustomRetry(
         total=retries,
         backoff_factor=backoff_factor,
         status_forcelist=status_forcelist,
@@ -344,7 +351,11 @@ def call_polygon_PCR(symbols, from_stamp, to_stamp, timespan, multiplier, hour):
     for symbol in symbols:
         url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
         response = execute_polygon_call(url) 
-        response_data = json.loads(response.text)
+        try:
+            response_data = json.loads(response.text)
+        except Exception as e:
+            response = execute_polygon_call(url)
+            response_data = json.loads(response.text)
         try:
             results = response_data['results']
             results_df = pd.DataFrame(results)

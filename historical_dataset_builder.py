@@ -10,7 +10,6 @@ from botocore.exceptions import ClientError
 import concurrent.futures
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
-## add FB for historical
 
 indexes = ['QQQ','SPY','IWM']
 memes = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID']
@@ -75,7 +74,7 @@ def build_historic_data(date_str):
         df['SPY_3D'] = SPY_diff3
         df['SPY_5D'] = SPY_diff5
         csv = df.to_csv()
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/bf_mktHours/{key_str}/{hour}.csv", Body=csv)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_mktHours/{key_str}/{hour}.csv", Body=csv)
     return put_response
     
 def generate_dates_historic(date_str):
@@ -124,7 +123,7 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2022,1,4)
+    start_date = datetime(2022,2,19)
     end_date = datetime(2022,4,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -136,8 +135,8 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    run_process("2022-01-06")
+    # run_process("2022-01-06")
 
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-    #     # Submit the processing tasks to the ThreadPoolExecutor
-    #     processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+        # Submit the processing tasks to the ThreadPoolExecutor
+        processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
