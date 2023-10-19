@@ -195,7 +195,6 @@ def call_polygon_histH(symbol_list, from_stamp, to_stamp, timespan, multiplier):
         try:
             results = response_data['results']
         except:
-            print(symbol)
             error_list.append(symbol)
             continue
         results_df = pd.DataFrame(results)
