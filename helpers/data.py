@@ -231,7 +231,6 @@ def call_polygon_vol(symbol_list, from_stamp, to_stamp, timespan, multiplier,hou
                 try:
                     results = response_data['results']
                 except:
-                    print(symbol)
                     error_list.append(symbol)
                     continue
                 results_df = pd.DataFrame(results)
@@ -270,8 +269,6 @@ def call_polygon_histD(symbol_list, from_stamp, to_stamp, timespan, multiplier):
         try:
             results = response_data['results']
         except:
-            print(symbol)
-            error_list.append(symbol)
             continue
         results_df = pd.DataFrame(results)
         results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))

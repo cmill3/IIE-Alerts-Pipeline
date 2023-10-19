@@ -22,7 +22,7 @@ def run_process(date_str):
     try:
         build_historic_data(date_str)
     except Exception as e:
-        print(e)
+        print(f"{date_str} {e}")
         build_historic_data(date_str)
     print(f"Finished {date_str}")
 
