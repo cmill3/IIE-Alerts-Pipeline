@@ -22,7 +22,7 @@ def run_process(date_str):
     try:
         build_historic_data(date_str)
     except Exception as e:
-        print(e)
+        print(f"{date_str} {e}")
         build_historic_data(date_str)
     print(f"Finished {date_str}")
 
@@ -123,8 +123,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2022,2,19)
-    end_date = datetime(2022,4,1)
+    start_date = datetime(2018,1,1)
+    end_date = datetime(2022,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
