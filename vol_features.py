@@ -24,6 +24,15 @@ now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
 
+
+def run_process(date_str):
+    try:
+        build_vol_features(date_str)
+    except Exception as e:
+        print(e)
+        build_vol_features(date_str)
+    print(f"Finished {date_str}")
+
 def build_vol_features(date_str):
     print(date_str)
     hours = ["10","11","12","13","14","15"]
@@ -92,4 +101,4 @@ if __name__ == "__main__":
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
-        processed_weeks_futures = [executor.submit(build_vol_features, date_str) for date_str in date_list]
+        processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
