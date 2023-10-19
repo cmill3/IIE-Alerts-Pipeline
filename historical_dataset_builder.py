@@ -32,10 +32,10 @@ def build_historic_data(date_str):
     key_str = date_str.replace("-","/")
     s3 = get_s3_client()
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
-    year, month, day = from_stamp.split("-")
+    year, month, day = hour_stamp.split("-")
     if datetime(int(year),int(month),int(day)) <= datetime(2022,6,1):
         big_fish =  [
-            "AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","FB","CRM",
+            "AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","FB","SHOP","CRM",
             "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","QQQ",'SPY','IWM'
             ]
     else:
@@ -123,8 +123,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2022,1,2)
-    end_date = datetime(2023,10,12)
+    start_date = datetime(2019,5,1)
+    end_date = datetime(2020,6,5)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -135,8 +135,8 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # run_process("2022-01-06")
+    # run_process("2022-07-27")
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
