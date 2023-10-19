@@ -12,15 +12,20 @@ import concurrent.futures
 alerts_bucket = os.getenv("ALERTS_BUCKET")
 ## add FB for historical
 
-big_fish =  [
-            "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","FB","CRM",
-            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","META",'QQQ','SPY','IWM'
-            ]
 indexes = ['QQQ','SPY','IWM']
 memes = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID']
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
+
+
+def run_process(date_str):
+    try:
+        build_historic_data(date_str)
+    except Exception as e:
+        print(e)
+        build_historic_data(date_str)
+    print(f"Finished {date_str}")
 
 def build_historic_data(date_str):
     print(date_str)
@@ -28,8 +33,18 @@ def build_historic_data(date_str):
     key_str = date_str.replace("-","/")
     s3 = get_s3_client()
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
+    year, month, day = from_stamp.split("-")
+    if datetime(int(year),int(month),int(day)) <= datetime(2022,6,1):
+        big_fish =  [
+            "AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","FB","CRM",
+            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","QQQ",'SPY','IWM'
+            ]
+    else:
+       big_fish =  [
+            "AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","CRM",
+            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","META","QQQ",'SPY','IWM'
+            ] 
     for hour in hours:
-        print(hour)
         aggregates, error_list = call_polygon_histD(big_fish, from_stamp, to_stamp, timespan="minute", multiplier="30")
         hour_aggregates, error_list = call_polygon_histH(big_fish, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
@@ -75,8 +90,9 @@ def generate_dates_historic(date_str):
 
 def combine_hour_aggs(aggregates, hour_aggregates, hour):
     full_aggs = []
+    hour_df = pd.concat(hour_aggregates)
     for index, value in enumerate(aggregates):
-        hour_aggs = hour_aggregates[index]
+        hour_aggs = hour_df.loc[hour_df["symbol"] == value.iloc[0]['symbol']]
         hour_aggs = hour_aggs.loc[hour_aggs["hour"] < int(hour)]
         if len(hour_aggs) > 1:
             hour_aggs = hour_aggs.iloc[:-1]
@@ -108,8 +124,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2018,1,1)
-    end_date = datetime(2023,3,1)
+    start_date = datetime(2022,1,4)
+    end_date = datetime(2022,4,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -120,8 +136,8 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    build_historic_data("2023-08-24")
+    run_process("2022-01-06")
 
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
     #     # Submit the processing tasks to the ThreadPoolExecutor
-    #     processed_weeks_futures = [executor.submit(build_historic_data, date_str) for date_str in date_list]
+    #     processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]

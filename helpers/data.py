@@ -5,8 +5,13 @@ from datetime import datetime, timedelta, time
 import pandas_ta as ta
 import numpy as np
 import pytz
+import warnings
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
-key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
+warnings.filterwarnings("ignore",category=FutureWarning)
+
+KEY = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
 
 def format_pcr_dates(dates):
     date_str = dates.apply(lambda x: x.strftime("%Y-%m-%d"))
@@ -102,20 +107,54 @@ def calculate_sellby_date(dt, trading_days_to_add): #End date, n days later for 
         trading_days_to_add -= 1
     return dt
 
+def setup_session_retries(
+    retries: int = 3,
+    backoff_factor: float = 0.3,
+    status_forcelist: tuple = (500, 502, 504),
+):
+    """
+    Sets up a requests Session with retries.
+    
+    Parameters:
+    - retries: Number of retries before giving up. Default is 3.
+    - backoff_factor: A factor to use for exponential backoff. Default is 0.3.
+    - status_forcelist: A tuple of HTTP status codes that should trigger a retry. Default is (500, 502, 504).
+
+    Returns:
+    - A requests Session object with retry configuration.
+    """
+    retry_strategy = Retry(
+        total=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+        allowed_methods=frozenset(["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"]),
+        raise_on_status=False
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    session = requests.Session()
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    
+    return session
+
+def execute_polygon_call(url):
+    session = setup_session_retries()
+    response = session.request("GET", url, headers={}, data={})
+    return response 
+
 def call_polygon(symbol_list, from_stamp, to_stamp, timespan, multiplier):
     payload={}
     headers = {}
     dfs = []
     
-    key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
     error_list = []
 
     if timespan == "minute":
         from_stamp = to_stamp
     for symbol in symbol_list:
-        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
 
-        response = requests.request("GET", url, headers=headers, data=payload)
+        response = execute_polygon_call(url)
 
         response_data = json.loads(response.text)
         try:
@@ -136,15 +175,14 @@ def call_polygon_histH(symbol_list, from_stamp, to_stamp, timespan, multiplier):
     payload={}
     headers = {}
     dfs = []
-    key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
     error_list = []
 
     if timespan == "minute":
         from_stamp = to_stamp
     for symbol in symbol_list:
-        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
 
-        response = requests.request("GET", url, headers=headers, data=payload)
+        response = execute_polygon_call(url)
 
         response_data = json.loads(response.text)
         try:
@@ -170,7 +208,6 @@ def call_polygon_vol(symbol_list, from_stamp, to_stamp, timespan, multiplier,hou
     headers = {}
     dfs = []
     trading_hours = [9,10,11,12,13,14,15]
-    key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
     error_list = []
 
     year, month, day = to_stamp.split("-")
@@ -178,11 +215,11 @@ def call_polygon_vol(symbol_list, from_stamp, to_stamp, timespan, multiplier,hou
 
     for symbol in symbol_list:
         data = []
-        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
         with requests.Session() as session:
             next_url = url
             while next_url:
-                response = requests.request("GET", url, headers=headers, data=payload)
+                response = execute_polygon_call(next_url)
                 response_data = json.loads(response.text)
                 try:
                     results = response_data['results']
@@ -215,13 +252,12 @@ def call_polygon_histD(symbol_list, from_stamp, to_stamp, timespan, multiplier):
     dfs = []
     trading_hours = [9,10,11,12,13,14,15]
     
-    key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
     error_list = []
 
     for symbol in symbol_list:
-        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
 
-        response = requests.request("GET", url, headers=headers, data=payload)
+        response = execute_polygon_call(url)
 
         response_data = json.loads(response.text)
         try:
@@ -269,10 +305,9 @@ def call_polygon_price(symbol, date_stamp, timespan, multiplier, hour):
     year, month, day = from_stamp.split("-")
     time_stamp = datetime(int(year),int(month),int(day),int(hour)).timestamp()
     trading_hours = [9,10,11,12,13,14,15]
-    key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
     error_list = []
-    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
-    response = requests.request("GET", url, headers={}, data={})
+    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
+    response = execute_polygon_call(url)
 
     response_data = json.loads(response.text)
     results = response_data['results']
@@ -294,10 +329,9 @@ def call_polygon_price(symbol, date_stamp, timespan, multiplier, hour):
 def call_polygon_price_day(symbol, from_stamp, to_stamp, timespan, multiplier):
     payload={}
     headers = {}
-    key = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
-    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
 
-    response = requests.request("GET", url, headers=headers, data=payload)
+    response = execute_polygon_call(url)
 
     response_data = json.loads(response.text)
     results = response_data['results']
@@ -306,11 +340,10 @@ def call_polygon_price_day(symbol, from_stamp, to_stamp, timespan, multiplier):
 
 
 def call_polygon_PCR(symbols, from_stamp, to_stamp, timespan, multiplier, hour):
-    key = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
     values = []
     for symbol in symbols:
-        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
-        response = requests.request("GET", url, headers={}, data={})
+        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
+        response = execute_polygon_call(url) 
         response_data = json.loads(response.text)
         try:
             results = response_data['results']
@@ -329,11 +362,10 @@ def call_polygon_PCR(symbols, from_stamp, to_stamp, timespan, multiplier, hour):
 
 
 def call_polygon_backtest(symbols, from_stamp, to_stamp, timespan, multiplier):
-    key = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
     values = []
     for symbol in symbols:
-        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
-        response = requests.request("GET", url, headers={}, data={})
+        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
+        response = execute_polygon_call(url)
         response_data = json.loads(response.text)
         try:
             results = response_data['results']
@@ -453,11 +485,10 @@ def build_analytics(aggregates, hour):
     return df
 
 def call_polygon_spy(from_stamp, to_stamp, timespan, multiplier):   
-    key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
     trading_hours = [9,10,11,12,13,14,15]
-    url = f"https://api.polygon.io/v2/aggs/ticker/SPY/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+    url = f"https://api.polygon.io/v2/aggs/ticker/SPY/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
 
-    response = requests.request("GET", url, headers={}, data={})
+    response = execute_polygon_call(url)
 
     response_data = json.loads(response.text)
     results = response_data['results']
@@ -473,10 +504,9 @@ def call_polygon_spy(from_stamp, to_stamp, timespan, multiplier):
     return results_df['c'].to_list()
 
 def call_polygon_spyH(from_stamp, to_stamp, timespan, multiplier, hour):
-    key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
-    url = f"https://api.polygon.io/v2/aggs/ticker/SPY/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
+    url = f"https://api.polygon.io/v2/aggs/ticker/SPY/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
 
-    response = requests.request("GET", url, headers={}, data={})
+    response = execute_polygon_call(url)
 
     response_data = json.loads(response.text)
     results = response_data['results']
@@ -568,7 +598,7 @@ def vol_feature_engineering(df, Min_aggs,Thirty_aggs):
         min_features = min_aggs.iloc[-1]
         hour_features = hour_aggs.iloc[-1]
         daily_features = daily_aggs.iloc[-1]
-        min_features.drop(['t','o','h','l','v','c','price_change','volume_change','hour','minute'], inplace=True)
+        min_features.drop(['t','o','h','l','v','c','price_change','volume_change','hour','minute','date'], inplace=True)
         hour_features.drop(['o','h','l','v','c','price_change','volume_change'], inplace=True)
         daily_features.drop(['o','h','l','v','c','price_change','volume_change'], inplace=True)
         df_combined = pd.concat([min_features, hour_features, daily_features])

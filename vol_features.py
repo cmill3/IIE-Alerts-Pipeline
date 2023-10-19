@@ -8,6 +8,8 @@ import boto3
 import logging
 from botocore.exceptions import ClientError
 import concurrent.futures
+import warnings
+warnings.filterwarnings("ignore")
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
 ## add FB for historical
@@ -72,8 +74,8 @@ def generate_dates_historic_vol(date_str):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2018,8,15)
-    end_date = datetime(2023,9,23)
+    start_date = datetime(2022,1,27)
+    end_date = datetime(2022,10,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -84,10 +86,10 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # for date_str in date_list:
-    build_vol_features("2018-08-15")
+    # # for date_str in date_list:
+    # build_vol_features("2022-01-27")
         
 
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-    #     # Submit the processing tasks to the ThreadPoolExecutor
-    #     processed_weeks_futures = [executor.submit(build_vol_features, date_str) for date_str in date_list]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+        # Submit the processing tasks to the ThreadPoolExecutor
+        processed_weeks_futures = [executor.submit(build_vol_features, date_str) for date_str in date_list]
