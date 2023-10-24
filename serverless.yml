@@ -29,7 +29,7 @@ functions:
       - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
     name: inv-analytics-production-line
-  historical-dataset-builder:
+  training-data-builder:
     handler: historical_dataset_builder.build_historic_data
     environment:
       TRADING_DATA_BUCKET: "icarus-research-data"

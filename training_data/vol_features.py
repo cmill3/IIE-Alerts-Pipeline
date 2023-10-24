@@ -41,13 +41,13 @@ def build_vol_features(date_str):
     from_stamp, to_stamp, hour_stamp = generate_dates_historic_vol(date_str)
 
     for hour in hours:
-        df = s3.get_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/bf_mktHours/{key_str}/{hour}.csv")
+        df = s3.get_object(Bucket="inv-alerts", Key=f"bf_mktHours/{key_str}/{hour}.csv")
         df = pd.read_csv(df['Body'])
         min_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
         hour_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
         results_df = vol_feature_engineering(df, min_aggs, hour_aggs)
         csv = results_df.to_csv()
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"fixed_alerts_full/new_features/bf_mktHours/{key_str}/{hour}.csv", Body=csv)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_mktHours/vol/{key_str}/{hour}.csv", Body=csv)
     return put_response
 
 
@@ -83,8 +83,8 @@ def generate_dates_historic_vol(date_str):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2022,1,27)
-    end_date = datetime(2022,10,1)
+    start_date = datetime(2023,7,7)
+    end_date = datetime(2023,9,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -99,6 +99,6 @@ if __name__ == "__main__":
     # build_vol_features("2022-01-27")
         
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]

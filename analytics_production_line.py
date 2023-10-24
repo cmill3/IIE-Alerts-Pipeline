@@ -26,10 +26,14 @@ def analytics_runner(event, context):
     aggregates, error_list = call_polygon_histD(big_fish, from_stamp, to_stamp, timespan="minute", multiplier="30")
     hour_aggregates, error_list = call_polygon_histH(big_fish, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
     full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
-    spy_aggs = call_polygon_spy(from_stamp, to_stamp, timespan="day", multiplier="1")
+    spy_aggs, _ = call_polygon_histD(["SPY"],from_stamp, to_stamp, timespan="minute", multiplier="30")
+    spy_aggs = spy_aggs[0]['c']
+    current_spy, _ = call_polygon_histH(["SPY"], hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+    current_spy = current_spy[0]
+    current_spy = current_spy['c'].iloc[-1]
     logger.info(f"Error list: {error_list}")
     analytics = build_analytics(full_aggs, hour)
-    analytics = build_spy_features(analytics, spy_aggs)
+    analytics = build_spy_features(analytics, spy_aggs, current_spy)
     df = analytics.groupby("symbol").tail(1)
     min_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
     hour_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)

@@ -23,14 +23,17 @@ title = os.getenv("TITLE")
 #         invoke_model(name)
 
 features = {
-    "invalerts-xgb-bfc-classifier": ['return_vol_240M', 'return_vol_450M', 'price_10DDiff', 'threeD_returns_close', 'cmf', 'volume_vol_240M', 'close_diff', 'volume_vol_16H', 'return_vol_5D', 
-                                    'oneD_stddev50', 'rsi3', 'return_vol_16H', 'hour', 'daily_volume_vol_diff_pct', 'volume_vol_450M', 'return_vol_30D', 'month', 'roc5', 'volume_vol_10D', 'day_of_week', 
-                                    'close_diff5', 'range_vol_diff5', 'min_vol_diff_pct', 'hour_volume_vol_diff_pct', 'roc', 'rsi5', 'price7', 'volume_vol_30D', 'volume_vol_8H', 'daily_vol_diff_pct', 'v_diff_pct', 
-                                    'roc3', 'range_vol', 'volume_vol_5D', 'daily_volume_vol_diff_pct30'],
-    "invalerts-xgb-bfp-classifier": ['volume_vol_16H', 'volume_vol_30D', 'oneD_returns_close', 'roc_diff', 'day_of_week', 'daily_volume_vol_diff_pct30', 'threeD_stddev50', 'range_vol', 
-                                    'hour_vol_diff_pct', 'oneD_stddev50', 'min_vol_diff_pct', 'month', 'daily_vol_diff_pct', 'close_diff', 'volume_vol_240M', 'return_vol_10D', 'return_vol_30D', 
-                                    'volume_vol_450M', 'adx', 'daily_vol_diff_pct30', 'return_vol_450M', 'rsi5', 'return_vol_240M', 'threeD_returns_close', 'return_vol_5D', 'rsi', 'roc5', 'close_diff3',
-                                    'v_diff_pct', 'roc3', 'day_of_month', 'cmf', 'hour_volume_vol_diff_pct'],
+    "invalerts-xgb-bfc-classifier": ['return_vol_30D', 'close_diff_deviation3', 'return_vol_10D', 'min_volume_vol_diff_pct', 'price_25DDiff', 
+            'volume_vol_30D', 'day_of_month', 'oneD_stddev50', 'daily_volume_vol_diff_pct', 'return_vol_240M', 'close_diff3', 
+            'adx', 'v_diff_pct', 'volume_vol_5D', 'close_diff5', 'SPY_3D', 'range_vol', 'threeD_stddev50', 'return_vol_16H', 
+            'threeD_returns_close', 'daily_volume_vol_diff_pct30', 'rsi3', 'volume_vol_240M', 'return_vol_8H', 'return_vol_450M', 
+            'roc3', 'roc', 'range_vol_diff5', 'close_diff', 'price7', 'roc_diff', 'hour', 'min_vol_diff_pct', 
+            'hour_volume_vol_diff_pct', 'volume_vol_16H', 'volume_vol_10D', 'rsi', 'month', 'cmf'],
+    "invalerts-xgb-bfp-classifier": ['oneD_stddev50', 'rsi3', 'daily_vol_diff_pct', 'daily_vol_diff_pct30', 'close_diff5', 'hour_volume_vol_diff_pct', 'range_vol', 
+            'volume_vol_16H', 'volume_vol_10D', 'close_diff', 'month', 'price_25DDiff', 'volume_vol_30D', 'SPY_diff3', 'hour', 
+            'volume_vol_5D', 'roc_diff', 'return_vol_30D', 'SPY_3D', 'v_diff_pct', 'min_vol_diff_pct', 'return_vol_16H', 
+            'close_diff_deviation', 'adx', 'daily_volume_vol_diff_pct30', 'threeD_stddev50', 'volume_vol_8H', 
+            'min_volume_vol_diff_pct'],
     "invalerts-xgb-indexc-classifier": ['daily_vol_diff_pct30', 'close_diff', 'return_vol_240M', 'oneD_returns_close', 'day_of_month', 'return_vol_16H', 'return_vol_450M', 'volume_vol_5D',
                                         'threeD_returns_close', 'hour_volume_vol_diff_pct', 'hour_vol_diff_pct', 'range_vol', 'return_vol_8H', 'rsi3', 'hour', 'daily_volume_vol_diff_pct30', 
                                         'volume_vol_10D', 'roc_diff', 'return_vol_5D', 'volume_vol_16H', 'return_vol_30D', 'close_diff5', 'price_10DDiff', 'volume_vol_240M', 'roc', 'rsi'],
@@ -39,18 +42,16 @@ features = {
                                         'roc_diff', 'close_diff5', 'min_volume_vol_diff_pct', 'range_vol_diff5', 'volume_vol_30D', 'rsi', 'close_diff_deviation', 'v_diff_pct', 'rsi5', 'roc', 'oneD_stddev50', 
                                         'return_vol_10D', 'return_vol_16H', 'min_vol_diff_pct', 'return_vol_5D', 'return_vol_30D'],
     "invalerts-xgb-bfc-1d-classifier": ['close_diff_deviation', 'vol7', 'daily_volume_vol_diff30', 'price_10DDiff', 'close_diff3', 'return_vol_30D', 
-                                        'hour_vol_diff_pct', 'v_diff_pct', 'month', 'hour_volume_vol_diff', 'rsi5', 'range_vol_diff5', 'daily_vol_diff30',
-                                         'rsi', 'roc_diff', 'range_vol5MA', 'price_25MA', 'year', 'min_vol_diff', 'return_vol_5D', 'daily_vol_diff', 'price14', 
-                                         'adx', 'volume_10MA'],
+            'hour_vol_diff_pct', 'v_diff_pct', 'month', 'hour_volume_vol_diff', 'rsi5', 'range_vol_diff5', 'daily_vol_diff30',
+              'rsi', 'roc_diff', 'range_vol5MA', 'price_25MA', 'year', 'min_vol_diff', 'return_vol_5D', 'daily_vol_diff', 'price14', 
+              'adx', 'volume_10MA'],
     "invalerts-xgb-bfp-1d-classifier": ['cmf', 'range_vol10MA', 'daily_vol_diff30', 'adx', 'daily_volume_vol_diff', 'min_volume_vol_diff', 'threeD_stddev50', 'range_vol5MA', 'oneD_stddev50', 
-                                        'price_10MA', 'close_diff5', 'daily_vol_diff_pct30', 'hour_vol_diff', 'hour_vol_diff_pct'],
-    "invalerts-xgb-indexc-1d-classifier": ['return_vol_450M', 'volume_vol_10D', 'rsi3', 'volume_vol_30D', 'day_of_month', 'min_vol_diff_pct', 'price7', 'adx', 'return_vol_5D', 'return_vol_16H', 
-                                            'close_diff', 'min_volume_vol_diff_pct', 'daily_volume_vol_diff_pct30', 'volume_vol_8H', 'roc5', 'threeD_returns_close', 'volume_vol_16H', 'volume_vol_240M', 
-                                            'v_diff_pct', 'hour', 'volume_vol_5D', 'hour_volume_vol_diff_pct', 'hour_vol_diff_pct', 'daily_vol_diff_pct30', 'roc_diff', 'rsi5', 'price_10DDiff', 'range_vol', 
-                                            'oneD_stddev50', 'roc3', 'price_25DDiff', 'cmf', 'close_diff_deviation', 'close_diff3', 'month', 'range_vol_diff5'],
+            'price_10MA', 'close_diff5', 'daily_vol_diff_pct30', 'hour_vol_diff', 'hour_vol_diff_pct'],
+    "invalerts-xgb-indexc-1d-classifier": ['cmf', 'volume_vol_450M', 'volume_vol_16H', 'rsi5', 'price_10DDiff', 'hour', 'return_vol_8H', 'min_volume_vol_diff_pct', 'threeD_stddev50', 'oneD_returns_close', 'daily_volume_vol_diff_pct30', 'close_diff3', 'rsi', 'roc3', 'roc5', 'threeD_returns_close', 
+            'range_vol_diff5', 'month', 'range_vol', 'volume_vol_5D', 'return_vol_16H', 'close_diff', 'volume_vol_10D', 'close_diff_deviation3', 'close_diff5', 'return_vol_10D'],
     "invalerts-xgb-indexp-1d-classifier": ['v_diff_pct', 'close_diff', 'hour_vol_diff_pct', 'oneD_stddev50', 'return_vol_5D', 'close_diff3', 'return_vol_450M', 'cmf', 'close_diff5', 
-                                            'return_vol_30D', 'return_vol_8H', 'range_vol', 'threeD_returns_close', 'rsi5', 'roc3', 'volume_vol_16H', 'volume_vol_30D', 'hour', 'daily_vol_diff_pct', 
-                                            'return_vol_240M', 'price_25DDiff', 'day_of_week', 'volume_vol_5D', 'min_vol_diff_pct']
+            'return_vol_30D', 'return_vol_8H', 'range_vol', 'threeD_returns_close', 'rsi5', 'roc3', 'volume_vol_16H', 'volume_vol_30D', 'hour', 'daily_vol_diff_pct', 
+            'return_vol_240M', 'price_25DDiff', 'day_of_week', 'volume_vol_5D', 'min_vol_diff_pct']
             
 }
 
@@ -72,7 +73,7 @@ def invoke_model(event, context):
     dataset = s3.get_object(Bucket=alerts_bucket, Key=query_key)
     data = pd.read_csv(dataset.get("Body"))
 
-    data['dt'] = pd.to_datetime(data['date_x'])
+    data['dt'] = pd.to_datetime(data['date'])
     recent_date = data['dt'].iloc[-1]
     data['roc_diff'] = data['roc'] - data['roc5']
     data['range_vol_diff5'] = (data['range_vol'] - data['range_vol5MA'])

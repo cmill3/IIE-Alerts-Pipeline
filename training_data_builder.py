@@ -8,24 +8,25 @@ import pandas as pd
 from botocore.exceptions import ClientError
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
-prefixes = ["gainers","losers","most_actives","vdiff_gain"]
-hours = [14,15]
-
 logger = logging.getLogger()
 
-def build_training_data(event, context, days_back):
+def build_training_data(event, context):
+    hours = ["10","11","12","13","14","15"]
     s3 = get_s3_client()
-    date_str = build_date(days_back)
-    for prefix in prefixes:
-        for hour in hours:
-            df = pull_alerts(s3, "inv-alerts", f"{prefix}/{date_str}/{hour}.csv")
-            result = df.apply(calc_price_action, axis=1)
-            price_df = pd.DataFrame(result.to_list())
-            df = pd.merge(df, price_df, on="symbol")
-            csv = df.to_csv()
-            put_response = s3.put_object(Bucket="inv-alerts", Key=f"{prefix}/{date_str}/{hour}.csv", Body=csv)
+    date_str, date = build_date(days_back=5)
+    if date.weekday > 4:
+        return "Weekend"
     
-    print(f"DONE with {date_str}!")
+    for hour in hours:
+        df = pull_alerts(s3, "inv-alerts", f"bf_alerts/{date_str}/{hour}.csv")
+        result = df.apply(calc_price_action, axis=1)
+        price_df = pd.DataFrame(result.to_list())
+        df = pd.merge(df, price_df, on="symbol")
+        csv = df.to_csv()
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_mktHours/vol/{date_str}/{hour}.csv", Body=csv)
+        logger.info(f"Finished {date_str} {hour}")
+    
+    return(f"DONE with {date_str}!")
 
 def build_date(days_back):
     today = datetime.now()
@@ -40,16 +41,9 @@ def build_date(days_back):
         month = "0" + str(date.month)
     else:
         month = str(date.month)
-
     temp_year = date.year
     
-    # date_dict ={
-    #     'month': month,
-    #     'day': day,
-    #     'year': str(temp_year)
-    #     }
-    
-    return f"{temp_year}/{month}/{day}"
+    return f"{temp_year}/{month}/{day}", date
 
 def pull_alerts(s3, bucket, key):
     response = s3.get_object(Bucket=bucket, Key=key)
