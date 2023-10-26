@@ -29,10 +29,16 @@ def options_snapshot_runner(monday):
     print(monday)
     fridays = find_fridays(monday)
     for symbol in big_fish:
-        print(symbol)
-        call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
-        call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
-    return "done"
+        try:
+            print(symbol)
+            call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
+            get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
+        except Exception as e:
+            print(f"{symbol} failed at {monday} with: {e}. Retrying")
+            call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
+            get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
+            continue
+    print(f"Finished {monday}")
 
 def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
     hours = ["10","11","12","13","14","15"]

@@ -527,11 +527,10 @@ def call_polygon_spyH(from_stamp, to_stamp, timespan, multiplier, hour):
 
     return results_df['c']
 
-def build_spy_features(df, spy_aggs):
-    current_spy = spy_aggs[-1]
-    SPY_diff   = (current_spy - spy_aggs[-2])/spy_aggs[-2]
-    SPY_diff3  = (current_spy - spy_aggs[-4])/spy_aggs[-4]
-    SPY_diff5  = (current_spy - spy_aggs[-6])/spy_aggs[-6]
+def build_spy_features(df, spy_aggs, current_spy):
+    SPY_diff   = (current_spy - spy_aggs.iloc[-2])/spy_aggs.iloc[-2]
+    SPY_diff3  = (current_spy - spy_aggs.iloc[-4])/spy_aggs.iloc[-4]
+    SPY_diff5  = (current_spy - spy_aggs.iloc[-6])/spy_aggs.iloc[-6]
     df['SPY_diff'] = (((df['close_diff']/100) - SPY_diff)/SPY_diff)
     df['SPY_diff3'] = (((df['close_diff']/100) - SPY_diff3)/SPY_diff3)
     df['SPY_diff5'] = (((df['close_diff']/100) - SPY_diff5)/SPY_diff5)

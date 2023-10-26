@@ -138,7 +138,7 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # run_process("2022-01-06")
+    # run_process("2022-07-27")
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
