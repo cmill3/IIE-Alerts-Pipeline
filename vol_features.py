@@ -115,7 +115,7 @@ def consolidate_bf_vol(date_str):
             new_df = pd.concat([old_df,df],ignore_index=True)
             put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf/vol/{key_str}/{hour}.csv", Body=new_df.to_csv())
         except Exception as e:
-            print(e)
+            print(e , f"for {key_str} {hour}")
     return put_response
 
 
@@ -140,4 +140,4 @@ if __name__ == "__main__":
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
-        processed_weeks_futures = [executor.submit(remediate_alerts, date_str) for date_str in date_list]
+        processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]

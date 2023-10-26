@@ -17,7 +17,7 @@ big_fish =  [
             "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
             "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","FB","CRM"
             ]
-sf = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID',
+sf = ['TSLA','NIO','RIVN','XPEV','COIN','ROKU','LCID',
          'WBD','SQ','SNAP','ZM','SHOP','DOCU','ROKU','TWLO','PINS','SNAP','UBER','LYFT','DDOG',
          'ZS','NET','CMG','ARM','OKTA','UPST','ETSY','AXP','TDOC','PINS','NCLH','UAL','AAL','DAL',
          'FUTU','SE','BILI','BIDU','JD','BABA','MMM','PEP','GE','CCL','RCL','MRK','RBLX','COIN',
@@ -34,10 +34,14 @@ s3 = boto3.client('s3')
 def options_snapshot_runner(monday):
     print(monday)
     fridays = find_fridays(monday)
-    for symbol in big_fish:
+    for symbol in sf:
         print(symbol)
-        call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
-        call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
+        try:
+            call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
+            call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
+        except Exception as e:
+            print(f"{e} {symbol}")
+            continue
     return "done"
 
 def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
@@ -144,7 +148,7 @@ def find_fridays(monday):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     start_date = datetime(2022,10,24)
-    end_date = datetime(2023,9,23)
+    end_date = datetime(2023,10,20)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -157,6 +161,6 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2023-01-02")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=24) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(options_snapshot_runner, date_str) for date_str in date_list]
