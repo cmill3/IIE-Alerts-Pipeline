@@ -19,6 +19,13 @@ big_fish =  [
             ]
 indexes = ['QQQ','SPY','IWM']
 
+sf = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID',
+         'WBD','SQ','SNAP','ZM','SHOP','DOCU','ROKU','TWLO','PINS','SNAP','UBER','LYFT','DDOG',
+         'ZS','NET','CMG','ARM','OKTA','UPST','ETSY','AXP','TDOC','PINS','NCLH','UAL','AAL','DAL',
+         'FUTU','SE','BILI','BIDU','JD','BABA','MMM','PEP','GE','CCL','RCL','MRK','RBLX','COIN',
+         'HD','LOW','AFFRM','VZ','T','PG','TSM']
+new_bf = ['C','CAT','KO','MS','GS','PANW','ORCL','IBM','CSCO','WMT','TGT','COST']
+
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
 holidays_multiyear = holidays.holidays
@@ -28,7 +35,7 @@ s3 = boto3.client('s3')
 def options_snapshot_runner(monday):
     print(monday)
     fridays = find_fridays(monday)
-    for symbol in big_fish:
+    for symbol in new_bf:
         print(symbol)
         call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
         call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
@@ -138,7 +145,7 @@ def find_fridays(monday):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     start_date = datetime(2022,10,24)
-    end_date = datetime(2023,9,23)
+    end_date = datetime(2023,10,20)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -151,6 +158,6 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2023-01-02")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(options_snapshot_runner, date_str) for date_str in date_list]

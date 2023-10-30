@@ -16,6 +16,8 @@ sf = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID',
          'WBD','SQ','SNAP','ZM','SHOP','DOCU','ROKU','TWLO','PINS','SNAP','UBER','LYFT','DDOG',
          'ZS','NET','CMG','ARM','OKTA','UPST','ETSY','AXP','TDOC','PINS','NCLH','UAL','AAL','DAL',
          'FUTU','SE','BILI','BIDU','JD','BABA','MMM','PEP','GE','CCL','RCL']
+new_bf = ['C','CAT','KO','MS','GS','PANW','ORCL','IBM','CSCO','WMT','TGT','COST']
+new_sf = ['MRK','RBLX','COIN','HD','LOW','AFFRM','VZ','T','PG','TSM']
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
@@ -47,8 +49,8 @@ def build_historic_data(date_str):
     #         "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","META","QQQ",'SPY','IWM'
     #         ] 
     for hour in hours:
-        aggregates, error_list = call_polygon_histD(sf, from_stamp, to_stamp, timespan="minute", multiplier="30")
-        hour_aggregates, error_list = call_polygon_histH(sf, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+        aggregates, error_list = call_polygon_histD(new_sf, from_stamp, to_stamp, timespan="minute", multiplier="30")
+        hour_aggregates, error_list = call_polygon_histH(new_sf, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
         df = build_analytics(full_aggs, hour)
         df.reset_index(drop=True, inplace=True)
@@ -76,8 +78,10 @@ def build_historic_data(date_str):
         df['SPY_1D'] = SPY_diff
         df['SPY_3D'] = SPY_diff3
         df['SPY_5D'] = SPY_diff5
-        csv = df.to_csv()
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"sf/{key_str}/{hour}.csv", Body=csv)
+        old_df = s3.get_object(Bucket="inv-alerts", Key=f"sf/{key_str}/{hour}.csv")
+        old_df = pd.read_csv(old_df['Body'])
+        new_df = pd.concat([old_df,df],ignore_index=True)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"sf/{key_str}/{hour}.csv", Body=new_df.to_csv())
     return put_response
     
 def generate_dates_historic(date_str):
@@ -126,8 +130,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2018,1,1)
-    end_date = datetime(2023,10,20)
+    start_date = datetime(2022,10,1)
+    end_date = datetime(2023,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
