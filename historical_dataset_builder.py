@@ -15,9 +15,10 @@ indexes = ['QQQ','SPY','IWM']
 sf = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID',
          'WBD','SQ','SNAP','ZM','SHOP','DOCU','ROKU','TWLO','PINS','SNAP','UBER','LYFT','DDOG',
          'ZS','NET','CMG','ARM','OKTA','UPST','ETSY','AXP','TDOC','PINS','NCLH','UAL','AAL','DAL',
-         'FUTU','SE','BILI','BIDU','JD','BABA','MMM','PEP','GE','CCL','RCL']
+         'FUTU','SE','BILI','BIDU','JD','BABA','MMM','PEP','GE','CCL','RCL','MRK','RBLX','COIN',
+         'HD','LOW','AFFRM','VZ','T','PG','TSM']
 new_bf = ['C','CAT','KO','MS','GS','PANW','ORCL','IBM','CSCO','WMT','TGT','COST']
-new_sf = ['MRK','RBLX','COIN','HD','LOW','AFFRM','VZ','T','PG','TSM']
+# new_sf = ['MRK','RBLX','COIN','HD','LOW','AFFRM','VZ','T','PG','TSM']
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
@@ -144,6 +145,6 @@ if __name__ == "__main__":
 
     # run_process("2022-07-27")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]

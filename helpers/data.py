@@ -561,12 +561,12 @@ def vol_feature_engineering(df, Min_aggs,Thirty_aggs):
         hour_aggs.dropna(inplace=True)
         daily_aggs.dropna(inplace=True)
 
-        min_aggs['price_change'] = min_aggs['c'].diff()
-        min_aggs['volume_change'] = min_aggs['v'].diff()
-        hour_aggs['price_change'] = hour_aggs['c'].diff()
-        hour_aggs['volume_change'] = hour_aggs['v'].diff()
-        daily_aggs['price_change'] = daily_aggs['c'].diff()
-        daily_aggs['volume_change'] = daily_aggs['v'].diff()
+        min_aggs['price_change'] = abs(min_aggs['c'].pct_change())
+        min_aggs['volume_change'] = abs(min_aggs['v'].pct_change())
+        hour_aggs['price_change'] = abs(hour_aggs['c'].pct_change())
+        hour_aggs['volume_change'] = abs(hour_aggs['v'].pct_change())
+        daily_aggs['price_change'] = abs(daily_aggs['c'].pct_change())
+        daily_aggs['volume_change'] = abs(daily_aggs['v'].pct_change())
 
         min_aggs['return_vol_240M'] = min_aggs['price_change'].rolling(window=240).apply(lambda x: abs(x).mean(), raw=True)
         min_aggs['volume_vol_240M'] = min_aggs['volume_change'].rolling(window=240).apply(lambda x: abs(x).mean(), raw=True)
