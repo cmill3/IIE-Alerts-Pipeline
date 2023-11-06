@@ -41,7 +41,7 @@ s3 = boto3.client('s3')
 def options_snapshot_runner(monday):
     print(monday)
     fridays = find_fridays(monday)
-    for symbol in sf:
+    for symbol in ['SBUX','NKE']:
         print(symbol)
         try:
             call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
@@ -154,8 +154,8 @@ def find_fridays(monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2022,10,24)
-    end_date = datetime(2023,10,20)
+    start_date = datetime(2023,9,10)
+    end_date = datetime(2023,10,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []

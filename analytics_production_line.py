@@ -8,10 +8,9 @@ import pandas as pd
 from botocore.exceptions import ClientError
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
-big_fish =  [
-            "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
-            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","SPY","CRM"
-            ,"QQQ","IWM"]
+big_fish =  ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","CRM",
+            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",'META',
+            'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER',"SPY","QQQ","IWM"]
 
 
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")

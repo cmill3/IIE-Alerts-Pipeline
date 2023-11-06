@@ -23,17 +23,14 @@ title = os.getenv("TITLE")
 #         invoke_model(name)
 
 features = {
-    "invalerts-xgb-bfc-classifier": ['return_vol_30D', 'close_diff_deviation3', 'return_vol_10D', 'min_volume_vol_diff_pct', 'price_25DDiff', 
-            'volume_vol_30D', 'day_of_month', 'oneD_stddev50', 'daily_volume_vol_diff_pct', 'return_vol_240M', 'close_diff3', 
-            'adx', 'v_diff_pct', 'volume_vol_5D', 'close_diff5', 'SPY_3D', 'range_vol', 'threeD_stddev50', 'return_vol_16H', 
-            'threeD_returns_close', 'daily_volume_vol_diff_pct30', 'rsi3', 'volume_vol_240M', 'return_vol_8H', 'return_vol_450M', 
-            'roc3', 'roc', 'range_vol_diff5', 'close_diff', 'price7', 'roc_diff', 'hour', 'min_vol_diff_pct', 
-            'hour_volume_vol_diff_pct', 'volume_vol_16H', 'volume_vol_10D', 'rsi', 'month', 'cmf'],
-    "invalerts-xgb-bfp-classifier": ['oneD_stddev50', 'rsi3', 'daily_vol_diff_pct', 'daily_vol_diff_pct30', 'close_diff5', 'hour_volume_vol_diff_pct', 'range_vol', 
-            'volume_vol_16H', 'volume_vol_10D', 'close_diff', 'month', 'price_25DDiff', 'volume_vol_30D', 'SPY_diff3', 'hour', 
-            'volume_vol_5D', 'roc_diff', 'return_vol_30D', 'SPY_3D', 'v_diff_pct', 'min_vol_diff_pct', 'return_vol_16H', 
-            'close_diff_deviation', 'adx', 'daily_volume_vol_diff_pct30', 'threeD_stddev50', 'volume_vol_8H', 
-            'min_volume_vol_diff_pct'],
+    "invalerts-xgb-bfc-classifier": ['hour', 'daily_vol_diff30', 'hour_volume_vol_diff', 'roc_diff', 'range_vol', 'volume_vol_8H', 'month', 
+            'close_diff5', 'range_vol_diff5', 'SPY_diff', 'return_vol_10D', 'return_vol_8H', 'return_vol_450M', 'adx', 
+            'rsi', 'daily_vol_diff', 'SPY_3D', 'min_vol_diff', 'return_vol_240M', 'price_25DDiff', 'daily_vol_diff_pct30',
+              'price7', 'daily_vol_diff_pct', 'oneD_stddev50', 'volume_vol_16H', 'close_diff_deviation'],
+    "invalerts-xgb-bfp-classifier": ['roc', 'daily_vol_diff30', 'volume_vol_5D', 'volume_vol_16H', 'return_vol_10D', 'return_vol_30D', 'month', 
+            'oneD_stddev50', 'close_diff', 'min_vol_diff_pct', 'volume_vol_450M', 'adx', 'hour_vol_diff_pct', 'price_25DDiff', 
+            'hour_vol_diff', 'min_vol_diff', 'price_10DDiff', 'range_vol', 'daily_vol_diff_pct', 'v_diff_pct', 'hour_volume_vol_diff',
+              'rsi', 'close_diff_deviation3', 'SPY_3D'],
     "invalerts-xgb-indexc-classifier": ['daily_vol_diff_pct30', 'close_diff', 'return_vol_240M', 'oneD_returns_close', 'day_of_month', 'return_vol_16H', 'return_vol_450M', 'volume_vol_5D',
                                         'threeD_returns_close', 'hour_volume_vol_diff_pct', 'hour_vol_diff_pct', 'range_vol', 'return_vol_8H', 'rsi3', 'hour', 'daily_volume_vol_diff_pct30', 
                                         'volume_vol_10D', 'roc_diff', 'return_vol_5D', 'volume_vol_16H', 'return_vol_30D', 'close_diff5', 'price_10DDiff', 'volume_vol_240M', 'roc', 'rsi'],
@@ -41,12 +38,18 @@ features = {
                                         'range_vol', 'return_vol_240M', 'volume_vol_5D', 'day_of_month', 'day_of_week', 'cmf', 'adx', 'oneD_returns_close', 'month', 'daily_vol_diff_pct', 'hour_vol_diff_pct', 
                                         'roc_diff', 'close_diff5', 'min_volume_vol_diff_pct', 'range_vol_diff5', 'volume_vol_30D', 'rsi', 'close_diff_deviation', 'v_diff_pct', 'rsi5', 'roc', 'oneD_stddev50', 
                                         'return_vol_10D', 'return_vol_16H', 'min_vol_diff_pct', 'return_vol_5D', 'return_vol_30D'],
-    "invalerts-xgb-bfc-1d-classifier": ['close_diff_deviation', 'vol7', 'daily_volume_vol_diff30', 'price_10DDiff', 'close_diff3', 'return_vol_30D', 
-            'hour_vol_diff_pct', 'v_diff_pct', 'month', 'hour_volume_vol_diff', 'rsi5', 'range_vol_diff5', 'daily_vol_diff30',
-              'rsi', 'roc_diff', 'range_vol5MA', 'price_25MA', 'year', 'min_vol_diff', 'return_vol_5D', 'daily_vol_diff', 'price14', 
-              'adx', 'volume_10MA'],
-    "invalerts-xgb-bfp-1d-classifier": ['cmf', 'range_vol10MA', 'daily_vol_diff30', 'adx', 'daily_volume_vol_diff', 'min_volume_vol_diff', 'threeD_stddev50', 'range_vol5MA', 'oneD_stddev50', 
-            'price_10MA', 'close_diff5', 'daily_vol_diff_pct30', 'hour_vol_diff', 'hour_vol_diff_pct'],
+    "invalerts-xgb-bfc-1d-classifier": ['return_vol_30D', 'threeD_stddev50', 'month', 'return_vol_450M', 'SPY_1D', 'oneD_returns_close',
+             'min_volume_vol_diff_pct', 'price_10DDiff', 'oneD_stddev50', 'volume_vol_16H', 'min_volume_vol_diff', 
+             'volume_vol_8H', 'daily_vol_diff_pct30', 'hour_vol_diff_pct', 'volume_vol_240M', 'SPY_diff', 'hour_volume_vol_diff',
+               'volume_vol_30D', 'min_vol_diff_pct', 'return_vol_8H', 'hour', 'daily_vol_diff_pct', 'price_25DDiff', 'SPY_diff3', 
+               'range_vol', 'rsi5', 'rsi', 'roc_diff', 'roc3', 'daily_volume_vol_diff', 'hour_vol_diff', 'return_vol_240M', 
+               'close_diff', 'min_vol_diff'],
+    "invalerts-xgb-bfp-1d-classifier": ['volume_vol_240M', 'roc', 'volume_vol_450M', 'roc_diff', 'SPY_diff', 'daily_volume_vol_diff30', 'rsi5', 'SPY_1D', 
+            'range_vol_diff5', 'day_of_week', 'hour_volume_vol_diff_pct', 'daily_vol_diff_pct30', 'roc5', 'close_diff5', 
+            'volume_vol_16H', 'v_diff_pct', 'volume_vol_30D', 'cmf', 'month', 'volume_vol_8H', 'threeD_returns_close', 
+            'daily_vol_diff_pct', 'return_vol_8H', 'return_vol_240M', 'oneD_stddev50', 'day_of_month', 'range_vol', 
+            'price_10DDiff', 'hour_vol_diff_pct', 'daily_vol_diff30', 'hour', 'return_vol_16H', 'return_vol_450M', 
+            'daily_volume_vol_diff_pct', 'min_volume_vol_diff', 'hour_vol_diff', 'SPY_diff3'],
     "invalerts-xgb-indexc-1d-classifier": ['cmf', 'volume_vol_450M', 'volume_vol_16H', 'rsi5', 'price_10DDiff', 'hour', 'return_vol_8H', 'min_volume_vol_diff_pct', 'threeD_stddev50', 'oneD_returns_close', 'daily_volume_vol_diff_pct30', 'close_diff3', 'rsi', 'roc3', 'roc5', 'threeD_returns_close', 
             'range_vol_diff5', 'month', 'range_vol', 'volume_vol_5D', 'return_vol_16H', 'close_diff', 'volume_vol_10D', 'close_diff_deviation3', 'close_diff5', 'return_vol_10D'],
     "invalerts-xgb-indexp-1d-classifier": ['v_diff_pct', 'close_diff', 'hour_vol_diff_pct', 'oneD_stddev50', 'return_vol_5D', 'close_diff3', 'return_vol_450M', 'cmf', 'close_diff5', 
@@ -55,11 +58,9 @@ features = {
             
 }
 
-big_fish =  [
-            "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
-            "MSFT","FB","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","FB","SNOW","SOFI",
-            "UAL","DAL","AAL"
-            ]
+big_fish =  ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","CRM",
+            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",'META',
+            'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER']
 indexes = ['QQQ','SPY','IWM']
 index_strategies = ["indexP_1d","indexC_1d","indexP","indexC"]
 bf_strategies = ["bfP_1d","bfC_1d","bfP","bfC"]
