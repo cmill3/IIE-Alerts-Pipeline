@@ -105,7 +105,7 @@ def calculate_sellby_date(dt, trading_days_to_add): #End date, n days later for 
 
 def setup_session_retries(
     retries: int = 3,
-    backoff_factor: float = 0.3,
+    backoff_factor: float = 0.05,
     status_forcelist: tuple = (500, 502, 504),
 ):
     """
@@ -180,8 +180,8 @@ def call_polygon_histH(symbol_list, from_stamp, to_stamp, timespan, multiplier):
 
         response = execute_polygon_call(url)
 
-        response_data = json.loads(response.text)
         try:
+            response_data = json.loads(response.text)
             results = response_data['results']
         except:
             continue
@@ -214,8 +214,8 @@ def call_polygon_vol(symbol_list, from_stamp, to_stamp, timespan, multiplier,hou
             next_url = url
             while next_url:
                 response = execute_polygon_call(next_url)
-                response_data = json.loads(response.text)
                 try:
+                    response_data = json.loads(response.text)
                     results = response_data['results']
                 except:
                     error_list.append(symbol)
@@ -252,8 +252,8 @@ def call_polygon_histD(symbol_list, from_stamp, to_stamp, timespan, multiplier):
 
         response = execute_polygon_call(url)
 
-        response_data = json.loads(response.text)
         try:
+            response_data = json.loads(response.text)
             results = response_data['results']
         except:
             continue

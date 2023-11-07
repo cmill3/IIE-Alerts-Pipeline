@@ -19,6 +19,7 @@ sf = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID',
          'HD','LOW','AFFRM','VZ','T','PG','TSM']
 new_bf = ['C','CAT','KO','MS','GS','PANW','ORCL','IBM','CSCO','WMT','TGT','COST']
 # new_sf = ['MRK','RBLX','COIN','HD','LOW','AFFRM','VZ','T','PG','TSM']
+# list = ['SBUX','NKE']
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
@@ -39,19 +40,17 @@ def build_historic_data(date_str):
     s3 = get_s3_client()
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
     year, month, day = from_stamp.split("-")
-    # if datetime(int(year),int(month),int(day)) <= datetime(2022,6,1):
-    #     big_fish =  [
-    #         "AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","FB","CRM",
-    #         "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","QQQ",'SPY','IWM'
-    #         ]
-    # else:
-    #    big_fish =  [
-    #         "AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","CRM",
-    #         "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","META","QQQ",'SPY','IWM'
-    #         ] 
+    if datetime(int(year),int(month),int(day)) <= datetime(2022,6,1):
+        big_fish =  ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","FB","CRM",
+            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",
+            'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER']
+    else:
+       big_fish =  ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","CRM",
+            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",'META',
+            'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER',"QQQ","SPY","IWM"]
     for hour in hours:
-        aggregates, error_list = call_polygon_histD(new_sf, from_stamp, to_stamp, timespan="minute", multiplier="30")
-        hour_aggregates, error_list = call_polygon_histH(new_sf, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+        aggregates, error_list = call_polygon_histD(big_fish, from_stamp, to_stamp, timespan="minute", multiplier="30")
+        hour_aggregates, error_list = call_polygon_histH(big_fish, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
         df = build_analytics(full_aggs, hour)
         df.reset_index(drop=True, inplace=True)
@@ -79,10 +78,11 @@ def build_historic_data(date_str):
         df['SPY_1D'] = SPY_diff
         df['SPY_3D'] = SPY_diff3
         df['SPY_5D'] = SPY_diff5
-        old_df = s3.get_object(Bucket="inv-alerts", Key=f"sf/{key_str}/{hour}.csv")
-        old_df = pd.read_csv(old_df['Body'])
-        new_df = pd.concat([old_df,df],ignore_index=True)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"sf/{key_str}/{hour}.csv", Body=new_df.to_csv())
+        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"sf/{key_str}/{hour}.csv")
+        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"expanded_bf/{key_str}/{hour}.csv")
+        # old_df = pd.read_csv(old_df['Body'])
+        # new_df = pd.concat([old_df,df],ignore_index=True)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf/{key_str}/{hour}.csv", Body=df.to_csv())
     return put_response
     
 def generate_dates_historic(date_str):
@@ -145,6 +145,6 @@ if __name__ == "__main__":
 
     # run_process("2022-07-27")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
