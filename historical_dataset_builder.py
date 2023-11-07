@@ -13,11 +13,20 @@ alerts_bucket = os.getenv("ALERTS_BUCKET")
 
 indexes = ['QQQ','SPY','IWM']
 sf = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID',
-         'WBD','SQ','SNAP','ZM','SHOP','DOCU','ROKU','TWLO','PINS','SNAP','UBER','LYFT','DDOG',
-         'ZS','NET','CMG','ARM','OKTA','UPST','ETSY','AXP','TDOC','PINS','NCLH','UAL','AAL','DAL',
-         'FUTU','SE','BILI','BIDU','JD','BABA','MMM','PEP','GE','CCL','RCL','MRK','RBLX','COIN',
+         'WBD','SQ','SNAP','ZM','SHOP','DOCU','TWLO','PINS','UBER','LYFT','DDOG',
+         'ZS','NET','CMG','ARM','OKTA','UPST','ETSY','AXP','TDOC','NCLH','UAL','AAL','DAL',
+         'FUTU','SE','BILI','BIDU','JD','BABA','MMM','PEP','GE','CCL','RCL','MRK','RBLX',
          'HD','LOW','AFFRM','VZ','T','PG','TSM']
-new_bf = ['C','CAT','KO','MS','GS','PANW','ORCL','IBM','CSCO','WMT','TGT','COST']
+# new_bf = ['C','CAT','KO','MS','GS','PANW','ORCL','IBM','CSCO','WMT','TGT','COST']
+all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
+ 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
+ 'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
+ 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO','TSLA','LCID','NIO','WFC',
+ 'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
+ 'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
+ 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
+ 'ORCL','WBD','ARM','SNAP','BILI','AAL','CCL','NCLH','LYFT','BIDU','JD','BABA','HD','LOW'
+ 'SBUX','NKE','AFFRM','WMT']
 # new_sf = ['MRK','RBLX','COIN','HD','LOW','AFFRM','VZ','T','PG','TSM']
 # list = ['SBUX','NKE']
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
@@ -40,17 +49,21 @@ def build_historic_data(date_str):
     s3 = get_s3_client()
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
     year, month, day = from_stamp.split("-")
-    if datetime(int(year),int(month),int(day)) <= datetime(2022,6,1):
-        big_fish =  ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","FB","CRM",
-            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",
-            'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER']
-    else:
-       big_fish =  ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","CRM",
-            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",'META',
-            'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER',"QQQ","SPY","IWM"]
+    # if datetime(int(year),int(month),int(day)) <= datetime(2022,6,1):
+    #     big_fish =  ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","FB","CRM",
+    #         "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",
+    #         'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER']
+    # else:
+    #    big_fish =  ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","CRM",
+    #         "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",'META',
+    #         'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER',"QQQ","SPY","IWM"]
     for hour in hours:
-        aggregates, error_list = call_polygon_histD(big_fish, from_stamp, to_stamp, timespan="minute", multiplier="30")
-        hour_aggregates, error_list = call_polygon_histH(big_fish, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+        aggregates, error_list = call_polygon_histD(all_symbols, from_stamp, to_stamp, timespan="minute", multiplier="30")
+        if len(error_list) > 0:
+            print(error_list)
+        hour_aggregates, error_list = call_polygon_histH(all_symbols, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+        if len(error_list) > 0:
+            print(error_list)
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
         df = build_analytics(full_aggs, hour)
         df.reset_index(drop=True, inplace=True)
@@ -82,7 +95,7 @@ def build_historic_data(date_str):
         # old_df = s3.get_object(Bucket="inv-alerts", Key=f"expanded_bf/{key_str}/{hour}.csv")
         # old_df = pd.read_csv(old_df['Body'])
         # new_df = pd.concat([old_df,df],ignore_index=True)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf/{key_str}/{hour}.csv", Body=df.to_csv())
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
     return put_response
     
 def generate_dates_historic(date_str):
@@ -131,8 +144,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2022,10,1)
-    end_date = datetime(2023,1,1)
+    start_date = datetime(2018,2,2)
+    end_date = datetime(2023,10,28)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
