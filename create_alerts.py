@@ -15,7 +15,7 @@ alerts_bucket = os.getenv("ALERTS_BUCKET")
 all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
  'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
  'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
- 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT',
+ 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','TSLA','LCID','NIO','WFC',
  'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
  'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
  'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
@@ -43,6 +43,27 @@ def alerts_runner(date_str):
         for alert in alerts:
             csv = alerts[alert].to_csv()
             put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/{key_str}/{alert}/{hour}.csv", Body=csv)
+
+def add_data_to_alerts(date_str):
+    hours = ["10","11","12","13","14","15"]
+    key_str = date_str.replace("-","/")
+    s3 = boto3.client('s3')
+    from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
+    for hour in hours:
+        for type in ['gainers','losers']:
+            alert = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/{key_str}/{type}/{hour}.csv")
+            sf = s3.get_object(Bucket="inv-alerts", Key=f"sf/vol/{key_str}/{hour}.csv")
+            sf= pd.read_csv(sf['Body'])
+            bf = s3.get_object(Bucket="inv-alerts", Key=f"bf/vol/{key_str}/{hour}.csv")
+            bf= pd.read_csv(bf['Body'])
+            alert = pd.read_csv(alert['Body'])
+            full_data = pd.concat([sf,bf])
+            full_df = full_data.loc[full_data['symbol'].isin(alert['symbol'])]
+            alert = alert[['symbol','hour']]
+            alerts_data = alert.merge(full_df, on=['symbol','hour'])
+            alerts_data = alerts_data.drop_duplicates(subset=['symbol'])
+            s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/data/{key_str}/{type}/{hour}.csv", Body=alerts_data.to_csv())
+    print(f"Finished with {date_str}")
         
 
 def combine_hour_aggs(aggregates, hour_aggregates, hour):
@@ -61,7 +82,7 @@ def combine_hour_aggs(aggregates, hour_aggregates, hour):
         t = hour_aggs.t.iloc[-1]
         aggs_list = [volume, open, close, high, low, hour_aggs.date.iloc[-1], hour,hour_aggs.symbol.iloc[-1],t]
         value.loc[len(value)] = aggs_list
-        value['close_diff'] = value['c'].pct_change()
+        value['close_diff'] = value['c'].pct_change().round(4)
         full_aggs.append(value)
     return full_aggs
 
@@ -86,8 +107,8 @@ def generate_dates_historic(date_str):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     print(os.cpu_count())
-    start_date = datetime(2020,3,10)
-    end_date = datetime(2023,10,20)
+    start_date = datetime(2018,1,1)
+    end_date = datetime(2023,10,28)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -99,9 +120,9 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
     # # for date_str in date_list:
-    # alerts_runner("2022-01-27")
+    # add_data_to_alerts("2022-01-27")
         
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=24) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
