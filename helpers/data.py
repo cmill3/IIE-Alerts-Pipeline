@@ -90,17 +90,6 @@ def build_date_dfs(df, t):
     one_day_df = df.loc[df['date'] < sell_1d]
     three_day_df = df.loc[df['date'] < sell_3d]
     return one_day_df, three_day_df
-
-def determine_num_days(dt):
-    day_of_week = dt.weekday()
-    if day_of_week < 2:
-        return 1,2,3
-    if day_of_week == 2:
-        return 1,2,5
-    if day_of_week == 3:
-        return 1,4,5
-    if day_of_week == 4:
-        return 3,4,5
     
 def calculate_sellby_date(dt, trading_days_to_add): #End date, n days later for the data set built to include just trading days, but doesnt filter holiday
     # date_str = current_date.strftime("%Y-%m-%d %H:%M:%S")
@@ -643,5 +632,7 @@ def convert_timestamp_est(timestamp):
     return dt_est
 
 if __name__ == "__main__":
-    row = {"t":1692896400,"date":"2023-08-24","symbol":"AMZN","c":132.74}
-    result = calc_price_action(row)
+    import time 
+    dt = time.time()
+    df = pd.DataFrame()
+    build_date_dfs(df, dt)
