@@ -42,7 +42,7 @@ def build_vol_features(date_str):
     from_stamp, to_stamp, hour_stamp = generate_dates_historic_vol(date_str)
 
     for hour in hours:
-        df = s3.get_object(Bucket="inv-alerts", Key=f"expanded_bf/{key_str}/{hour}.csv")
+        df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv")
         df = pd.read_csv(df['Body'])
         min_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
         hour_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
@@ -51,7 +51,7 @@ def build_vol_features(date_str):
         # old_df = pd.read_csv(old_df['Body'])
         # new_df = pd.concat([old_df,results_df],ignore_index=True)
         csv = results_df.to_csv()
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf/vol/{key_str}/{hour}.csv", Body=csv)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"all_alerts/vol/{key_str}/{hour}.csv", Body=csv)
     return put_response
 
 
@@ -125,7 +125,7 @@ def consolidate_bf_vol(date_str):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     print(os.cpu_count())
-    start_date = datetime(2023,10,11)
+    start_date = datetime(2023,7,25)
     end_date = datetime(2023,10,28)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -141,6 +141,6 @@ if __name__ == "__main__":
     # build_vol_features("2022-01-27")
         
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]

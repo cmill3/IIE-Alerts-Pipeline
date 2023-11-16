@@ -603,24 +603,6 @@ def vol_feature_engineering(df, Min_aggs,Thirty_aggs):
     return results_df
 
 
-
-def is_market_open(timestamp):
-    # Convert Unix Msec timestamp to datetime, we already divide by 1000
-    dt = datetime.utcfromtimestamp(timestamp) 
-
-    # Adjust to New York (Eastern) Time
-    eastern = pytz.timezone('US/Eastern')
-    dt_eastern = dt.astimezone(eastern)
-
-    # Define market open and close times
-    market_open = time(9, 30)
-    market_close = time(16, 0)
-
-    # Check if the time is within the market hours
-    return market_open <= dt_eastern.timetz() < market_close
-
-
-
 def convert_timestamp_est(timestamp):
     # Create a naive datetime object from the UNIX timestamp
     dt_naive = datetime.utcfromtimestamp(timestamp)

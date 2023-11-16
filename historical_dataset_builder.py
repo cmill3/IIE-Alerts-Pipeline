@@ -25,8 +25,9 @@ all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', '
  'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
  'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
  'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
- 'ORCL','WBD','ARM','SNAP','BILI','AAL','CCL','NCLH','LYFT','BIDU','JD','BABA','HD','LOW'
+ 'ORCL','WBD','ARM','SNAP','BILI','AAL','CCL','NCLH','LYFT','BIDU','JD','BABA','HD','LOW',
  'SBUX','NKE','AFFRM','WMT']
+add = ['QCOM','AVGO','TXN','MU','AMAT','CVNA','DKNG','MGM','CZR','RCLH']
 # new_sf = ['MRK','RBLX','COIN','HD','LOW','AFFRM','VZ','T','PG','TSM']
 # list = ['SBUX','NKE']
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
@@ -144,8 +145,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2018,2,2)
-    end_date = datetime(2023,10,28)
+    start_date = datetime(2022,4,12)
+    end_date = datetime(2022,6,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -158,6 +159,6 @@ if __name__ == "__main__":
 
     # run_process("2022-07-27")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]

@@ -29,8 +29,12 @@ sf = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID',
          'WBD','SQ','SNAP','ZM','SHOP','DOCU','ROKU','TWLO','PINS','SNAP','UBER','LYFT','DDOG',
          'ZS','NET','CMG','ARM','OKTA','UPST','ETSY','AXP','TDOC','PINS','NCLH','UAL','AAL','DAL',
          'FUTU','SE','BILI','BIDU','JD','BABA','MMM','PEP','GE','CCL','RCL','MRK','RBLX','COIN',
-         'HD','LOW','AFFRM','VZ','T','PG','TSM']
+         'HD','LOW','AFFRM','VZ','T','PG','TSM','NKE','SBUX']
 new_bf = ['C','CAT','KO','MS','GS','PANW','ORCL','IBM','CSCO','WMT','TGT','COST']
+
+bf_plus = ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","FB","CRM",
+            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","NKE",'META',
+            'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER','SBUX']
 
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
@@ -41,14 +45,19 @@ s3 = boto3.client('s3')
 def options_snapshot_runner(monday):
     print(monday)
     fridays = find_fridays(monday)
-    for symbol in ['SBUX','NKE']:
+    date_str = monday.replace('-','/')
+    for symbol in bf_plus:
         print(symbol)
         try:
-            call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
-            call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
-        except Exception as e:
-            print(f"{e} {symbol}")
+            res = s3.get_object(Bucket='icarus-research-data', Key=f'options_snapshot/{date_str}/{symbol}.csv')
             continue
+        except Exception as e:
+            try:
+                call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
+                call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
+            except Exception as e:
+                print(f"This symbol failed twice{e}")
+                continue
     return "done"
 
 def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
@@ -154,8 +163,8 @@ def find_fridays(monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2023,9,10)
-    end_date = datetime(2023,10,1)
+    start_date = datetime(2022,1,3)
+    end_date = datetime(2023,10,28)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
