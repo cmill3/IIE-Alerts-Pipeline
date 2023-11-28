@@ -19,6 +19,17 @@ big_fish =  [
             ]
 indexes = ['QQQ','SPY','IWM']
 
+all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
+ 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
+ 'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
+ 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','TSLA','LCID','NIO','WFC',
+ 'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
+ 'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
+ 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
+ 'ORCL','SBUX','NKE','FB']
+
+first = ['GOOG','GOOGL','FB','META','AAPL','MSFT','NVDA','AMD','TLT','SPY','QQQ','IWM','AMZN']
+
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
 holidays_multiyear = holidays.holidays
@@ -28,16 +39,19 @@ s3 = boto3.client('s3')
 def options_snapshot_runner(monday):
     print(monday)
     fridays = find_fridays(monday)
-    for symbol in big_fish:
+    for symbol in first:
         try:
             print(symbol)
             call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
             get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
         except Exception as e:
             print(f"{symbol} failed at {monday} with: {e}. Retrying")
-            call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
-            get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
-            continue
+            try:
+                call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
+                get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
+            except Exception as e:
+                print(f"{symbol} failed twice at {monday} with: {e}. Skipping")
+                continue
     print(f"Finished {monday}")
 
 def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
@@ -61,12 +75,12 @@ def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
             csv = final_df.to_csv()
             date_str = date.strftime("%Y-%m-%d %H:%M:%S").split(' ')[0]
             key_str = date_str.replace('-','/')
-            put_response = s3.put_object(Bucket='icarus-research-data', Key=f'options_snapshot/{key_str}/{hour}/{symbol}.csv', Body=csv)
+            put_response = s3.put_object(Bucket='icarus-research-data', Key=f'options_snapshot_pcr/{key_str}/{hour}/{symbol}.csv', Body=csv)
 
 def build_strikes(monday,ticker):
     last_price = data.call_polygon_price_day(ticker,from_stamp=monday,to_stamp=monday,timespan="day",multiplier="1")
-    price_floor = math.floor(last_price *.5)
-    price_ceil = math.ceil(last_price *1.5)
+    price_floor = math.floor(last_price *.3)
+    price_ceil = math.ceil(last_price *1.3)
     strikes = np.arange(price_floor, price_ceil, .5)
     return strikes
 
@@ -100,10 +114,12 @@ def build_option_symbol(ticker, date, strike, option_type):
     if '.5' in str_strk:
         str_strk = str_strk.split('.')[0]
         if len(str_strk) == 4:
-            strike_formatted = f"00{str_strk}500"
+            strike_formatted = f"0{str_strk}500"
         elif len(str_strk) == 3:
-            strike_formatted = f"000{str_strk}500"
+            strike_formatted = f"00{str_strk}500"
         elif len(str_strk) == 2:
+            strike_formatted = f"000{str_strk}500"
+        elif len(str_strk) == 1:
             strike_formatted = f"0000{str_strk}500"
     else:
         str_strk = str_strk.split('.')[0]
@@ -144,8 +160,8 @@ def find_fridays(monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2022,10,24)
-    end_date = datetime(2023,9,23)
+    start_date = datetime(2018,1,1)
+    end_date = datetime(2023,11,21)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -158,6 +174,6 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2023-01-02")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=24) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(options_snapshot_runner, date_str) for date_str in date_list]
