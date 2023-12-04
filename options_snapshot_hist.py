@@ -19,26 +19,31 @@ big_fish =  [
             ]
 indexes = ['QQQ','SPY','IWM']
 
+bfpidx = ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","BAC","AAPL","FB","DIS"
+          "MSFT","INTC","PFE","SNOW",'META','C','XOM',"QQQ","SPY","IWM","TLT"]
+
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
 holidays_multiyear = holidays.holidays
 
 s3 = boto3.client('s3')
 
-def options_snapshot_runner(monday):
-    print(monday)
+def options_snapshot_runner(monday,symbol):
     fridays = find_fridays(monday)
-    for symbol in big_fish:
+    try:
+        print(symbol)
+        call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
+        get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
+        print(f"Finished {monday} for {symbol}")
+    except Exception as e:
+        print(f"{symbol} failed at {monday} with: {e}. Retrying")
         try:
-            print(symbol)
             call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
             get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
+            print(f"Finished {monday} for {symbol}")
         except Exception as e:
-            print(f"{symbol} failed at {monday} with: {e}. Retrying")
-            call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
-            get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
-            continue
-    print(f"Finished {monday}")
+            print(f"{symbol} failed twice at {monday} with: {e}. Skipping")
+    
 
 def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
     hours = ["10","11","12","13","14","15"]
@@ -65,8 +70,8 @@ def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
 
 def build_strikes(monday,ticker):
     last_price = data.call_polygon_price_day(ticker,from_stamp=monday,to_stamp=monday,timespan="day",multiplier="1")
-    price_floor = math.floor(last_price *.5)
-    price_ceil = math.ceil(last_price *1.5)
+    price_floor = math.floor(last_price *.25)
+    price_ceil = math.ceil(last_price *1.25)
     strikes = np.arange(price_floor, price_ceil, .5)
     return strikes
 
@@ -100,10 +105,12 @@ def build_option_symbol(ticker, date, strike, option_type):
     if '.5' in str_strk:
         str_strk = str_strk.split('.')[0]
         if len(str_strk) == 4:
-            strike_formatted = f"00{str_strk}500"
+            strike_formatted = f"0{str_strk}500"
         elif len(str_strk) == 3:
-            strike_formatted = f"000{str_strk}500"
+            strike_formatted = f"00{str_strk}500"
         elif len(str_strk) == 2:
+            strike_formatted = f"000{str_strk}500"
+        elif len(str_strk) == 1:
             strike_formatted = f"0000{str_strk}500"
     else:
         str_strk = str_strk.split('.')[0]
@@ -144,8 +151,8 @@ def find_fridays(monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2022,10,24)
-    end_date = datetime(2023,9,23)
+    start_date = datetime(2018,1,1)
+    end_date = datetime(2023,11,17)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -157,7 +164,9 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
 
-    # options_snapshot_runner("2023-01-02")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
-        # Submit the processing tasks to the ThreadPoolExecutor
-        processed_weeks_futures = [executor.submit(options_snapshot_runner, date_str) for date_str in date_list]
+    for symbol in bfpidx:
+        print(f"Starting {symbol}")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=24) as executor:
+            # Submit the processing tasks to the ThreadPoolExecutor
+            processed_weeks_futures = [executor.submit(options_snapshot_runner,date_str,symbol) for date_str in date_list]
+        print(f"Finished {symbol}")

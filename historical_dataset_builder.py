@@ -25,8 +25,9 @@ all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', '
  'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
  'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
  'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
- 'ORCL','WBD','ARM','SNAP','BILI','AAL','CCL','NCLH','LYFT','BIDU','JD','BABA','HD','LOW'
+ 'ORCL','WBD','ARM','SNAP','BILI','AAL','CCL','NCLH','LYFT','BIDU','JD','BABA','HD','LOW',
  'SBUX','NKE','AFFRM','WMT']
+add = ['QCOM','AVGO','TXN','MU','AMAT','CVNA','DKNG','MGM','CZR','RCLH']
 # new_sf = ['MRK','RBLX','COIN','HD','LOW','AFFRM','VZ','T','PG','TSM']
 # list = ['SBUX','NKE']
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
@@ -58,10 +59,10 @@ def build_historic_data(date_str):
     #         "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",'META',
     #         'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER',"QQQ","SPY","IWM"]
     for hour in hours:
-        aggregates, error_list = call_polygon_histD(all_symbols, from_stamp, to_stamp, timespan="minute", multiplier="30")
+        aggregates, error_list = call_polygon_histD(add, from_stamp, to_stamp, timespan="minute", multiplier="30")
         if len(error_list) > 0:
             print(error_list)
-        hour_aggregates, error_list = call_polygon_histH(all_symbols, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+        hour_aggregates, error_list = call_polygon_histH(add, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
         if len(error_list) > 0:
             print(error_list)
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
@@ -91,11 +92,11 @@ def build_historic_data(date_str):
         df['SPY_1D'] = SPY_diff
         df['SPY_3D'] = SPY_diff3
         df['SPY_5D'] = SPY_diff5
-        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"sf/{key_str}/{hour}.csv")
+        old_df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv")
         # old_df = s3.get_object(Bucket="inv-alerts", Key=f"expanded_bf/{key_str}/{hour}.csv")
-        # old_df = pd.read_csv(old_df['Body'])
-        # new_df = pd.concat([old_df,df],ignore_index=True)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
+        old_df = pd.read_csv(old_df['Body'])
+        new_df = pd.concat([old_df,df],ignore_index=True)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv", Body=new_df.to_csv())
     return put_response
     
 def generate_dates_historic(date_str):
@@ -144,7 +145,7 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2018,2,2)
+    start_date = datetime(2023,1,18)
     end_date = datetime(2023,10,28)
     date_diff = end_date - start_date
     numdays = date_diff.days 
