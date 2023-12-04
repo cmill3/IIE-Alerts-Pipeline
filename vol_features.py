@@ -141,6 +141,6 @@ if __name__ == "__main__":
     # build_vol_features("2022-01-27")
         
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]

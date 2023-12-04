@@ -332,6 +332,7 @@ def call_polygon_price_day(symbol, from_stamp, to_stamp, timespan, multiplier):
 
 def call_polygon_PCR(symbols, from_stamp, to_stamp, timespan, multiplier, hour):
     values = []
+    trading_hours = [9,10,11,12,13,14,15]
     for symbol in symbols:
         url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
         response = execute_polygon_call(url) 
@@ -347,6 +348,7 @@ def call_polygon_PCR(symbols, from_stamp, to_stamp, timespan, multiplier, hour):
             results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
             results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
             results_df = results_df.loc[results_df['hour'] <= int(hour)]
+            results_df = results_df.loc[results_df['hour'].isin(trading_hours)]
         except Exception as e:
             # print(f"{e} for {symbol}")
             continue
@@ -557,36 +559,50 @@ def vol_feature_engineering(df, Min_aggs,Thirty_aggs):
         daily_aggs['price_change'] = abs(daily_aggs['c'].pct_change())
         daily_aggs['volume_change'] = abs(daily_aggs['v'].pct_change())
 
+        min_aggs['return_vol_15M'] = min_aggs['price_change'].rolling(window=15).apply(lambda x: abs(x).mean(), raw=True)
+        min_aggs['volume_vol_15M'] = min_aggs['volume_change'].rolling(window=15).apply(lambda x: abs(x).mean(), raw=True)
+        min_aggs['return_vol_30M'] = min_aggs['price_change'].rolling(window=30).apply(lambda x: abs(x).mean(), raw=True)
+        min_aggs['volume_vol_30M'] = min_aggs['volume_change'].rolling(window=30).apply(lambda x: abs(x).mean(), raw=True)
+        min_aggs['return_vol_60M'] = min_aggs['price_change'].rolling(window=60).apply(lambda x: abs(x).mean(), raw=True)
+        min_aggs['volume_vol_60M'] = min_aggs['volume_change'].rolling(window=60).apply(lambda x: abs(x).mean(), raw=True)
+        min_aggs['return_vol_120M'] = min_aggs['price_change'].rolling(window=120).apply(lambda x: abs(x).mean(), raw=True)
+        min_aggs['volume_vol_120M'] = min_aggs['volume_change'].rolling(window=120).apply(lambda x: abs(x).mean(), raw=True)
         min_aggs['return_vol_240M'] = min_aggs['price_change'].rolling(window=240).apply(lambda x: abs(x).mean(), raw=True)
         min_aggs['volume_vol_240M'] = min_aggs['volume_change'].rolling(window=240).apply(lambda x: abs(x).mean(), raw=True)
         min_aggs['return_vol_450M'] = min_aggs['price_change'].rolling(window=450).apply(lambda x: abs(x).mean(), raw=True)
         min_aggs['volume_vol_450M'] = min_aggs['volume_change'].rolling(window=450).apply(lambda x: abs(x).mean(), raw=True)
+        hour_aggs['return_vol_4H'] = hour_aggs['price_change'].rolling(window=4).apply(lambda x: abs(x).mean(), raw=True)
         hour_aggs['return_vol_8H'] = hour_aggs['price_change'].rolling(window=8).apply(lambda x: abs(x).mean(), raw=True)
         hour_aggs['return_vol_16H'] = hour_aggs['price_change'].rolling(window=16).apply(lambda x: abs(x).mean(), raw=True)
+        hour_aggs['volume_vol_4H'] = hour_aggs['volume_change'].rolling(window=4).apply(lambda x: abs(x).mean(), raw=True)
         hour_aggs['volume_vol_8H'] = hour_aggs['volume_change'].rolling(window=8).apply(lambda x: abs(x).mean(), raw=True)
         hour_aggs['volume_vol_16H'] = hour_aggs['volume_change'].rolling(window=16).apply(lambda x: abs(x).mean(), raw=True)
+        daily_aggs['return_vol_3D'] = daily_aggs['price_change'].rolling(window=3).apply(lambda x: abs(x).mean(), raw=True)
         daily_aggs['return_vol_5D'] = daily_aggs['price_change'].rolling(window=5).apply(lambda x: abs(x).mean(), raw=True)
         daily_aggs['return_vol_10D'] = daily_aggs['price_change'].rolling(window=10).apply(lambda x: abs(x).mean(), raw=True)
         daily_aggs['return_vol_30D'] = daily_aggs['price_change'].rolling(window=30).apply(lambda x: abs(x).mean(), raw=True)
+        daily_aggs['volume_vol_3D'] = daily_aggs['volume_change'].rolling(window=3).apply(lambda x: abs(x).mean(), raw=True)
         daily_aggs['volume_vol_5D'] = daily_aggs['volume_change'].rolling(window=5).apply(lambda x: abs(x).mean(), raw=True)
         daily_aggs['volume_vol_10D'] = daily_aggs['volume_change'].rolling(window=10).apply(lambda x: abs(x).mean(), raw=True)
         daily_aggs['volume_vol_30D'] = daily_aggs['volume_change'].rolling(window=30).apply(lambda x: abs(x).mean(), raw=True)
 
-        min_aggs['min_vol_diff'] = min_aggs['return_vol_240M'] - min_aggs['return_vol_450M']
-        min_aggs['min_vol_diff_pct'] = min_aggs['min_vol_diff']/min_aggs['return_vol_450M']
-        hour_aggs['hour_vol_diff'] = hour_aggs['return_vol_8H'] - hour_aggs['return_vol_16H']
+        min_aggs['15min_vol_diff'] = min_aggs['return_vol_15M'] - min_aggs['return_vol_240M']
+        min_aggs['15min_vol_diff_pct'] = min_aggs['15min_vol_diff']/min_aggs['return_vol_240M']
+        min_aggs['min_vol_diff'] = min_aggs['return_vol_30M'] - min_aggs['return_vol_240M']
+        min_aggs['min_vol_diff_pct'] = min_aggs['min_vol_diff']/min_aggs['return_vol_240M']
+        hour_aggs['hour_vol_diff'] = hour_aggs['return_vol_4H'] - hour_aggs['return_vol_16H']
         hour_aggs['hour_vol_diff_pct'] = hour_aggs['hour_vol_diff']/hour_aggs['return_vol_16H']
-        daily_aggs['daily_vol_diff'] = daily_aggs['return_vol_5D'] - daily_aggs['return_vol_10D']
+        daily_aggs['daily_vol_diff'] = daily_aggs['return_vol_3D'] - daily_aggs['return_vol_10D']
         daily_aggs['daily_vol_diff_pct'] = daily_aggs['daily_vol_diff']/daily_aggs['return_vol_10D']
-        daily_aggs['daily_vol_diff30'] = daily_aggs['return_vol_5D'] - daily_aggs['return_vol_30D']
+        daily_aggs['daily_vol_diff30'] = daily_aggs['return_vol_3D'] - daily_aggs['return_vol_30D']
         daily_aggs['daily_vol_diff_pct30'] = daily_aggs['daily_vol_diff30']/daily_aggs['return_vol_30D']
         min_aggs['min_volume_vol_diff'] = min_aggs['volume_vol_240M'] - min_aggs['volume_vol_450M']
         min_aggs['min_volume_vol_diff_pct'] = min_aggs['min_volume_vol_diff']/min_aggs['volume_vol_450M']
         hour_aggs['hour_volume_vol_diff'] = hour_aggs['volume_vol_8H'] - hour_aggs['volume_vol_16H']
         hour_aggs['hour_volume_vol_diff_pct'] = hour_aggs['hour_volume_vol_diff']/hour_aggs['volume_vol_16H']
-        daily_aggs['daily_volume_vol_diff'] = daily_aggs['volume_vol_5D'] - daily_aggs['volume_vol_10D']
+        daily_aggs['daily_volume_vol_diff'] = daily_aggs['volume_vol_3D'] - daily_aggs['volume_vol_10D']
         daily_aggs['daily_volume_vol_diff_pct'] = daily_aggs['daily_volume_vol_diff']/daily_aggs['volume_vol_10D']
-        daily_aggs['daily_volume_vol_diff30'] = daily_aggs['volume_vol_5D'] - daily_aggs['volume_vol_30D']
+        daily_aggs['daily_volume_vol_diff30'] = daily_aggs['volume_vol_3D'] - daily_aggs['volume_vol_30D']
         daily_aggs['daily_volume_vol_diff_pct30'] = daily_aggs['daily_volume_vol_diff30']/daily_aggs['volume_vol_30D']
 
         min_features = min_aggs.iloc[-1]
@@ -601,24 +617,6 @@ def vol_feature_engineering(df, Min_aggs,Thirty_aggs):
     features_df = pd.DataFrame(features)
     results_df = pd.merge(df, features_df, on=['symbol'], how='outer')
     return results_df
-
-
-
-def is_market_open(timestamp):
-    # Convert Unix Msec timestamp to datetime, we already divide by 1000
-    dt = datetime.utcfromtimestamp(timestamp) 
-
-    # Adjust to New York (Eastern) Time
-    eastern = pytz.timezone('US/Eastern')
-    dt_eastern = dt.astimezone(eastern)
-
-    # Define market open and close times
-    market_open = time(9, 30)
-    market_close = time(16, 0)
-
-    # Check if the time is within the market hours
-    return market_open <= dt_eastern.timetz() < market_close
-
 
 
 def convert_timestamp_est(timestamp):

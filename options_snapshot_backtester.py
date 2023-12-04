@@ -36,6 +36,15 @@ bf_plus = ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX",
             "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","NKE",'META',
             'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER','SBUX','QQQ','SPY','IWM','TLT']
 
+all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
+ 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
+ 'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
+ 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','TSLA','LCID','NIO','WFC',
+ 'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
+ 'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
+ 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
+ 'ORCL','SBUX','NKE','FB']
+
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
 holidays_multiyear = holidays.holidays
@@ -137,10 +146,12 @@ def build_option_symbol(ticker, date, strike, option_type):
     if '.5' in str_strk:
         str_strk = str_strk.split('.')[0]
         if len(str_strk) == 4:
-            strike_formatted = f"00{str_strk}500"
+            strike_formatted = f"0{str_strk}500"
         elif len(str_strk) == 3:
-            strike_formatted = f"000{str_strk}500"
+            strike_formatted = f"00{str_strk}500"
         elif len(str_strk) == 2:
+            strike_formatted = f"000{str_strk}500"
+        elif len(str_strk) == 1:
             strike_formatted = f"0000{str_strk}500"
         elif len(str_strk) == 1:
             strike_formatted = f"00000{str_strk}500"

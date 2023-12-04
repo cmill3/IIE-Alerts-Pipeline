@@ -21,6 +21,16 @@ indexes = ['QQQ','SPY','IWM']
 
 bfpidx = ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","BAC","AAPL","FB","DIS"
           "MSFT","INTC","PFE","SNOW",'META','C','XOM',"QQQ","SPY","IWM","TLT"]
+all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
+ 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
+ 'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
+ 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','TSLA','LCID','NIO','WFC',
+ 'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
+ 'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
+ 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
+ 'ORCL','SBUX','NKE','FB']
+
+first = ['GOOG','GOOGL','FB','META','AAPL','MSFT','NVDA','AMD','TLT','SPY','QQQ','IWM','AMZN']
 
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
@@ -66,7 +76,7 @@ def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
             csv = final_df.to_csv()
             date_str = date.strftime("%Y-%m-%d %H:%M:%S").split(' ')[0]
             key_str = date_str.replace('-','/')
-            put_response = s3.put_object(Bucket='icarus-research-data', Key=f'options_snapshot/{key_str}/{hour}/{symbol}.csv', Body=csv)
+            put_response = s3.put_object(Bucket='icarus-research-data', Key=f'options_snapshot_pcr/{key_str}/{hour}/{symbol}.csv', Body=csv)
 
 def build_strikes(monday,ticker):
     last_price = data.call_polygon_price_day(ticker,from_stamp=monday,to_stamp=monday,timespan="day",multiplier="1")
