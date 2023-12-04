@@ -30,7 +30,8 @@ all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', '
  'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
  'ORCL','SBUX','NKE','FB']
 
-first = ['GOOG','GOOGL','FB','META','AAPL','MSFT','NVDA','AMD','TLT','SPY','QQQ','IWM','AMZN']
+first = ['GOOG','GOOGL','FB','META','AAPL','MSFT','NVDA','AMD','TLT','SPY',
+         'QQQ','IWM','AMZN','C','BAC','TSM','PYPL','XOM']
 
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
