@@ -10,6 +10,7 @@ import concurrent.futures
 import math
 import numpy as np
 import pandas_market_calendars as mcal
+import os
 
 api_key = 'XpqF6xBLLrj6WALk4SS1UlkgphXmHQec'
 
@@ -19,8 +20,6 @@ big_fish =  [
             ]
 indexes = ['QQQ','SPY','IWM']
 
-bfpidx = ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","BAC","AAPL","FB","DIS"
-          "MSFT","INTC","PFE","SNOW",'META','C','XOM',"QQQ","SPY","IWM","TLT"]
 all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
  'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
  'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
@@ -30,8 +29,13 @@ all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', '
  'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
  'ORCL','SBUX','NKE','FB']
 
-first = ['GOOG','GOOGL','FB','META','AAPL','MSFT','NVDA','AMD','TLT','SPY',
-         'QQQ','IWM','AMZN','C','BAC','TSM','PYPL','XOM']
+bfpidx = ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","BAC","AAPL","FB","DIS"
+          "MSFT","INTC","PFE","SNOW",'META','C','XOM',"QQQ","SPY","IWM","TLT"]
+
+remaining = ["NVDA","PYPL","GOOG","GOOGL","AMZN","BAC","AAPL","FB","DIS"
+            "MSFT","INTC","PFE","SNOW",'META','C','XOM',"TLT"]
+
+indexes = ["QQQ","SPY","IWM"]
 
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
@@ -77,7 +81,7 @@ def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
             csv = final_df.to_csv()
             date_str = date.strftime("%Y-%m-%d %H:%M:%S").split(' ')[0]
             key_str = date_str.replace('-','/')
-            put_response = s3.put_object(Bucket='icarus-research-data', Key=f'options_snapshot_pcr/{key_str}/{hour}/{symbol}.csv', Body=csv)
+            put_response = s3.put_object(Bucket='icarus-research-data', Key=f'options_snapshot/{key_str}/{hour}/{symbol}.csv', Body=csv)
 
 def build_strikes(monday,ticker):
     last_price = data.call_polygon_price_day(ticker,from_stamp=monday,to_stamp=monday,timespan="day",multiplier="1")
@@ -175,9 +179,10 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
 
-    for symbol in bfpidx:
+    for symbol in remaining:
         print(f"Starting {symbol}")
-        with concurrent.futures.ThreadPoolExecutor(max_workers=24) as executor:
+        cpu_count = (os.cpu_count()*2)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_runner,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")

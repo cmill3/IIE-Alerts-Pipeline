@@ -10,6 +10,7 @@ import concurrent.futures
 import math
 import numpy as np
 import pandas_market_calendars as mcal
+import os
 
 api_key = 'XpqF6xBLLrj6WALk4SS1UlkgphXmHQec'
 
@@ -52,7 +53,8 @@ holidays_multiyear = holidays.holidays
 s3 = boto3.client('s3')
 
 def options_snapshot_remediator(date_str):
-    for symbol in ['PLTR','F','SNOW','BAC']:
+    ## for symbol in ['SPY','IWM']:
+    for symbol in ['QQQ','SPY','IWM']:
         print(symbol)
         try:
             dt_str = date_str.replace('-','/')
@@ -69,22 +71,23 @@ def options_snapshot_remediator(date_str):
                 continue
     return "done"
 
-def options_snapshot_runner(monday):
+def options_snapshot_runner(monday, symbol):
     print(monday)
-    fridays = find_fridays(monday)
+    ### Implementation for index options
+    # fridays = find_fridays(monday)
     date_str = monday.replace('-','/')
-    for symbol in bf_plus:
-        print(symbol)
+    ## for symbol in ['SPY','IWM']: This is for you Dean.
+    days = build_days(symbol, monday)
+    print(symbol)
+    try:
+        call_tickers, put_tickers = build_options_tickers(symbol, days, monday)
+        call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
+    except Exception as e:
         try:
-            res = s3.get_object(Bucket='icarus-research-data', Key=f'options_snapshot/{date_str}/{symbol}.csv')
-            continue
+            call_tickers, put_tickers = build_options_tickers(symbol, days, monday)
+            call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
         except Exception as e:
-            try:
-                call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
-                call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
-            except Exception as e:
-                print(f"This symbol: {symbol} failed twice {e}")
-                continue
+            print(f"This symbol: {symbol} failed twice {e}")
     return "done"
 
 def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
@@ -93,21 +96,23 @@ def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
     dt = datetime.strptime(monday, "%Y-%m-%d")
     monday_np = np.datetime64(monday)
     if monday_np in holidays_multiyear:
-        timedelta_to_add  = [1,2,3,4]
+        dt = dt + timedelta(days=1)
+        # timedelta_to_add  = [1,2,3,4]
     
-    for day in timedelta_to_add:
-        date = dt + timedelta(days=day)
-        date_stamp = date.strftime("%Y-%m-%d")
-        print(date_stamp)
-        call_df = data.call_polygon_backtest(call_tickers,from_stamp=date_stamp,to_stamp=date_stamp,timespan="day",multiplier="1")
-        put_df = data.call_polygon_backtest(put_tickers,from_stamp=date_stamp,to_stamp=date_stamp,timespan="day",multiplier="1")
-        call_df['option_type'] = 'call'
-        put_df['option_type'] = 'put'
-        final_df = pd.concat([call_df,put_df],ignore_index=True)
-        csv = final_df.to_csv()
-        date_str = date.strftime("%Y-%m-%d %H:%M:%S").split(' ')[0]
-        key_str = date_str.replace('-','/')
-        put_response = s3.put_object(Bucket='icarus-research-data', Key=f'options_snapshot/{key_str}/{symbol}.csv', Body=csv)
+    # for day in timedelta_to_add:
+    # date = dt + timedelta(days=day)
+    date = dt
+    date_stamp = date.strftime("%Y-%m-%d")
+    print(date_stamp)
+    call_df = data.call_polygon_backtest(call_tickers,from_stamp=date_stamp,to_stamp=date_stamp,timespan="day",multiplier="1")
+    put_df = data.call_polygon_backtest(put_tickers,from_stamp=date_stamp,to_stamp=date_stamp,timespan="day",multiplier="1")
+    call_df['option_type'] = 'call'
+    put_df['option_type'] = 'put'
+    final_df = pd.concat([call_df,put_df],ignore_index=True)
+    csv = final_df.to_csv()
+    date_str = date.strftime("%Y-%m-%d %H:%M:%S").split(' ')[0]
+    key_str = date_str.replace('-','/')
+    put_response = s3.put_object(Bucket='icarus-research-data', Key=f'options_snapshot/{key_str}/{symbol}.csv', Body=csv)
 
 def build_strikes(monday,ticker):
     last_price = data.call_polygon_price_day(ticker,from_stamp=monday,to_stamp=monday,timespan="day",multiplier="1")
@@ -116,7 +121,7 @@ def build_strikes(monday,ticker):
     strikes = np.arange(price_floor, price_ceil, .5)
     return strikes
 
-def build_options_tickers(symbol, fridays, monday):
+def build_options_tickers(symbol, days, monday):
     call_tickers = []
     put_tickers = []
     monday_np = np.datetime64(monday)
@@ -124,20 +129,19 @@ def build_options_tickers(symbol, fridays, monday):
         monday_dt = pd.to_datetime(monday_np)
         tuesday_dt = monday_dt + timedelta(days=1)
         tuesday = tuesday_dt.strftime("%Y-%m-%d")
-        print(tuesday)
         strikes = build_strikes(tuesday,symbol)
     else:
         strikes = build_strikes(monday,symbol)
 
     for strike in strikes:
-        for friday in fridays:
-            call_tickers.append(build_option_symbol(symbol,friday,strike,"call"))
-            put_tickers.append(build_option_symbol(symbol,friday,strike,"put"))
+        for day in days:
+            call_tickers.append(build_option_symbol(symbol,day,strike,"call"))
+            put_tickers.append(build_option_symbol(symbol,day,strike,"put"))
     return call_tickers, put_tickers
 
 def build_option_symbol(ticker, date, strike, option_type):
     #Extract the year, month, and day from the date
-    date = date.strftime("%Y-%m-%d")
+    # date = date.strftime("%Y-%m-%d")
     year, month, day = date.split('-')
     short_year = year[-2:]
     str_strk = str(strike)
@@ -210,11 +214,24 @@ def previous_monday(date_str):
 
     return previous_monday.strftime("%Y-%m-%d")
 
+def build_days(symbol, monday):
+    if symbol == 'IWM':
+        to_add = [0,2,4]
+    else:
+        to_add = [0,1,2,3,4]
+    
+    for x in to_add:
+        dt = datetime.strptime(monday, "%Y-%m-%d")
+        date = dt + timedelta(days=x)
+        date_str = date.strftime("%Y-%m-%d")
+        date_list.append(date_str)
+    return date_list
+
 
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2022,10,1)
+    start_date = datetime(2023,3,20)
     end_date = datetime(2023,11,18)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -229,7 +246,9 @@ if __name__ == "__main__":
         
 
 
-    # options_snapshot_runner("2023-01-02")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
-        # Submit the processing tasks to the ThreadPoolExecutor
-        processed_weeks_futures = [executor.submit(options_snapshot_runner, date_str) for date_str in date_list]
+    # options_snapshot_runner("2022-10-03")
+    for symbol in ['QQQ']:
+        cpu_count = (os.cpu_count()*2)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+            # Submit the processing tasks to the ThreadPoolExecutor
+            processed_weeks_futures = [executor.submit(options_snapshot_runner, date_str, symbol) for date_str in date_list]
