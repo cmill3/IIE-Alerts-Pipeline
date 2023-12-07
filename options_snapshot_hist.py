@@ -176,7 +176,7 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
 
-    for symbol in remaining:
+    for symbol in ['AAPL','GOOG','AMZN']:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count()*2)
         with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
