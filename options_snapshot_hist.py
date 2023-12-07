@@ -82,7 +82,7 @@ def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
 
 def build_strikes(monday,ticker):
     last_price = data.call_polygon_price_day(ticker,from_stamp=monday,to_stamp=monday,timespan="day",multiplier="1")
-    price_floor = math.floor(last_price *.25)
+    price_floor = math.floor(last_price *.75)
     price_ceil = math.ceil(last_price *1.25)
     strikes = np.arange(price_floor, price_ceil, .5)
     return strikes
@@ -95,7 +95,6 @@ def build_options_tickers(symbol, fridays, monday):
         monday_dt = pd.to_datetime(monday_np)
         tuesday_dt = monday_dt + timedelta(days=1)
         tuesday = tuesday_dt.strftime("%Y-%m-%d")
-        print(tuesday)
         strikes = build_strikes(tuesday,symbol)
     else:
         strikes = build_strikes(monday,symbol)
