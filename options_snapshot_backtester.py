@@ -61,6 +61,7 @@ def options_snapshot_remediator(date_str):
             res = s3.get_object(Bucket='icarus-research-data', Key=f'options_snapshot/{dt_str}/{symbol}.csv')
             continue
         except Exception as e:
+            print(f"{symbol} {e}")
             try:
                 monday = previous_monday(date_str)
                 fridays = find_fridays(monday)
@@ -82,7 +83,9 @@ def options_snapshot_runner(monday, symbol):
     try:
         call_tickers, put_tickers = build_options_tickers(symbol, days, monday)
         call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
+        print(f"Finished {monday} for {symbol}")
     except Exception as e:
+        print(f"{symbol} {e}")
         try:
             call_tickers, put_tickers = build_options_tickers(symbol, days, monday)
             call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
@@ -103,7 +106,7 @@ def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
     # date = dt + timedelta(days=day)
     date = dt
     date_stamp = date.strftime("%Y-%m-%d")
-    print(date_stamp)
+    # print(date_stamp)
     call_df = data.call_polygon_backtest(call_tickers,from_stamp=date_stamp,to_stamp=date_stamp,timespan="day",multiplier="1")
     put_df = data.call_polygon_backtest(put_tickers,from_stamp=date_stamp,to_stamp=date_stamp,timespan="day",multiplier="1")
     call_df['option_type'] = 'call'
@@ -231,7 +234,7 @@ def build_days(symbol, monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2023,3,20)
+    start_date = datetime(2022,10,3)
     end_date = datetime(2023,11,18)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -247,7 +250,7 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2022-10-03")
-    for symbol in ['QQQ']:
+    for symbol in ['IWM','SPY']:
         cpu_count = (os.cpu_count()*2)
         with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
