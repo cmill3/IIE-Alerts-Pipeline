@@ -30,7 +30,7 @@ bfpidx = ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","BAC","AAPL","FB","DIS"
           "MSFT","INTC","PFE","SNOW",'META','C','XOM',"QQQ","SPY","IWM","TLT"]
 
 remaining = ["NVDA","PYPL","GOOG","GOOGL","AMZN","BAC","AAPL","FB","DIS"
-            "MSFT","INTC","PFE","SNOW",'META','C','XOM',"TLT"]
+            "MSFT","INTC","PFE","SNOW",'META','XOM',"TLT"]
 
 indexes = ["QQQ","SPY","IWM"]
 
@@ -83,7 +83,7 @@ def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
 def build_strikes(monday,ticker):
     last_price = data.call_polygon_price_day(ticker,from_stamp=monday,to_stamp=monday,timespan="day",multiplier="1")
     price_floor = math.floor(last_price *.75)
-    price_ceil = math.ceil(last_price *1.25)
+    price_ceil = math.ceil(last_price * 1.25)
     strikes = np.arange(price_floor, price_ceil, .5)
     return strikes
 
