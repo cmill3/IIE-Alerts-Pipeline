@@ -79,13 +79,12 @@ def options_snapshot_runner(monday, symbol):
     date_str = monday.replace('-','/')
     ## for symbol in ['SPY','IWM']: This is for you Dean.
     days = build_days(symbol, monday)
-    print(symbol)
     try:
         call_tickers, put_tickers = build_options_tickers(symbol, days, monday)
         call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
         print(f"Finished {monday} for {symbol}")
     except Exception as e:
-        print(f"{symbol} {e}")
+        print(f"This symbol: {symbol} failed once {e}")
         try:
             call_tickers, put_tickers = build_options_tickers(symbol, days, monday)
             call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
@@ -106,7 +105,6 @@ def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
     # date = dt + timedelta(days=day)
     date = dt
     date_stamp = date.strftime("%Y-%m-%d")
-    # print(date_stamp)
     call_df = data.call_polygon_backtest(call_tickers,from_stamp=date_stamp,to_stamp=date_stamp,timespan="day",multiplier="1")
     put_df = data.call_polygon_backtest(put_tickers,from_stamp=date_stamp,to_stamp=date_stamp,timespan="day",multiplier="1")
     call_df['option_type'] = 'call'
@@ -119,7 +117,7 @@ def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
 
 def build_strikes(monday,ticker):
     last_price = data.call_polygon_price_day(ticker,from_stamp=monday,to_stamp=monday,timespan="day",multiplier="1")
-    price_floor = math.floor(last_price *.2)
+    price_floor = math.floor(last_price *.8)
     price_ceil = math.ceil(last_price *1.2)
     strikes = np.arange(price_floor, price_ceil, .5)
     return strikes
@@ -135,7 +133,6 @@ def build_options_tickers(symbol, days, monday):
         strikes = build_strikes(tuesday,symbol)
     else:
         strikes = build_strikes(monday,symbol)
-
     for strike in strikes:
         for day in days:
             call_tickers.append(build_option_symbol(symbol,day,strike,"call"))
@@ -218,17 +215,18 @@ def previous_monday(date_str):
     return previous_monday.strftime("%Y-%m-%d")
 
 def build_days(symbol, monday):
+    opt_dates = []
     if symbol == 'IWM':
-        to_add = [0,2,4]
+        to_add = [0,2,4,7,9,11]
     else:
-        to_add = [0,1,2,3,4]
+        to_add = [0,1,2,3,4,7,8,9,10,11]
     
     for x in to_add:
         dt = datetime.strptime(monday, "%Y-%m-%d")
         date = dt + timedelta(days=x)
         date_str = date.strftime("%Y-%m-%d")
-        date_list.append(date_str)
-    return date_list
+        opt_dates.append(date_str)
+    return opt_dates
 
 
 
@@ -250,7 +248,7 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2022-10-03")
-    for symbol in ['IWM','SPY']:
+    for symbol in ['IWM']:
         cpu_count = (os.cpu_count()*2)
         with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
