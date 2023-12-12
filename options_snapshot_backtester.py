@@ -232,7 +232,7 @@ def build_days(symbol, monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2022,10,3)
+    start_date = datetime(2023,5,22)
     end_date = datetime(2023,11,18)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -248,7 +248,7 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2022-10-03")
-    for symbol in ['IWM']:
+    for symbol in ['SPY']:
         cpu_count = (os.cpu_count()*2)
         with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
