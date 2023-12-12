@@ -29,8 +29,8 @@ all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', '
 bfpidx = ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","BAC","AAPL","FB","DIS"
           "MSFT","INTC","PFE","SNOW",'META','C','XOM',"QQQ","SPY","IWM","TLT"]
 
-remaining = ["NVDA","PYPL","GOOG","GOOGL","AMZN","BAC","AAPL","FB","DIS"
-            "MSFT","INTC","PFE","SNOW",'META','C','XOM',"TLT"]
+remaining = ["PYPL","GOOG","GOOGL","AMZN","BAC","FB","DIS"
+            "MSFT",'META',"TLT"]
 
 indexes = ["QQQ","SPY","IWM"]
 
@@ -162,7 +162,7 @@ def find_fridays(monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2018,1,1)
+    start_date = datetime(2022,1,17)
     end_date = datetime(2023,11,17)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -175,7 +175,7 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
 
-    for symbol in ['AAPL','GOOG','AMZN']:
+    for symbol in ["PYPL"]:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count()*2)
         with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
