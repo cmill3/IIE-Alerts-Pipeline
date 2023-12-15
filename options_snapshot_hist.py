@@ -162,7 +162,7 @@ def find_fridays(monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2022,1,17)
+    start_date = datetime(2018,1,1)
     end_date = datetime(2023,11,17)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -175,7 +175,7 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
 
-    for symbol in ["PYPL"]:
+    for symbol in ["TLT"]:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count()*2)
         with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
