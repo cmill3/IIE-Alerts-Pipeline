@@ -15,11 +15,12 @@ alerts_bucket = os.getenv("ALERTS_BUCKET")
 all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
  'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
  'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
- 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','TSLA','LCID','NIO','WFC',
+ 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO','TSLA','LCID','NIO','WFC',
  'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
  'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
  'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
- 'ORCL','SBUX','NKE','FB']
+ 'ORCL','WBD','ARM','SNAP','BILI','AAL','CCL','NCLH','LYFT','BIDU','JD','BABA','HD','LOW',
+ 'SBUX','NKE','AFFRM','WMT','XOM','QCOM','AVGO','TXN','MU','AMAT','CVNA','DKNG','MGM','CZR','RCLH']
 
 def run_process(date_str):
     try:
@@ -36,10 +37,10 @@ def alerts_runner(date_str):
     s3 = boto3.client('s3')
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
     for hour in hours:
-        aggregates, error_list = call_polygon_histD(all_symbols, from_stamp, to_stamp, timespan="minute", multiplier="30")
-        hour_aggregates, error_list = call_polygon_histH(all_symbols, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
-        full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
-        alerts = build_alerts(full_aggs)
+        all_symbol = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/vol/{key_str}/{hour}.csv")
+        all_symbol_df = pd.read_csv(all_symbol['Body'])
+        all_symbol_df = all_symbol_df.loc[all_symbol_df['symbol'].isin(all_symbols)]
+        alerts = build_alerts(all_symbol_df)
         for alert in alerts:
             csv = alerts[alert].to_csv()
             put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/{key_str}/{alert}/{hour}.csv", Body=csv)
@@ -87,12 +88,23 @@ def combine_hour_aggs(aggregates, hour_aggregates, hour):
     return full_aggs
 
 def build_alerts(df):
-    df = pd.concat(df)
-    alerts = df.groupby("symbol").tail(1)
-    c_sorted = alerts.sort_values(by="close_diff", ascending=False)
+    df['cd_vol'] = df['close_diff']/df['oneD_stddev50'].round(3)
+    df['cd_vol3'] = df['close_diff3']/df['threeD_stddev50'].round(3)
+    volume_sorted = df.sort_values(by="v", ascending=False)
+    v_sorted = df.sort_values(by="hour_volume_vol_diff_pct", ascending=False)
+    c_sorted = df.sort_values(by="close_diff", ascending=False)
+    cvol_sorted = df.sort_values(by="cd_vol", ascending=False)
+    cvol3_sorted = df.sort_values(by="cd_vol3", ascending=False)
     gainers = c_sorted.head(30)
     losers = c_sorted.tail(30)
-    return {"gainers": gainers, "losers": losers}
+    v_diff = v_sorted.head(30)
+    cdvol_gainers = cvol_sorted.head(30)
+    cdvol_losers = cvol_sorted.tail(30)
+    cdvol3_gainers = cvol3_sorted.head(30)
+    cdvol3_losers = cvol3_sorted.tail(30)
+    volume = volume_sorted.head(30)
+    return {"most_actives": volume}
+    # return {"gainers": gainers, "losers": losers, "v_diff": v_diff, "cdvol_gainers": cdvol_gainers, "cdvol_losers": cdvol_losers, "cdvol3_gainers": cdvol3_gainers, "cdvol3_losers": cdvol3_losers}
 
 def generate_dates_historic(date_str):
     end = datetime.strptime(date_str, "%Y-%m-%d")
@@ -123,6 +135,6 @@ if __name__ == "__main__":
     # add_data_to_alerts("2022-01-27")
         
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
