@@ -15,11 +15,12 @@ alerts_bucket = os.getenv("ALERTS_BUCKET")
 all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
  'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
  'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
- 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','TSLA','LCID','NIO','WFC',
+ 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO','TSLA','LCID','NIO','WFC',
  'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
  'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
  'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
- 'ORCL','SBUX','NKE','FB']
+ 'ORCL','WBD','ARM','SNAP','BILI','AAL','CCL','NCLH','LYFT','BIDU','JD','BABA','HD','LOW',
+ 'SBUX','NKE','AFFRM','WMT','XOM','QCOM','AVGO','TXN','MU','AMAT','CVNA','DKNG','MGM','CZR','RCLH']
 
 def run_process(date_str):
     try:
@@ -38,6 +39,7 @@ def alerts_runner(date_str):
     for hour in hours:
         all_symbol = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/vol/{key_str}/{hour}.csv")
         all_symbol_df = pd.read_csv(all_symbol['Body'])
+        all_symbol_df = all_symbol_df.loc[all_symbol_df['symbol'].isin(all_symbols)]
         alerts = build_alerts(all_symbol_df)
         for alert in alerts:
             csv = alerts[alert].to_csv()

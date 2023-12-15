@@ -18,27 +18,13 @@ big_fish =  ["AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL
             "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","FB","CRM"]
 
 all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
- 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'FB', 'SOFI', 'PANW',
- 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL','DIS','META', 'C', 'MSFT','PFE',
- 'ABNB','CRM', 'F', 'V', 'MA', 'JNJ', 'JPM', 'ADBE', 'BA', 'CVX',
- 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO','TSLA','LCID','NIO','WFC',
+ 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
+ 'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
+ 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','TSLA','LCID','NIO','WFC',
  'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
- 'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 
- 'AMD','NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW','XOM'
- 'ORCL','WBD','ARM','SNAP','BILI','AAL','CCL','NCLH','LYFT','BIDU','JD','BABA','HD','LOW',
- 'SBUX','NKE','AFFRM','WMT','QCOM','AVGO','TXN','MU','AMAT','CVNA','DKNG','MGM','CZR','RCLH']
-
-first_run = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
- 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'FB'
-#  'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL','DIS','META', 'C', 'MSFT','PFE',
- 'ABNB','CRM', 'F', 'V', 'MA', 'JNJ', 'JPM', 'ADBE', 'BA', 'CVX',
-  'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO','TSLA','LCID','NIO','WFC',
- 'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
- 'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 
-#  'AMD','NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW',XOM
- 'SOFI', 'PANW',
- 'ORCL','WBD','ARM','SNAP','BILI','AAL','CCL','NCLH','LYFT','BIDU','JD','BABA','HD','LOW',
- 'SBUX','NKE','AFFRM','WMT','QCOM','AVGO','TXN','MU','AMAT','CVNA','DKNG','MGM','CZR','RCLH']
+ 'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
+ 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
+ 'ORCL','SBUX','NKE','FB']
 
 
 bfpidx = ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","BAC","AAPL","FB","DIS"
@@ -70,60 +56,7 @@ def options_snapshot_runner(monday,symbol):
             print(f"Finished {monday} for {symbol}")
         except Exception as e:
             print(f"{symbol} failed twice at {monday} with: {e}. Skipping")
-
-def options_snapshot_remediator(date_str,symbol):
-    dt = datetime.strptime(date_str, "%Y-%m-%d")
-    hours = ["10","11","12","13","14","15"]
-    date_np = np.datetime64(dt)
-    if date_np in holidays_multiyear:
-        return "holiday"
-    else:
-        for hour in hours:
-            try:
-                dt_str = date_str.replace('-','/')
-                res = s3.get_object(Bucket='icarus-research-data', Key=f'options_snapshot/{dt_str}/{hour}/{symbol}.csv')
-            except Exception as e:
-                print(f"{symbol} had {e} at {date_str}")
-                try:
-                    monday = previous_monday(date_str)
-                    fridays = find_fridays(monday)
-                    call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday, date_str)
-                    call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str)
-                except Exception as e:
-                    print(f"This symbol: {symbol} failed twice {e}")
-            return "done"
-        
-def options_snapshot_remediator_idx(date_str,symbol):
-    dt = datetime.strptime(date_str, "%Y-%m-%d")
-    hours = ["10","11","12","13","14","15"]
-    date_np = np.datetime64(dt)
-    if date_np in holidays_multiyear:
-        return "holiday"
-    else:
-        for hour in hours:
-            try:
-                dt_str = date_str.replace('-','/')
-                res = s3.get_object(Bucket='icarus-research-data', Key=f'options_snapshot/{dt_str}/{hour}/{symbol}.csv')
-            except Exception as e:
-                print(f"{symbol} had {e} at {date_str}")
-                try:
-                    monday = previous_monday(date_str)
-                    fridays = find_fridays(monday)
-                    call_tickers, put_tickers = build_options_tickers_remediate(symbol, fridays, monday, date_str)
-                    call_df = get_options_snapshot_hist_remediate(call_tickers, put_tickers, monday, symbol, hour, date_str)
-                except Exception as e:
-                    print(f"This symbol: {symbol} failed twice {e}")
-            return "done"
     
-
-def get_options_snapshot_hist_remediate(call_tickers, put_tickers, monday, symbol, hour, date_str):
-    call_df = data.call_polygon_PCR(call_tickers,from_stamp=date_str,to_stamp=date_str,timespan="hour",multiplier="1",hour=hour)
-    put_df = data.call_polygon_PCR(put_tickers,from_stamp=date_str,to_stamp=date_str,timespan="hour",multiplier="1",hour=hour)
-    call_df['option_type'] = 'call'
-    put_df['option_type'] = 'put'
-    final_df = pd.concat([call_df,put_df],ignore_index=True)
-    key_str = date_str.replace('-','/')
-    put_response = s3.put_object(Bucket='icarus-research-data', Key=f'options_snapshot/{key_str}/{hour}/{symbol}.csv', Body=final_df.to_csv())
 
 def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
     hours = ["10","11","12","13","14","15"]
@@ -167,16 +100,6 @@ def build_options_tickers(symbol, fridays, monday):
     else:
         strikes = build_strikes(monday,symbol)
 
-    for strike in strikes:
-        for friday in fridays:
-            call_tickers.append(build_option_symbol(symbol,friday,strike,"call"))
-            put_tickers.append(build_option_symbol(symbol,friday,strike,"put"))
-    return call_tickers, put_tickers
-
-def build_options_tickers_remediate(symbol, fridays, monday, date_str):
-    call_tickers = []
-    put_tickers = []
-    strikes = build_strikes(date_str,symbol)
     for strike in strikes:
         for friday in fridays:
             call_tickers.append(build_option_symbol(symbol,friday,strike,"call"))
@@ -236,37 +159,6 @@ def find_fridays(monday):
     
     return [first_friday, second_friday, third_friday]
 
-def previous_monday(date_str):
-    # Convert the input string to a datetime object
-    date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-
-    # Calculate the number of days to subtract to get to the previous Monday
-    # .weekday() returns 0 for Monday, 1 for Tuesday, ..., 6 for Sunday
-    days_to_subtract = (date_obj.weekday() - 0) % 7
-
-    # If the given day is Monday, days_to_subtract will be 0. 
-    # To get the previous Monday, we need to subtract 7 days in this case.
-    if days_to_subtract == 0:
-        days_to_subtract = 7
-
-    # Subtract the calculated number of days
-    previous_monday = date_obj - timedelta(days=days_to_subtract)
-
-    return previous_monday.strftime("%Y-%m-%d")
-
-def build_days(symbol, monday):
-    opt_dates = []
-    if symbol == 'IWM':
-        to_add = [0,2,4,7,9,11]
-    else:
-        to_add = [0,1,2,3,4,7,8,9,10,11]
-    
-    for x in to_add:
-        dt = datetime.strptime(monday, "%Y-%m-%d")
-        date = dt + timedelta(days=x)
-        date_str = date.strftime("%Y-%m-%d")
-        opt_dates.append(date_str)
-    return opt_dates
 
 
 if __name__ == "__main__":
@@ -284,7 +176,7 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
 
-    for symbol in first_run:
+    for symbol in ["AMZN","TLT"]:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count()*2)
         print(cpu_count)
