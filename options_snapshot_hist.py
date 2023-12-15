@@ -87,11 +87,12 @@ def options_snapshot_remediator(date_str,symbol):
                 try:
                     monday = previous_monday(date_str)
                     fridays = find_fridays(monday)
-                    call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday, date_str)
-                    call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str)
+                    call_tickers, put_tickers = build_options_tickers_remediate(symbol, fridays, monday, date_str)
+                    call_df = get_options_snapshot_hist_remediate(call_tickers, put_tickers, monday, symbol, hour, date_str)
                 except Exception as e:
                     print(f"This symbol: {symbol} failed twice {e}")
-            return "done"
+        print(f"Finished {date_str} for {symbol}")
+        return "done"
         
 def options_snapshot_remediator_idx(date_str,symbol):
     dt = datetime.strptime(date_str, "%Y-%m-%d")
@@ -101,19 +102,20 @@ def options_snapshot_remediator_idx(date_str,symbol):
         return "holiday"
     else:
         for hour in hours:
-            try:
-                dt_str = date_str.replace('-','/')
-                res = s3.get_object(Bucket='icarus-research-data', Key=f'options_snapshot/{dt_str}/{hour}/{symbol}.csv')
-            except Exception as e:
-                print(f"{symbol} had {e} at {date_str}")
-                try:
-                    monday = previous_monday(date_str)
-                    fridays = find_fridays(monday)
-                    call_tickers, put_tickers = build_options_tickers_remediate(symbol, fridays, monday, date_str)
-                    call_df = get_options_snapshot_hist_remediate(call_tickers, put_tickers, monday, symbol, hour, date_str)
-                except Exception as e:
-                    print(f"This symbol: {symbol} failed twice {e}")
-            return "done"
+            # try:
+            #     dt_str = date_str.replace('-','/')
+            #     res = s3.get_object(Bucket='icarus-research-data', Key=f'options_snapshot/{dt_str}/{hour}/{symbol}.csv')
+            # except Exception as e:
+            #     print(f"{symbol} had {e} at {date_str}")
+                # try:
+                monday = previous_monday(date_str)
+                days = build_days_remdiator(monday)
+                call_tickers, put_tickers = build_options_tickers_remediate(symbol, days, monday, date_str)
+                call_df = get_options_snapshot_hist_remediate(call_tickers, put_tickers, monday, symbol, hour, date_str)
+                # except Exception as e:
+                #     print(f"This symbol: {symbol} failed twice {e}")
+        print(f"Finished {date_str} for {symbol}")
+        return "done"
     
 
 def get_options_snapshot_hist_remediate(call_tickers, put_tickers, monday, symbol, hour, date_str):
@@ -185,7 +187,8 @@ def build_options_tickers_remediate(symbol, fridays, monday, date_str):
 
 def build_option_symbol(ticker, date, strike, option_type):
     #Extract the year, month, and day from the date
-    date = date.strftime("%Y-%m-%d")
+    if type(date) != str:
+        date = date.strftime("%Y-%m-%d")
     year, month, day = date.split('-')
     short_year = year[-2:]
     str_strk = str(strike)
@@ -268,10 +271,43 @@ def build_days(symbol, monday):
         opt_dates.append(date_str)
     return opt_dates
 
+def build_days_remdiator(monday):
+    opt_dates = []
+    to_add = [0,1,2,3,4,7,8,9,10,11,12,13,14]
+    
+    for x in to_add:
+        dt = datetime.strptime(monday, "%Y-%m-%d")
+        date = dt + timedelta(days=x)
+        date_str = date.strftime("%Y-%m-%d")
+        opt_dates.append(date_str)
+    return opt_dates
+
 
 if __name__ == "__main__":
-    # build_historic_data(None, None)
-    start_date = datetime(2018,1,1)
+    # start_date = datetime(2018,1,1)
+    # end_date = datetime(2023,10,28)
+    # date_diff = end_date - start_date
+    # numdays = date_diff.days 
+    # date_list = []
+    # print(numdays)
+    # for x in range (0, numdays):
+    #     temp_date = start_date + timedelta(days = x)
+    #     if temp_date.weekday() == 0:
+    #         date_str = temp_date.strftime("%Y-%m-%d")
+    #         date_list.append(date_str)
+
+
+    # for symbol in first_run:
+    #     print(f"Starting {symbol}")
+    #     cpu_count = (os.cpu_count()*2)
+    #     print(cpu_count)
+    #     with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+    #         # Submit the processing tasks to the ThreadPoolExecutor
+    #         processed_weeks_futures = [executor.submit(options_snapshot_runner,date_str,symbol) for date_str in date_list]
+    #     print(f"Finished {symbol}")
+
+
+    start_date = datetime(2021,8,2)
     end_date = datetime(2023,10,28)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -279,16 +315,16 @@ if __name__ == "__main__":
     print(numdays)
     for x in range (0, numdays):
         temp_date = start_date + timedelta(days = x)
-        if temp_date.weekday() == 0:
+        if temp_date.weekday() < 5:
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
 
-    for symbol in first_run:
+    for symbol in ['IWM']:
         print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*2)
-        print(cpu_count)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
-            # Submit the processing tasks to the ThreadPoolExecutor
-            processed_weeks_futures = [executor.submit(options_snapshot_runner,date_str,symbol) for date_str in date_list]
+        cpu_count = (os.cpu_count()*1.5)
+        options_snapshot_remediator_idx(date_list[0],symbol)
+        # with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+        #     # Submit the processing tasks to the ThreadPoolExecutor
+        #     processed_weeks_futures = [executor.submit(options_snapshot_remediator_idx,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")
