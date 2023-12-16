@@ -11,6 +11,7 @@ import math
 import numpy as np
 import pandas_market_calendars as mcal
 import os
+import time
 
 api_key = 'XpqF6xBLLrj6WALk4SS1UlkgphXmHQec'
 
@@ -284,30 +285,32 @@ def build_days_remdiator(monday):
 
 
 if __name__ == "__main__":
-    # start_date = datetime(2018,1,1)
-    # end_date = datetime(2023,10,28)
-    # date_diff = end_date - start_date
-    # numdays = date_diff.days 
-    # date_list = []
-    # print(numdays)
-    # for x in range (0, numdays):
-    #     temp_date = start_date + timedelta(days = x)
-    #     if temp_date.weekday() == 0:
-    #         date_str = temp_date.strftime("%Y-%m-%d")
-    #         date_list.append(date_str)
+    start_date = datetime(2018,1,1)
+    end_date = datetime(2023,10,28)
+    date_diff = end_date - start_date
+    numdays = date_diff.days 
+    date_list = []
+    print(numdays)
+    for x in range (0, numdays):
+        temp_date = start_date + timedelta(days = x)
+        if temp_date.weekday() == 0:
+            date_str = temp_date.strftime("%Y-%m-%d")
+            date_list.append(date_str)
 
 
-    # for symbol in first_run:
-    #     print(f"Starting {symbol}")
-    #     cpu_count = (os.cpu_count()*2)
-    #     print(cpu_count)
-    #     with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
-    #         # Submit the processing tasks to the ThreadPoolExecutor
-    #         processed_weeks_futures = [executor.submit(options_snapshot_runner,date_str,symbol) for date_str in date_list]
-    #     print(f"Finished {symbol}")
+    for symbol in first_run:
+        print(f"Starting {symbol}")
+        cpu_count = (os.cpu_count()*1.5)
+        print(cpu_count)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+            # Submit the processing tasks to the ThreadPoolExecutor
+            processed_weeks_futures = [executor.submit(options_snapshot_runner,date_str,symbol) for date_str in date_list]
+        print(f"Finished {symbol}")
 
 
-    start_date = datetime(2021,8,2)
+    time.sleep(3600)
+
+    start_date = datetime(2018,1,1)
     end_date = datetime(2023,10,28)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -320,11 +323,86 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
 
-    for symbol in ['IWM']:
+    for symbol in all_symbols:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count()*1.5)
-        options_snapshot_remediator_idx(date_list[0],symbol)
-        # with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
-        #     # Submit the processing tasks to the ThreadPoolExecutor
-        #     processed_weeks_futures = [executor.submit(options_snapshot_remediator_idx,date_str,symbol) for date_str in date_list]
+        options_snapshot_remediator_idx(date_list,symbol)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+            # Submit the processing tasks to the ThreadPoolExecutor
+            processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
+        print(f"Finished {symbol}")
+
+    
+    time.sleep(3600)
+
+    start_date = datetime(2018,1,1)
+    end_date = datetime(2023,10,28)
+    date_diff = end_date - start_date
+    numdays = date_diff.days 
+    date_list = []
+    print(numdays)
+    for x in range (0, numdays):
+        temp_date = start_date + timedelta(days = x)
+        if temp_date.weekday() < 5:
+            date_str = temp_date.strftime("%Y-%m-%d")
+            date_list.append(date_str)
+
+
+    for symbol in all_symbols:
+        print(f"Starting {symbol}")
+        cpu_count = (os.cpu_count()*1.5)
+        options_snapshot_remediator_idx(date_list,symbol)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+            # Submit the processing tasks to the ThreadPoolExecutor
+            processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
+        print(f"Finished {symbol}")
+
+
+    time.sleep(7200)
+
+    start_date = datetime(2018,1,1)
+    end_date = datetime(2023,10,28)
+    date_diff = end_date - start_date
+    numdays = date_diff.days 
+    date_list = []
+    print(numdays)
+    for x in range (0, numdays):
+        temp_date = start_date + timedelta(days = x)
+        if temp_date.weekday() < 5:
+            date_str = temp_date.strftime("%Y-%m-%d")
+            date_list.append(date_str)
+
+
+    for symbol in all_symbols:
+        print(f"Starting {symbol}")
+        cpu_count = (os.cpu_count()*1.5)
+        options_snapshot_remediator_idx(date_list,symbol)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+            # Submit the processing tasks to the ThreadPoolExecutor
+            processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
+        print(f"Finished {symbol}")
+
+    
+    time.sleep(7200)
+
+    start_date = datetime(2018,1,1)
+    end_date = datetime(2023,10,28)
+    date_diff = end_date - start_date
+    numdays = date_diff.days 
+    date_list = []
+    print(numdays)
+    for x in range (0, numdays):
+        temp_date = start_date + timedelta(days = x)
+        if temp_date.weekday() < 5:
+            date_str = temp_date.strftime("%Y-%m-%d")
+            date_list.append(date_str)
+
+
+    for symbol in all_symbols:
+        print(f"Starting {symbol}")
+        cpu_count = (os.cpu_count()*1.5)
+        options_snapshot_remediator_idx(date_list,symbol)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+            # Submit the processing tasks to the ThreadPoolExecutor
+            processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")
