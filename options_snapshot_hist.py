@@ -45,7 +45,7 @@ first_run = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE
 bfpidx = ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","BAC","AAPL","FB","DIS"
           "MSFT","INTC","PFE","SNOW",'META','C','XOM',"QQQ","SPY","IWM","TLT"]
 
-remaining = ["GOOG","GOOGL","AMZN","BAC","FB"
+remaining = ["AMZN","BAC","FB","DIS"
             "MSFT",'META',"TLT"]
 
 indexes = ["QQQ","SPY","IWM"]
@@ -57,16 +57,20 @@ holidays_multiyear = holidays.holidays
 s3 = boto3.client('s3', aws_access_key_id="AKIAWUN5YYJZHGIGMLQJ", aws_secret_access_key="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")
 
 def options_snapshot_runner(monday,symbol):
-    fridays = find_fridays(monday)
+     ### Implementation for index options
+    # fridays = find_fridays(monday)
+    date_str = monday.replace('-','/')
+    ## for symbol in ['SPY','IWM']: This is for you Dean.
+    days = build_days(symbol, monday)
     try:
         print(symbol)
-        call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
+        call_tickers, put_tickers = build_options_tickers(symbol, days, monday)
         get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
         print(f"Finished {monday} for {symbol}")
     except Exception as e:
         print(f"{symbol} failed at {monday} with: {e}. Retrying")
         try:
-            call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
+            call_tickers, put_tickers = build_options_tickers(symbol, days, monday)
             get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
             print(f"Finished {monday} for {symbol}")
         except Exception as e:
@@ -153,9 +157,9 @@ def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol):
 
 def build_strikes(monday,ticker):
     last_price = data.call_polygon_price_day(ticker,from_stamp=monday,to_stamp=monday,timespan="day",multiplier="1")
-    price_floor = math.floor(last_price *.75)
-    price_ceil = math.ceil(last_price * 1.25)
-    strikes = np.arange(price_floor, price_ceil, .5)
+    price_floor = math.floor(last_price *.8)
+    price_ceil = math.ceil(last_price * 1.2)
+    strikes = np.arange(price_floor, price_ceil, 1)
     return strikes
 
 def build_options_tickers(symbol, fridays, monday):
@@ -240,30 +244,12 @@ def find_fridays(monday):
     
     return [first_friday, second_friday, third_friday]
 
-def previous_monday(date_str):
-    # Convert the input string to a datetime object
-    date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-
-    # Calculate the number of days to subtract to get to the previous Monday
-    # .weekday() returns 0 for Monday, 1 for Tuesday, ..., 6 for Sunday
-    days_to_subtract = (date_obj.weekday() - 0) % 7
-
-    # If the given day is Monday, days_to_subtract will be 0. 
-    # To get the previous Monday, we need to subtract 7 days in this case.
-    if days_to_subtract == 0:
-        days_to_subtract = 7
-
-    # Subtract the calculated number of days
-    previous_monday = date_obj - timedelta(days=days_to_subtract)
-
-    return previous_monday.strftime("%Y-%m-%d")
-
 def build_days(symbol, monday):
     opt_dates = []
-    if symbol == 'IWM':
-        to_add = [0,2,4,7,9,11]
-    else:
-        to_add = [0,1,2,3,4,7,8,9,10,11]
+    # if symbol == 'IWM':
+    to_add = [0,2,4,7,9,11]
+    # else:
+    #     to_add = [0,1,2,3,4,7,8,9,10,11]
     
     for x in to_add:
         dt = datetime.strptime(monday, "%Y-%m-%d")
@@ -272,16 +258,6 @@ def build_days(symbol, monday):
         opt_dates.append(date_str)
     return opt_dates
 
-def build_days_remdiator(monday):
-    opt_dates = []
-    to_add = [0,1,2,3,4,7,8,9,10,11,12,13,14]
-    
-    for x in to_add:
-        dt = datetime.strptime(monday, "%Y-%m-%d")
-        date = dt + timedelta(days=x)
-        date_str = date.strftime("%Y-%m-%d")
-        opt_dates.append(date_str)
-    return opt_dates
 
 
 if __name__ == "__main__":
