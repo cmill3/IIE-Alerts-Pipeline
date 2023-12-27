@@ -18,21 +18,23 @@ api_key = 'XpqF6xBLLrj6WALk4SS1UlkgphXmHQec'
 big_fish =  ["AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
             "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","FB","CRM"]
 
-all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
- 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'FB', 'SOFI', 'PANW',
- 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL','DIS','META', 'C', 'MSFT','PFE',
- 'ABNB','CRM', 'F', 'V', 'MA', 'JNJ', 'JPM', 'ADBE', 'BA', 'CVX',
- 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO','TSLA','LCID','NIO','WFC',
- 'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
- 'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 
- 'AMD','NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW','XOM'
- 'ORCL','WBD','ARM','SNAP','BILI','AAL','CCL','NCLH','LYFT','BIDU','JD','BABA','HD','LOW',
- 'SBUX','NKE','AFFRM','WMT','QCOM','AVGO','TXN','MU','AMAT','CVNA','DKNG','MGM','CZR','RCLH']
-
-first_run = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
- 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'FB'
+# all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
+#  'HD', 'LOW', 'VZ', 'PG', 'TSM', 'FB', 'SOFI', 'PANW',
 #  'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL','DIS','META', 'C', 'MSFT','PFE',
- 'ABNB','CRM', 'F', 'V', 'MA', 'JNJ', 'JPM', 'ADBE', 'BA', 'CVX',
+#  'ABNB','CRM', 'F', 'V', 'MA', 'JNJ', 'JPM', 'ADBE', 'BA', 'CVX',
+#  'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO','TSLA','LCID','NIO','WFC',
+#  'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
+#  'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 
+#  'AMD','NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW','XOM'
+#  'ORCL','WBD','ARM','SNAP','BILI','AAL','CCL','NCLH','LYFT','BIDU','JD','BABA','HD','LOW',
+#  'SBUX','NKE','AFFRM','WMT','QCOM','AVGO','TXN','MU','AMAT','CVNA','DKNG','MGM','CZR','RCLH']
+
+all_symbols = [
+#     'ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
+#  'HD', 'LOW', 'VZ', 'PG', 'TSM', 'FB'
+#  'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL','DIS','META', 'C', 'MSFT','PFE',
+#  'ABNB','CRM', 'F', 
+ 'V', 'MA', 'JNJ', 'JPM', 'ADBE', 'BA', 'CVX',
   'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO','TSLA','LCID','NIO','WFC',
  'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
  'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 
@@ -308,7 +310,6 @@ if __name__ == "__main__":
     #     print(f"Finished {symbol}")
 
 
-    time.sleep(3600)
 
     start_date = datetime(2018,1,1)
     end_date = datetime(2023,10,28)
@@ -325,14 +326,14 @@ if __name__ == "__main__":
 
     for symbol in all_symbols:
         print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*1.5)
+        cpu_count = (os.cpu_count()*2)
         with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")
 
     
-    time.sleep(3600)
+    time.sleep(1600)
 
     start_date = datetime(2018,1,1)
     end_date = datetime(2023,10,28)
@@ -349,14 +350,14 @@ if __name__ == "__main__":
 
     for symbol in all_symbols:
         print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*1.5)
+        cpu_count = (os.cpu_count()*2)
         with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")
 
 
-    time.sleep(7200)
+    time.sleep(1600)
 
     start_date = datetime(2018,1,1)
     end_date = datetime(2023,10,28)
@@ -373,7 +374,7 @@ if __name__ == "__main__":
 
     for symbol in all_symbols:
         print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*1.5)
+        cpu_count = (os.cpu_count()*2)
         with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
