@@ -29,6 +29,11 @@ all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', '
  'SBUX','NKE','AFFRM','WMT','XOM','QCOM','AVGO','TXN','MU','AMAT','CVNA','DKNG','MGM','CZR','RCLH']
 # new_sf = ['MRK','RBLX','COIN','HD','LOW','AFFRM','VZ','T','PG','TSM']
 # list = ['SBUX','NKE']
+new_symbols = [
+    "RTX","UPS","FDX","CAT","PG","COST","LMT","GS","MS","AXP","GIS","KHC","W","CHWY","PTON",
+               "DOCU","TTD",
+"NOW","TEAM","MDB","HOOD","MARA","AI","LYFT","BYND","RIOT","U"
+]
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
@@ -58,10 +63,10 @@ def build_historic_data(date_str):
     #         "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",'META',
     #         'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER',"QQQ","SPY","IWM"]
     for hour in hours:
-        aggregates, error_list = call_polygon_histD(['XOM'], from_stamp, to_stamp, timespan="minute", multiplier="30")
+        aggregates, error_list = call_polygon_histD(new_symbols, from_stamp, to_stamp, timespan="minute", multiplier="30")
         if len(error_list) > 0:
             print(error_list)
-        hour_aggregates, error_list = call_polygon_histH(['XOM'], hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+        hour_aggregates, error_list = call_polygon_histH(new_symbols, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
         if len(error_list) > 0:
             print(error_list)
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
@@ -159,6 +164,6 @@ if __name__ == "__main__":
 
     # run_process("2018-01-02")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
