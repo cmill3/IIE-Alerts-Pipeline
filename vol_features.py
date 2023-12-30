@@ -24,7 +24,6 @@ new_bf = ['C','CAT','KO','MS','GS','PANW','ORCL','IBM','CSCO','WMT','TGT','COST'
 new_symbols = ["RTX","UPS","FDX","CAT","PG","COST","LMT","GS","MS","AXP","GIS","KHC","LYFT","CHWY","DOCU","TTD",
             #    "PTON","W","NOW","TEAM","MDB","HOOD","MARA",
             "AI","BYND","RIOT","U"]
-
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
@@ -145,6 +144,6 @@ if __name__ == "__main__":
     # build_vol_features("2018-01-03")
         
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
