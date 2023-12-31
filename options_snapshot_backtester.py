@@ -37,18 +37,15 @@ bf_plus = ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX",
             "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","NKE",'META',
             'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER','SBUX','QQQ','SPY','IWM','TLT']
 
-all_symbols = [
-#     'ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
-#  'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
-#  'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
-#  'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO','TSLA','LCID','NIO','WFC',
-#  'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
-#  'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
-#  'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
-#  'ORCL','WBD','ARM','SNAP','BILI','AAL','CCL','NCLH','LYFT','BIDU','JD','BABA','HD','LOW',
-#  'SBUX','NKE','AFRM','WMT','XOM','QCOM','AVGO','TXN','MU','AMAT','CVNA','DKNG','MGM','CZR'
-'VXX'
- ]
+all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
+ 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
+ 'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
+ 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','TSLA','LCID','NIO','WFC',
+ 'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
+ 'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
+ 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
+ 'ORCL','SBUX','NKE','TSLA','XOM',"RTX","UPS","FDX","CAT","PG","COST","LMT","GS","MS","AXP","GIS","KHC","W","CHWY","PTON","DOCU",
+"TTD","NOW","TEAM","MDB","HOOD","MARA","AI","LYFT","BYND","RIOT","U", 'BILI', 'AVGO', 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'SNAP', 'MGM', 'CVNA']
 
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
@@ -77,25 +74,25 @@ def options_snapshot_remediator(date_str,symbol):
                 print(f"This symbol: {symbol} failed twice {e}")
         return "done"
 
-def options_snapshot_runner(monday, symbol):
-    print(monday)
-    ### Implementation for index options
-    # fridays = find_fridays(monday)
-    date_str = monday.replace('-','/')
-    ## for symbol in ['SPY','IWM']: This is for you Dean.
-    days = build_days(symbol, monday)
-    try:
-        call_tickers, put_tickers = build_options_tickers(symbol, days, monday)
-        call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
-        print(f"Finished {monday} for {symbol}")
-    except Exception as e:
-        print(f"This symbol: {symbol} failed once {e}")
-        try:
-            call_tickers, put_tickers = build_options_tickers(symbol, days, monday)
-            call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
-        except Exception as e:
-            print(f"This symbol: {symbol} failed twice {e}")
-    return "done"
+# def options_snapshot_runner(monday, symbol):
+#     print(monday)
+#     ### Implementation for index options
+#     # fridays = find_fridays(monday)
+#     date_str = monday.replace('-','/')
+#     ## for symbol in ['SPY','IWM']: This is for you Dean.
+#     days = build_days(symbol, monday)
+#     try:
+#         call_tickers, put_tickers = build_options_tickers(symbol, days, monday)
+#         call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
+#         print(f"Finished {monday} for {symbol}")
+#     except Exception as e:
+#         print(f"This symbol: {symbol} failed once {e}")
+#         try:
+#             call_tickers, put_tickers = build_options_tickers(symbol, days, monday)
+#             call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol)
+#         except Exception as e:
+#             print(f"This symbol: {symbol} failed twice {e}")
+#     return "done"
 
 def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str):
     # hours = ["10","11","12","13","14","15"]
@@ -235,8 +232,8 @@ def build_days(symbol, monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2023,1,3)
-    end_date = datetime(2023,10,14)
+    start_date = datetime(2023,10,14)
+    end_date = datetime(2023,12,22)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
