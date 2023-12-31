@@ -105,18 +105,18 @@ def options_snapshot_remediator_idx(date_str,symbol):
         return "holiday"
     else:
         for hour in hours:
-            # try:
-            #     dt_str = date_str.replace('-','/')
-            #     res = s3.get_object(Bucket='icarus-research-data', Key=f'options_snapshot/{dt_str}/{hour}/{symbol}.csv')
-            # except Exception as e:
-            #     print(f"{symbol} had {e} at {date_str}")
-                # try:
-                monday = previous_monday(date_str)
-                days = build_days_remdiator(monday)
-                call_tickers, put_tickers = build_options_tickers_remediate(symbol, days, monday, date_str)
-                call_df = get_options_snapshot_hist_remediate(call_tickers, put_tickers, monday, symbol, hour, date_str)
-                # except Exception as e:
-                #     print(f"This symbol: {symbol} failed twice {e}")
+            try:
+                dt_str = date_str.replace('-','/')
+                res = s3.get_object(Bucket='icarus-research-data', Key=f'options_snapshot/{dt_str}/{hour}/{symbol}.csv')
+            except Exception as e:
+                print(f"{symbol} had {e} at {date_str}")
+                try:
+                    monday = previous_monday(date_str)
+                    days = build_days_remdiator(monday)
+                    call_tickers, put_tickers = build_options_tickers_remediate(symbol, days, monday, date_str)
+                    call_df = get_options_snapshot_hist_remediate(call_tickers, put_tickers, monday, symbol, hour, date_str)
+                except Exception as e:
+                    print(f"This symbol: {symbol} failed twice {e}")
         print(f"Finished {date_str} for {symbol}")
         return "done"
     
@@ -310,9 +310,8 @@ if __name__ == "__main__":
     #     print(f"Finished {symbol}")
 
 
-
-    start_date = datetime(2018,1,1)
-    end_date = datetime(2023,10,28)
+    start_date = datetime(2022,4,1)
+    end_date = datetime(2023,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -323,84 +322,44 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
+    cpu_count = (os.cpu_count()*2)
 
-    for symbol in all_symbols:
+    for symbol in ["SPY"]:
         print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*2)
         with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
-            processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
+            processed_weeks_futures = [executor.submit(options_snapshot_remediator_idx,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")
 
     
-    time.sleep(1600)
-
-    start_date = datetime(2018,1,1)
-    end_date = datetime(2023,10,28)
-    date_diff = end_date - start_date
-    numdays = date_diff.days 
-    date_list = []
-    print(numdays)
-    for x in range (0, numdays):
-        temp_date = start_date + timedelta(days = x)
-        if temp_date.weekday() < 5:
-            date_str = temp_date.strftime("%Y-%m-%d")
-            date_list.append(date_str)
+    # time.sleep(1600)
 
 
-    for symbol in all_symbols:
-        print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*2)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
-            # Submit the processing tasks to the ThreadPoolExecutor
-            processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
-        print(f"Finished {symbol}")
+    # for symbol in all_symbols:
+    #     print(f"Starting {symbol}")
+    #     with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+    #         # Submit the processing tasks to the ThreadPoolExecutor
+    #         processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
+    #     print(f"Finished {symbol}")
 
 
-    time.sleep(1600)
-
-    start_date = datetime(2018,1,1)
-    end_date = datetime(2023,10,28)
-    date_diff = end_date - start_date
-    numdays = date_diff.days 
-    date_list = []
-    print(numdays)
-    for x in range (0, numdays):
-        temp_date = start_date + timedelta(days = x)
-        if temp_date.weekday() < 5:
-            date_str = temp_date.strftime("%Y-%m-%d")
-            date_list.append(date_str)
+    # time.sleep(1600)
 
 
-    for symbol in all_symbols:
-        print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*2)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
-            # Submit the processing tasks to the ThreadPoolExecutor
-            processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
-        print(f"Finished {symbol}")
+    # for symbol in all_symbols:
+    #     print(f"Starting {symbol}")
+    #     with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+    #         # Submit the processing tasks to the ThreadPoolExecutor
+    #         processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
+    #     print(f"Finished {symbol}")
 
     
-    time.sleep(7200)
-
-    start_date = datetime(2018,1,1)
-    end_date = datetime(2023,10,28)
-    date_diff = end_date - start_date
-    numdays = date_diff.days 
-    date_list = []
-    print(numdays)
-    for x in range (0, numdays):
-        temp_date = start_date + timedelta(days = x)
-        if temp_date.weekday() < 5:
-            date_str = temp_date.strftime("%Y-%m-%d")
-            date_list.append(date_str)
+    # time.sleep(7200)
 
 
-    for symbol in all_symbols:
-        print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*1.5)
-        options_snapshot_remediator_idx(date_list,symbol)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
-            # Submit the processing tasks to the ThreadPoolExecutor
-            processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
-        print(f"Finished {symbol}")
+    # for symbol in all_symbols:
+    #     print(f"Starting {symbol}")
+    #     with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+    #         # Submit the processing tasks to the ThreadPoolExecutor
+    #         processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
+    #     print(f"Finished {symbol}")
