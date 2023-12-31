@@ -541,6 +541,7 @@ def vol_feature_engineering(df, Min_aggs,Thirty_aggs):
         }
     
     for index,min_aggs in enumerate(Min_aggs):
+        print(index)
         min_aggs.reset_index(drop=True,inplace=True)
         thirty_aggs = Thirty_aggs[index]
         thirty_aggs.set_index('date',inplace=True)

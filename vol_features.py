@@ -21,10 +21,8 @@ big_fish =  [
 indexes = ['QQQ','SPY','IWM']
 memes = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID']
 new_bf = ['C','CAT','KO','MS','GS','PANW','ORCL','IBM','CSCO','WMT','TGT','COST']
-new_symbols = ["RTX","UPS","FDX","PG","LMT","AXP","GIS","KHC","LYFT","CHWY",
-            #    "DOCU","TTD","PTON","W","NOW","TEAM","MDB","HOOD","MARA",
-            "AI","BYND","RIOT","U"]
-
+new_symbols = ["RTX","UPS","FDX","CAT","PG","COST","LMT","GS","MS","AXP","GIS","KHC","LYFT","CHWY","DOCU","TTD",
+               "PTON","W","NOW","TEAM","MDB","HOOD","MARA","AI","BYND","RIOT","U"]
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
@@ -46,6 +44,7 @@ def build_vol_features(date_str):
     from_stamp, to_stamp, hour_stamp = generate_dates_historic_vol(date_str)
 
     for hour in hours:
+        print(hour)
         df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv")
         df = pd.read_csv(df['Body'])
         df = df.loc[df['symbol'].isin(new_symbols)]

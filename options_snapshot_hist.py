@@ -18,30 +18,26 @@ api_key = 'XpqF6xBLLrj6WALk4SS1UlkgphXmHQec'
 big_fish =  ["AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
             "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","FB","CRM"]
 
-# all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
-#  'HD', 'LOW', 'VZ', 'PG', 'TSM', 'FB', 'SOFI', 'PANW',
-#  'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL','DIS','META', 'C', 'MSFT','PFE',
-#  'ABNB','CRM', 'F', 'V', 'MA', 'JNJ', 'JPM', 'ADBE', 'BA', 'CVX',
-#  'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO','TSLA','LCID','NIO','WFC',
-#  'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
-#  'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 
-#  'AMD','NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW','XOM'
-#  'ORCL','WBD','ARM','SNAP','BILI','AAL','CCL','NCLH','LYFT','BIDU','JD','BABA','HD','LOW',
-#  'SBUX','NKE','AFFRM','WMT','QCOM','AVGO','TXN','MU','AMAT','CVNA','DKNG','MGM','CZR','RCLH']
-
-all_symbols = [
-#     'ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
-#  'HD', 'LOW', 'VZ', 'PG', 'TSM', 'FB'
-#  'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL','DIS','META', 'C', 'MSFT','PFE',
-#  'ABNB','CRM', 'F', 
- 'V', 'MA', 'JNJ', 'JPM', 'ADBE', 'BA', 'CVX',
-  'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO','TSLA','LCID','NIO','WFC',
+all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
+ 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
+ 'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
+ 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','TSLA','LCID','NIO','WFC',
  'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
- 'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 
-#  'AMD','NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW',XOM
- 'SOFI', 'PANW',
- 'ORCL','WBD','ARM','SNAP','BILI','AAL','CCL','NCLH','LYFT','BIDU','JD','BABA','HD','LOW',
- 'SBUX','NKE','AFFRM','WMT','QCOM','AVGO','TXN','MU','AMAT','CVNA','DKNG','MGM','CZR','RCLH']
+ 'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
+ 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
+ 'ORCL','SBUX','NKE','TSLA','XOM',"RTX","UPS","FDX","CAT","PG","COST","LMT","GS","MS","AXP","GIS","KHC","W","CHWY","PTON","DOCU",
+ "TTD","NOW","TEAM","MDB","HOOD","MARA","AI","LYFT","BYND","RIOT","U", 'BILI', 'AVGO', 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'SNAP', 'MGM', 'CVNA'] 
+
+first_run = ['CMG', 'AXP', 'DAL', 'MMM', 'PEP', 'GE', 'MRK', 'HD', 'LOW', 'VZ', 'PG', 'TSM',
+ 'GOOG', 'GOOGL', 'BAC', 'AAPL' ,'CRM', 'MSFT', 'F' ,'V' ,'MA' ,'JNJ', 'DIS' ,'JPM',
+ 'ADBE' ,'BA' ,'CVX', 'PFE' ,'C' ,'CAT', 'KO' ,'MS', 'GS', 'IBM' ,'CSCO' ,'WMT', 'WFC'
+ 'TGT', 'COST', 'INTC', 'PANW', 'ORCL', 'SBUX', 'NKE' ,'XOM', 'RTX' ,'UPS', 'FDX',
+ 'LMT' ,'GIS', 'KHC', 'AVGO', 'QCOM', 'TXN' ,'MGM']
+
+hv2 = ['ZM', 'UBER', 'TDOC', 'UAL', 'RCL', 'AMZN', 'ABNB', 'TSLA', 'SQ', 'SHOP', 'DOCU', 'TWLO', 'DDOG', 'ZS', 
+'OKTA', 'ETSY', 'PINS', 'FUTU', 'BIDU', 'JD', 'BABA', 'AMD', 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'MRNA', 'SNOW', 
+'SOFI', 'CHWY', 'TTD', 'NOW', 'TEAM', 'MDB', 'HOOD', 'LYFT', 'AAL', 'CZR', 'ARM', 'NCLH', 'MU', 'WBD', 'CCL', 'AMAT', 
+'SNAP',"META"]
 
 
 bfpidx = ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","BAC","AAPL","FB","DIS"
@@ -59,7 +55,7 @@ holidays_multiyear = holidays.holidays
 s3 = boto3.client('s3', aws_access_key_id="AKIAWUN5YYJZHGIGMLQJ", aws_secret_access_key="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")
 
 def options_snapshot_runner(monday,symbol):
-    fridays = find_fridays(monday)
+    fridays = build_days(monday)
     try:
         print(symbol)
         call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
@@ -287,7 +283,7 @@ def build_days_remdiator(monday):
 
 
 if __name__ == "__main__":
-    # start_date = datetime(2018,1,1)
+    # start_date = datetime(2021,11,2)
     # end_date = datetime(2023,10,28)
     # date_diff = end_date - start_date
     # numdays = date_diff.days 
@@ -295,23 +291,26 @@ if __name__ == "__main__":
     # print(numdays)
     # for x in range (0, numdays):
     #     temp_date = start_date + timedelta(days = x)
-    #     if temp_date.weekday() == 0:
+    #     if temp_date.weekday() < 5:
     #         date_str = temp_date.strftime("%Y-%m-%d")
     #         date_list.append(date_str)
 
 
-    # for symbol in first_run:
+    # for symbol in ["IWM"]:
     #     print(f"Starting {symbol}")
     #     cpu_count = (os.cpu_count()*1.5)
     #     print(cpu_count)
     #     with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
     #         # Submit the processing tasks to the ThreadPoolExecutor
-    #         processed_weeks_futures = [executor.submit(options_snapshot_runner,date_str,symbol) for date_str in date_list]
+    #         processed_weeks_futures = [executor.submit(options_snapshot_remediator_idx,date_str,symbol) for date_str in date_list]
     #     print(f"Finished {symbol}")
 
 
-    start_date = datetime(2022,4,1)
-    end_date = datetime(2023,1,1)
+    # time.sleep(3600)
+
+
+    start_date = datetime(2018,1,1)
+    end_date = datetime(2023,10,28)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -322,44 +321,61 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    cpu_count = (os.cpu_count()*2)
 
     for symbol in ["SPY"]:
         print(f"Starting {symbol}")
+        cpu_count = (os.cpu_count()*2)
+        # options_snapshot_remediator_idx(date_list,symbol)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+            # Submit the processing tasks to the ThreadPoolExecutor
+            processed_weeks_futures = [executor.submit(options_snapshot_remediator_idx,date_str,symbol) for date_str in date_list]
+        print(f"Finished {symbol}")
+
+
+
+    start_date = datetime(2018,1,1)
+    end_date = datetime(2023,10,28)
+    date_diff = end_date - start_date
+    numdays = date_diff.days 
+    date_list = []
+    print(numdays)
+    for x in range (0, numdays):
+        temp_date = start_date + timedelta(days = x)
+        if temp_date.weekday() < 5:
+            date_str = temp_date.strftime("%Y-%m-%d")
+            date_list.append(date_str)
+
+
+    for symbol in all_symbols:
+        print(f"Starting {symbol}")
+        cpu_count = (os.cpu_count()*1.5)
+        # options_snapshot_remediator_idx(date_list,symbol)
         with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator_idx,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")
 
     
-    # time.sleep(1600)
-
-
-    # for symbol in all_symbols:
-    #     print(f"Starting {symbol}")
-    #     with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
-    #         # Submit the processing tasks to the ThreadPoolExecutor
-    #         processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
-    #     print(f"Finished {symbol}")
-
-
-    # time.sleep(1600)
-
-
-    # for symbol in all_symbols:
-    #     print(f"Starting {symbol}")
-    #     with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
-    #         # Submit the processing tasks to the ThreadPoolExecutor
-    #         processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
-    #     print(f"Finished {symbol}")
-
-    
     # time.sleep(7200)
 
+    start_date = datetime(2018,1,1)
+    end_date = datetime(2023,10,28)
+    date_diff = end_date - start_date
+    numdays = date_diff.days 
+    date_list = []
+    print(numdays)
+    for x in range (0, numdays):
+        temp_date = start_date + timedelta(days = x)
+        if temp_date.weekday() < 5:
+            date_str = temp_date.strftime("%Y-%m-%d")
+            date_list.append(date_str)
 
-    # for symbol in all_symbols:
-    #     print(f"Starting {symbol}")
-    #     with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
-    #         # Submit the processing tasks to the ThreadPoolExecutor
-    #         processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
-    #     print(f"Finished {symbol}")
+
+    for symbol in indexes:
+        print(f"Starting {symbol}")
+        cpu_count = (os.cpu_count()*1.5)
+        # options_snapshot_remediator_idx(date_list,symbol)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+            # Submit the processing tasks to the ThreadPoolExecutor
+            processed_weeks_futures = [executor.submit(options_snapshot_remediator_idx,date_str,symbol) for date_str in date_list]
+        print(f"Finished {symbol}")
