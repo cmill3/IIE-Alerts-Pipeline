@@ -21,8 +21,16 @@ big_fish =  [
 indexes = ['QQQ','SPY','IWM']
 memes = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID']
 new_bf = ['C','CAT','KO','MS','GS','PANW','ORCL','IBM','CSCO','WMT','TGT','COST']
-new_symbols = ["RTX","UPS","FDX","CAT","PG","COST","LMT","GS","MS","AXP","GIS","KHC","LYFT","CHWY","DOCU","TTD",
-               "PTON","W","NOW","TEAM","MDB","HOOD","MARA","AI","BYND","RIOT","U"]
+new_symbols = [ 
+    # "RTX",
+               "UPS","FDX","CAT","PG","COST","LMT","GS","MS","AXP","GIS","KHC",
+            #    "LYFT",
+            #    "CHWY",
+            #    "DOCU","TTD",
+            #    "PTON",
+               "W","NOW","TEAM",
+            #    "MDB","HOOD","MARA","AI","BYND","RIOT","U"
+               ]
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
@@ -46,9 +54,11 @@ def build_vol_features(date_str):
     for hour in hours:
         df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv")
         df = pd.read_csv(df['Body'])
-        symbols = df['symbol'].unique().tolist()
-        min_aggs, error_list = call_polygon_vol(symbols, from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
-        hour_aggs, error_list = call_polygon_vol(symbols, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+        df = df.loc[df['symbol'].isin(new_symbols)]
+        min_aggs, error_list = call_polygon_vol(new_symbols, from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
+        print(f"Finished minute aggs for {key_str} {hour}")
+        hour_aggs, error_list = call_polygon_vol(new_symbols, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+        print(f"Finished hour aggs for {key_str} {hour}")
         results_df = vol_feature_engineering(df, min_aggs, hour_aggs)
         # old_df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/vol/{key_str}/{hour}.csv")
         # old_df = pd.read_csv(old_df['Body'])

@@ -208,6 +208,7 @@ def call_polygon_vol(symbol_list, from_stamp, to_stamp, timespan, multiplier,hou
     current_date = datetime(int(year), int(month), int(day), int(hour),tzinfo=pytz.timezone('US/Eastern'))
 
     for symbol in symbol_list:
+        print(symbol)
         data = []
         url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
         with requests.Session() as session:
