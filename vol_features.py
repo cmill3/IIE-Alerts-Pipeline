@@ -54,7 +54,7 @@ def build_vol_features(date_str):
         # old_df = pd.read_csv(old_df['Body'])
         # new_df = pd.concat([old_df,results_df],ignore_index=True)
         put_response = s3.put_object(Bucket="inv-alerts", Key=f"all_alerts/vol_features/{key_str}/{hour}.csv", Body=results_df.to_csv())
-    return put_response
+    return "put_response"
 
 
 def combine_hour_aggs(aggregates, hour_aggregates, hour):
