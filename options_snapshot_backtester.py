@@ -233,7 +233,7 @@ def build_days(symbol, monday):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     start_date = datetime(2023,10,14)
-    end_date = datetime(2023,12,22)
+    end_date = datetime(2023,12,23)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -253,7 +253,7 @@ if __name__ == "__main__":
         cpu_count = (os.cpu_count()*2)
         # for date_str in date_list:
         #     options_snapshot_remediator(date_str, symbol)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator, date_str, symbol) for date_str in date_list]
         print(f"Finished with {symbol}")

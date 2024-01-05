@@ -29,8 +29,8 @@ all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', '
  "TTD","NOW","TEAM","MDB","HOOD","MARA","AI","LYFT","BYND","RIOT","U", 'BILI', 'AVGO', 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'SNAP', 'MGM', 'CVNA'] 
 
 first_run = [
-    # 'CMG', 
-    'AXP', 'DAL', 'MMM', 'PEP', 'GE', 'MRK', 'HD', 'LOW', 'VZ', 'PG', 'TSM',
+    # 'CMG', 'AXP', 'DAL', 
+    'MMM', 'PEP', 'GE', 'MRK', 'HD', 'LOW', 'VZ', 'PG', 'TSM',
  'GOOG', 'GOOGL', 'BAC', 'AAPL' ,'CRM', 'MSFT', 'F' ,'V' ,'MA' ,'JNJ', 'DIS' ,'JPM',
  'ADBE' ,'BA' ,'CVX', 'PFE' ,'C' ,'CAT', 'KO' ,'MS', 'GS', 'IBM' ,'CSCO' ,'WMT', 'WFC'
  'TGT', 'COST', 'INTC', 'PANW', 'ORCL', 'SBUX', 'NKE' ,'XOM', 'RTX' ,'UPS', 'FDX',
@@ -349,11 +349,11 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
 
-    for symbol in first_run:
+    for symbol in indexes:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count()*2)
         # options_snapshot_remediator_idx(date_list,symbol)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator_idx,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")
