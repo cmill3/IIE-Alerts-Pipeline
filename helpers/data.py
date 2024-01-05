@@ -194,7 +194,6 @@ def call_polygon_histH(symbol_list, from_stamp, to_stamp, timespan, multiplier):
             dfs.append(filtered_df)
         except Exception as e:
             error_list.append(symbol)
-            print(e)
             continue
 
     return dfs, error_list
@@ -288,7 +287,6 @@ def call_polygon_histD(symbol_list, from_stamp, to_stamp, timespan, multiplier):
             dfs.append(daily_stats)
         except Exception as e:
             error_list.append(symbol)
-            print(e)
             continue
 
     return dfs, error_list
