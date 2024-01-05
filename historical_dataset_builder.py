@@ -79,7 +79,7 @@ def build_historic_data(date_str):
         # new_df = pd.concat([old_df,df],ignore_index=True)
         # new_df = new_df.drop_duplicates(subset=['symbol'])
         # new_df.drop(columns=['Unnamed: 0'], inplace=True)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"full_alerts/{key_str}/{hour}.csv", Body=new_df.to_csv())
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"full_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
     return put_response
     
 def generate_dates_historic(date_str):
@@ -96,20 +96,24 @@ def combine_hour_aggs(aggregates, hour_aggregates, hour):
     full_aggs = []
     hour_df = pd.concat(hour_aggregates)
     for index, value in enumerate(aggregates):
-        hour_aggs = hour_df.loc[hour_df["symbol"] == value.iloc[0]['symbol']]
-        hour_aggs = hour_aggs.loc[hour_aggs["hour"] < int(hour)]
-        if len(hour_aggs) > 1:
-            hour_aggs = hour_aggs.iloc[:-1]
-        volume = hour_aggs.v.sum()
-        open = hour_aggs.o.iloc[0]
-        close = hour_aggs.c.iloc[-1]
-        high = hour_aggs.h.max()
-        low = hour_aggs.l.min()
-        n = hour_aggs.n.sum()
-        t = hour_aggs.t.iloc[-1]
-        aggs_list = [volume, open, close, high, low, hour_aggs.date.iloc[-1], hour,hour_aggs.symbol.iloc[-1],t]
-        value.loc[len(value)] = aggs_list
-        full_aggs.append(value)
+        try:
+            hour_aggs = hour_df.loc[hour_df["symbol"] == value.iloc[0]['symbol']]
+            hour_aggs = hour_aggs.loc[hour_aggs["hour"] < int(hour)]
+            if len(hour_aggs) > 1:
+                hour_aggs = hour_aggs.iloc[:-1]
+            volume = hour_aggs.v.sum()
+            open = hour_aggs.o.iloc[0]
+            close = hour_aggs.c.iloc[-1]
+            high = hour_aggs.h.max()
+            low = hour_aggs.l.min()
+            n = hour_aggs.n.sum()
+            t = hour_aggs.t.iloc[-1]
+            aggs_list = [volume, open, close, high, low, hour_aggs.date.iloc[-1], hour,hour_aggs.symbol.iloc[-1],t]
+            value.loc[len(value)] = aggs_list
+            full_aggs.append(value)
+        except Exception as e:
+            print(f"combine hour aggs {e}")
+            print(value)
     return full_aggs
 
 
@@ -129,8 +133,8 @@ def pull_df(date_stamp, prefix, hour):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     cpu = os.cpu_count()
-    start_date = datetime(2021,1,1)
-    end_date = datetime(2023,12,23)
+    start_date = datetime(2018,1,25)
+    end_date = datetime(2019,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
