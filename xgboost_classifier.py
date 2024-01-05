@@ -7,7 +7,7 @@ import datetime
 import os
 import ast
 from datetime import datetime
-from helpers.constants import MODEL_FEATURES
+from helpers.constants import MODEL_FEATURES, ENDPOINT_NAMES
 
 
 s3 = boto3.client('s3')
@@ -16,19 +16,15 @@ runtime = boto3.client("sagemaker-runtime")
 
 predictions_bucket = os.getenv("PREDICTIONS_BUCKET")
 alerts_bucket = os.getenv("ALERTS_BUCKET")
-title = os.getenv("TITLE")
+strategies = os.getenv("STRATEGIES")
 
 
-big_fish =  ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","CRM",
-            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",'META',
-            'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER']
-indexes = ['QQQ','SPY','IWM']
-index_strategies = ["indexP_1d","indexC_1d","indexP","indexC"]
-bf_strategies = ["bfP_1d","bfC_1d","bfP","bfC"]
+# indexes = ['QQQ','SPY','IWM']
+# index_strategies = ["indexP_1d","indexC_1d","indexP","indexC"]
+# bf_strategies = ["bfP_1d","bfC_1d","bfP","bfC"]
 
 def invoke_model(event, context):   
-    endpoint_names = os.getenv("ENDPOINT_NAMES")
-    endpoint_names = endpoint_names.split(",")
+    strategies_list = strategies.split(",")
     year, month, day, hour = format_dates(datetime.now())
     keys = s3.list_objects(Bucket=alerts_bucket,Prefix=f"bf_alerts/{year}/{month}/{day}")["Contents"]
     query_key = keys[-1]['Key']
@@ -37,43 +33,37 @@ def invoke_model(event, context):
 
     data['dt'] = pd.to_datetime(data['date'])
     recent_date = data['dt'].iloc[-1]
-    data['roc_diff'] = data['roc'] - data['roc5']
-    data['range_vol_diff5'] = (data['range_vol'] - data['range_vol5MA'])
-    data['close_diff_deviation3'] = abs(data['close_diff3'])/(data['threeD_stddev50']*100)
-    data['close_diff_deviation'] = abs(data['close_diff'])/(data['oneD_stddev50']*100)
-    data['day_of_week'] = data['dt'].apply(lambda x: x.dayofweek).astype(int)
-    data['day_of_month'] = data['dt'].apply(lambda x: x.day).astype(int)
-    data['month'] = data['dt'].apply(lambda x: x.month).astype(int)
-    data['year'] = data['dt'].apply(lambda x: x.year).astype(int)
-
-    if title in bf_strategies:
-        data = data[data['symbol'].isin(big_fish)]
-        symbol_list = data['symbol']
-    elif title in index_strategies:
-        data = data[data['symbol'].isin(indexes)]
-        symbol_list = data['symbol']
+    # data['roc_diff'] = data['roc'] - data['roc5']
+    # data['range_vol_diff5'] = (data['range_vol'] - data['range_vol5MA'])
+    # data['close_diff_deviation3'] = abs(data['close_diff3'])/(data['threeD_stddev50']*100)
+    # data['close_diff_deviation'] = abs(data['close_diff'])/(data['oneD_stddev50']*100)
+    # data['day_of_week'] = data['dt'].apply(lambda x: x.dayofweek).astype(int)
+    # data['day_of_month'] = data['dt'].apply(lambda x: x.day).astype(int)
+    # data['month'] = data['dt'].apply(lambda x: x.month).astype(int)
+    # data['year'] = data['dt'].apply(lambda x: x.year).astype(int)
 
     
-    for name in endpoint_names:
-        strat_name = name.strip('"')
-        prediciton_data = data[MODEL_FEATURES[strat_name]]
+    for strategy in strategies_list:
+        # strat_name = name.strip('"')
+        endpoint_name = ENDPOINT_NAMES[strategy]
+        prediciton_data = data[MODEL_FEATURES[strategy]]
         prediction_csv = prediciton_data.to_csv(header=False,index=False).encode()
         response = runtime.invoke_endpoint(
-            EndpointName=strat_name,
+            EndpointName=endpoint_name,
             ContentType="text/csv",
             Body=prediction_csv
         )
         t = response['Body']
         results = t.read()
 
-        results_df = format_result(results, symbol_list, recent_date)
+        results_df = format_result(results, prediciton_data['symbol'].to_list(), recent_date)
         results_csv = results_df.to_csv().encode()
         
         try:
-            put_response = s3.put_object(Bucket=predictions_bucket, Key=f'classifier_predictions/{strat_name}/{query_key}', Body=results_csv)
+            put_response = s3.put_object(Bucket=predictions_bucket, Key=f'classifier_predictions/{strategy}/{query_key}', Body=results_csv)
         except:
             print("error")
-            print(name)
+            print(strategy)
             continue
     return put_response
     

@@ -61,7 +61,7 @@ def build_vol_features(date_str):
         # old_df = s3.get_object(Bucket="inv-alerts", Key=f"full_alerts/vol/{key_str}/{hour}.csv")
         # old_df = pd.read_csv(old_df['Body'])
         # new_df = pd.concat([old_df,results_df],ignore_index=True)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"full_alerts/{key_str}/{hour}.csv", Body=results_df.to_csv())
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"full_alerts/vol/{key_str}/{hour}.csv", Body=results_df.to_csv())
     return put_response
 
 
@@ -151,6 +151,6 @@ if __name__ == "__main__":
     # run_process("2018-01-03")
         
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
