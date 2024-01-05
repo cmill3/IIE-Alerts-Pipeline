@@ -29,12 +29,12 @@ all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', '
  "TTD","NOW","TEAM","MDB","HOOD","MARA","AI","LYFT","BYND","RIOT","U", 'BILI', 'AVGO', 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'SNAP', 'MGM', 'CVNA'] 
 
 first_run = [
-    # 'CMG', 'AXP', 'DAL', 
-    'MMM', 'PEP', 'GE', 'MRK', 'HD', 'LOW', 'VZ', 'PG', 'TSM',
+    # 'CMG', 'AXP', 
+    'DAL', 'MMM', 'PEP', 'GE', 'MRK', 'HD', 'LOW', 'VZ', 'PG', 'TSM',
  'GOOG', 'GOOGL', 'BAC', 'AAPL' ,'CRM', 'MSFT', 'F' ,'V' ,'MA' ,'JNJ', 'DIS' ,'JPM',
  'ADBE' ,'BA' ,'CVX', 'PFE' ,'C' ,'CAT', 'KO' ,'MS', 'GS', 'IBM' ,'CSCO' ,'WMT', 'WFC'
  'TGT', 'COST', 'INTC', 'PANW', 'ORCL', 'SBUX', 'NKE' ,'XOM', 'RTX' ,'UPS', 'FDX',
- 'LMT' ,'GIS', 'KHC', 'AVGO', 'QCOM', 'TXN' ,'MGM']
+ 'LMT' ,'GIS', 'KHC', 'AVGO', 'QCOM', 'TXN' ,'MGM','GM']
 
 hv2 = ['ZM', 'UBER', 'TDOC', 'UAL', 'RCL', 'AMZN', 'ABNB', 'TSLA', 'SQ', 'SHOP', 'DOCU', 'TWLO', 'DDOG', 'ZS', 
 'OKTA', 'ETSY', 'PINS', 'FUTU', 'BIDU', 'JD', 'BABA', 'AMD', 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'MRNA', 'SNOW', 
@@ -351,7 +351,7 @@ if __name__ == "__main__":
 
     for symbol in indexes:
         print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*1.5)
+        cpu_count = (os.cpu_count()*3)
         # options_snapshot_remediator_idx(date_list,symbol)
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor

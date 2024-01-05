@@ -41,10 +41,10 @@ def build_historic_data(date_str):
     #         "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",'META',
     #         'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER',"QQQ","SPY","IWM"]
     for hour in hours:
-        aggregates, error_list = call_polygon_histD(FULL_SYM, from_stamp, to_stamp, timespan="minute", multiplier="30")
+        aggregates, error_list = call_polygon_histD(['GM'], from_stamp, to_stamp, timespan="minute", multiplier="30")
         if len(error_list) > 0:
             print(error_list)
-        hour_aggregates, error_list = call_polygon_histH(FULL_SYM, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+        hour_aggregates, error_list = call_polygon_histH(['GM'], hour_stamp, hour_stamp, timespan="minute", multiplier="30")
         if len(error_list) > 0:
             print(error_list)
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
@@ -74,12 +74,12 @@ def build_historic_data(date_str):
         df['SPY_1D'] = SPY_diff
         df['SPY_3D'] = SPY_diff3
         df['SPY_5D'] = SPY_diff5
-        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv")
-        # old_df = pd.read_csv(old_df['Body'])
-        # new_df = pd.concat([old_df,df],ignore_index=True)
-        # new_df = new_df.drop_duplicates(subset=['symbol'])
-        # new_df.drop(columns=['Unnamed: 0'], inplace=True)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"full_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
+        old_df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv")
+        old_df = pd.read_csv(old_df['Body'])
+        new_df = pd.concat([old_df,df],ignore_index=True)
+        new_df = new_df.drop_duplicates(subset=['symbol'])
+        new_df.drop(columns=['Unnamed: 0'], inplace=True)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv", Body=new_df.to_csv())
     return put_response
     
 def generate_dates_historic(date_str):
@@ -142,6 +142,6 @@ if __name__ == "__main__":
 
     # run_process("2018-01-02")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
