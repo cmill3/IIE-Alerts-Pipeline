@@ -232,8 +232,8 @@ def build_days(symbol, monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2023,10,14)
-    end_date = datetime(2023,12,23)
+    start_date = datetime(2018,1,1)
+    end_date = datetime(2023,12,22)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -248,7 +248,7 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2022-10-03")
-    for symbol in all_symbols:
+    for symbol in ["GM"]:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count()*2)
         # for date_str in date_list:

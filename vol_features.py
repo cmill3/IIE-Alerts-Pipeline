@@ -52,19 +52,17 @@ def build_vol_features(date_str):
     from_stamp, to_stamp, hour_stamp = generate_dates_historic_vol(date_str)
 
     for hour in hours:
-        df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv")
+        df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/vol/{key_str}/{hour}.csv")
         df = pd.read_csv(df['Body'])
-        df = df.loc[df['symbol'].isin(new_symbols)]
-        min_aggs, error_list = call_polygon_vol(new_symbols, from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
-        print(f"Finished minute aggs for {key_str} {hour}")
-        hour_aggs, error_list = call_polygon_vol(new_symbols, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
-        print(f"Finished hour aggs for {key_str} {hour}")
+        # symbols = df['symbol'].unique().tolist()
+        min_aggs, error_list = call_polygon_vol(['GM'], from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
+        hour_aggs, error_list = call_polygon_vol(['GM'], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
         results_df = vol_feature_engineering(df, min_aggs, hour_aggs)
-        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/vol/{key_str}/{hour}.csv")
-        # old_df = pd.read_csv(old_df['Body'])
-        # new_df = pd.concat([old_df,results_df],ignore_index=True)
+        old_df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/vol/{key_str}/{hour}.csv")
+        old_df = pd.read_csv(old_df['Body'])
+        new_df = pd.concat([old_df,results_df],ignore_index=True)
         put_response = s3.put_object(Bucket="inv-alerts", Key=f"all_alerts/vol_features/{key_str}/{hour}.csv", Body=results_df.to_csv())
-    return "put_response"
+    return put_response
 
 
 def combine_hour_aggs(aggregates, hour_aggregates, hour):
@@ -137,8 +135,8 @@ def consolidate_bf_vol(date_str):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     print(os.cpu_count())
-    start_date = datetime(2018,1,2)
-    end_date = datetime(2023,10,28)
+    start_date = datetime(2023,10,28)
+    end_date = datetime(2023,12,23)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -153,6 +151,6 @@ if __name__ == "__main__":
     # run_process("2018-01-03")
         
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
