@@ -97,11 +97,16 @@ def alerts_runner(date_str):
     for hour in hours:
         all_symbol = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/vol_fix/{key_str}/{hour}.csv")
         all_symbol_df = pd.read_csv(all_symbol['Body'])
-        all_symbol_df = all_symbol_df.loc[all_symbol_df['symbol'].isin(all_symbols)]
-        alerts = build_alerts(all_symbol_df)
-        for alert in alerts:
-            csv = alerts[alert].to_csv()
-            put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/{key_str}/{alert}/{hour}.csv", Body=csv)
+        standard_df = all_symbol_df.loc[all_symbol_df['symbol'].isin(standard)]
+        high_vol_df = all_symbol_df.loc[all_symbol_df['symbol'].isin(high_vol)]
+        standard_alerts = build_alerts(standard_df)
+        high_vol_alerts = build_alerts(high_vol_df)
+        for alert in standard_alerts:
+            csv = standard_alerts[alert].to_csv()
+            put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/standard_alerts/{key_str}/{alert}/{hour}.csv", Body=csv)
+        for alert in high_vol_alerts:
+            csv = high_vol_alerts[alert].to_csv()
+            put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/high_vol_alerts/{key_str}/{alert}/{hour}.csv", Body=csv)
 
 def add_data_to_alerts(date_str):
     hours = ["10","11","12","13","14","15"]
@@ -176,7 +181,7 @@ def generate_dates_historic(date_str):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     print(os.cpu_count())
-    start_date = datetime(2018,1,1)
+    start_date = datetime(2023,10,28)
     end_date = datetime(2023,12,23)
     date_diff = end_date - start_date
     numdays = date_diff.days 
