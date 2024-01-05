@@ -9,6 +9,11 @@ import logging
 from botocore.exceptions import ClientError
 import concurrent.futures
 from helpers.constants import ALL_SYM, TRADING_SYMBOLS, FULL_SYM
+import pandas_market_calendars as mcal
+
+nyse = mcal.get_calendar('NYSE')
+holidays = nyse.holidays()
+holidays_multiyear = holidays.holidays
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
 
@@ -31,22 +36,17 @@ def build_historic_data(date_str):
     key_str = date_str.replace("-","/")
     s3 = get_s3_client()
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
-    year, month, day = from_stamp.split("-")
-    # if datetime(int(year),int(month),int(day)) <= datetime(2022,6,1):
-    #     big_fish =  ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","FB","CRM",
-    #         "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",
-    #         'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER']
-    # else:
-    #    big_fish =  ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","CRM",
-    #         "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",'META',
-    #         'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER',"QQQ","SPY","IWM"]
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
+    date_np = np.datetime64(dt)
+    if date_np in holidays_multiyear:
+        return "holiday"
     for hour in hours:
         aggregates, error_list = call_polygon_histD(FULL_SYM, from_stamp, to_stamp, timespan="minute", multiplier="30")
-        if len(error_list) > 0:
-            print(error_list)
+        # if len(error_list) > 0:
+        #     print(error_list)
         hour_aggregates, error_list = call_polygon_histH(FULL_SYM, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
-        if len(error_list) > 0:
-            print(error_list)
+        # if len(error_list) > 0:
+        #     print(error_list)
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
         df = build_analytics(full_aggs, hour)
         df.reset_index(drop=True, inplace=True)
@@ -128,8 +128,9 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2018,1,17)
-    end_date = datetime(2019,1,1)
+    cpu = os.cpu_count()
+    start_date = datetime(2021,1,1)
+    end_date = datetime(2023,12,23)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -142,6 +143,6 @@ if __name__ == "__main__":
 
     # run_process("2018-01-02")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=cpu) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
