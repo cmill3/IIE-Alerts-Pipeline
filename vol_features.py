@@ -52,16 +52,16 @@ def build_vol_features(date_str):
     from_stamp, to_stamp, hour_stamp = generate_dates_historic_vol(date_str)
 
     for hour in hours:
-        df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/vol/{key_str}/{hour}.csv")
+        df = s3.get_object(Bucket="inv-alerts", Key=f"full_alerts/{key_str}/{hour}.csv")
         df = pd.read_csv(df['Body'])
-        # symbols = df['symbol'].unique().tolist()
-        min_aggs, error_list = call_polygon_vol(['GM'], from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
-        hour_aggs, error_list = call_polygon_vol(['GM'], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+        symbols = df['symbol'].unique().tolist()
+        min_aggs, error_list = call_polygon_vol(symbols, from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
+        hour_aggs, error_list = call_polygon_vol(symbols, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
         results_df = vol_feature_engineering(df, min_aggs, hour_aggs)
-        old_df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/vol/{key_str}/{hour}.csv")
-        old_df = pd.read_csv(old_df['Body'])
-        new_df = pd.concat([old_df,results_df],ignore_index=True)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"all_alerts/vol_features/{key_str}/{hour}.csv", Body=results_df.to_csv())
+        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"full_alerts/vol/{key_str}/{hour}.csv")
+        # old_df = pd.read_csv(old_df['Body'])
+        # new_df = pd.concat([old_df,results_df],ignore_index=True)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"full_alerts/{key_str}/{hour}.csv", Body=results_df.to_csv())
     return put_response
 
 
