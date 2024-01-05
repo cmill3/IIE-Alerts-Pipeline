@@ -128,8 +128,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2018,1,1)
-    end_date = datetime(2023,12,23)
+    start_date = datetime(2018,1,17)
+    end_date = datetime(2019,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -142,6 +142,6 @@ if __name__ == "__main__":
 
     # run_process("2018-01-02")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
