@@ -137,8 +137,8 @@ def consolidate_bf_vol(date_str):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     print(os.cpu_count())
-    start_date = datetime(2018,1,2)
-    end_date = datetime(2023,10,28)
+    start_date = datetime(2022,7,5)
+    end_date = datetime(2022,8,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -153,6 +153,6 @@ if __name__ == "__main__":
     # run_process("2018-01-03")
         
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
