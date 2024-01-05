@@ -183,17 +183,19 @@ def call_polygon_histH(symbol_list, from_stamp, to_stamp, timespan, multiplier):
         try:
             response_data = json.loads(response.text)
             results = response_data['results']
-        except:
+            results_df = pd.DataFrame(results)
+            results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
+            results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
+            results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
+            results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
+            results_df['symbol'] = symbol
+            trimmed_df = results_df.loc[results_df['hour'].isin([9,10,11,12,13,14,15])]
+            filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
+            dfs.append(filtered_df)
+        except Exception as e:
+            error_list.append(symbol)
+            print(e)
             continue
-        results_df = pd.DataFrame(results)
-        results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
-        results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
-        results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
-        results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
-        results_df['symbol'] = symbol
-        trimmed_df = results_df.loc[results_df['hour'].isin([9,10,11,12,13,14,15])]
-        filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
-        dfs.append(filtered_df)
 
     return dfs, error_list
 
@@ -255,37 +257,39 @@ def call_polygon_histD(symbol_list, from_stamp, to_stamp, timespan, multiplier):
         try:
             response_data = json.loads(response.text)
             results = response_data['results']
-        except:
-            continue
-        results_df = pd.DataFrame(results)
-        results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
-        results_df['date'] = results_df['t'].apply(lambda x:convert_timestamp_est(x))
-        results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
-        results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
-        results_df['symbol'] = symbol
-        results_df['day_of_week'] = results_df['date'].apply(lambda x: x.weekday())
-        trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
-        filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
-        filtered_df = filtered_df.loc[filtered_df['day_of_week'] < 5]
-        filtered_df.set_index('date',inplace=True)
-        agg_dict = {
-            'v': 'sum',
-            'o': 'first',
-            'c': 'last',
-            'h': 'max',
-            'l': 'min'
-        }
+            results_df = pd.DataFrame(results)
+            results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
+            results_df['date'] = results_df['t'].apply(lambda x:convert_timestamp_est(x))
+            results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
+            results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
+            results_df['symbol'] = symbol
+            results_df['day_of_week'] = results_df['date'].apply(lambda x: x.weekday())
+            trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+            filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
+            filtered_df = filtered_df.loc[filtered_df['day_of_week'] < 5]
+            filtered_df.set_index('date',inplace=True)
+            agg_dict = {
+                'v': 'sum',
+                'o': 'first',
+                'c': 'last',
+                'h': 'max',
+                'l': 'min'
+            }
 
-        # Perform resampling and aggregation
-        daily_stats = filtered_df.resample('D').agg(agg_dict)
-        daily_stats.dropna(inplace=True)
-        daily_stats['date_stamp'] = daily_stats.index
-        daily_stats['hour'] = 0
-        daily_stats['symbol'] = symbol
-        daily_stats['t'] = 0
-        daily_stats.rename(columns={"date_stamp": "date"}, inplace=True)
-        daily_stats.reset_index(drop=True, inplace=True)
-        dfs.append(daily_stats)
+            # Perform resampling and aggregation
+            daily_stats = filtered_df.resample('D').agg(agg_dict)
+            daily_stats.dropna(inplace=True)
+            daily_stats['date_stamp'] = daily_stats.index
+            daily_stats['hour'] = 0
+            daily_stats['symbol'] = symbol
+            daily_stats['t'] = 0
+            daily_stats.rename(columns={"date_stamp": "date"}, inplace=True)
+            daily_stats.reset_index(drop=True, inplace=True)
+            dfs.append(daily_stats)
+        except Exception as e:
+            error_list.append(symbol)
+            print(e)
+            continue
 
     return dfs, error_list
 
