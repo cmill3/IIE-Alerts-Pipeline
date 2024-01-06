@@ -62,26 +62,32 @@ def get_pcr_historic(symbol, window, dates):
     return raw_list
 
 def calc_price_action(row):
-    t = row['t']
-    date = row['date']
-    from_stamp = date.strftime("%Y-%m-%d")
-    date = date.astimezone(pytz.timezone('US/Eastern'))
-    aggs = call_polygon_price(row['symbol'], from_stamp, "hour", 1, row['hour'])
-    one_day, three_day = build_date_dfs(aggs, t)
-    open = one_day.head(1)['o'].values[0]
-    one_c = one_day.tail(1)['c'].values[0]
-    one_h = one_day['h'].max()
-    one_l = one_day['l'].min()
-    three_c = three_day.tail(1)['c'].values[0]
-    three_h = three_day['h'].max()
-    three_l = three_day['l'].min()
-    one_high = (one_h - open)/ open
-    one_low = (one_l - open)/ open
-    one_pct = (one_c - row['c'])/row['c']
-    three_high = (three_h - open)/ open
-    three_low = (three_l - open)/ open
-    three_pct = (three_c - row['c'])/row['c']
-    return {"one_max": one_high, "one_min": one_low, "one_pct": one_pct, "three_max": three_high, "three_min": three_low, "three_pct": three_pct,"symbol": row['symbol']}
+    try:
+        t = row['t']
+        date = row['date']
+        from_stamp = date.strftime("%Y-%m-%d")
+        date = date.astimezone(pytz.timezone('US/Eastern'))
+        aggs = call_polygon_price(row['symbol'], from_stamp, "hour", 1, row['hour'])
+        one_day, three_day = build_date_dfs(aggs, t)
+        open = one_day.head(1)['o'].values[0]
+        one_c = one_day.tail(1)['c'].values[0]
+        one_h = one_day['h'].max()
+        one_l = one_day['l'].min()
+        three_c = three_day.tail(1)['c'].values[0]
+        three_h = three_day['h'].max()
+        three_l = three_day['l'].min()
+        one_high = (one_h - open)/ open
+        one_low = (one_l - open)/ open
+        one_pct = (one_c - row['c'])/row['c']
+        three_high = (three_h - open)/ open
+        three_low = (three_l - open)/ open
+        three_pct = (three_c - row['c'])/row['c']
+        return {"one_max": one_high, "one_min": one_low, "one_pct": one_pct, "three_max": three_high, "three_min": three_low, "three_pct": three_pct,"symbol": row['symbol']}
+    except Exception as e:
+        print(e)
+        print(row['symbol'])
+        print('price action')
+        return {"one_max": 0, "one_min": 0, "one_pct": 0, "three_max": 0, "three_min": 0, "three_pct": 0,"symbol": row['symbol']}
 
 def build_date_dfs(df, t):
     date = convert_timestamp_est(t)
