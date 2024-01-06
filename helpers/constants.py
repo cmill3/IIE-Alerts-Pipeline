@@ -43,7 +43,7 @@ WEEKLY_EXP = ['MMM', 'ABT', 'ABBV', 'ACN', 'ATVI', 'ADM', 'ADBE', 'ADP',
 'MGM', 'MU', 'MSFT', 'MRNA', 'MDLZ', 'MS', 'MOS', 'NTAP', 'NFLX', 'NEM', 'NKE', 'NSC', 'NOC', 'NCLH', 'NUE', 'NVDA', 'NXPI', 'OXY', 'ON', 'ORCL', 'PARA', 'PYPL', 'PEP', 'PFE', 'PCG', 'PM', 'PSX', 'PXD', 'PNC', 
 'PPG', 'PG', 'PHM', 'QCOM', 'RTX', 'REGN', 'ROST', 'RCL', 'SPGI', 'CRM', 'SLB', 'STX', 'NOW', 'SWKS', 'SEDG', 'SO', 'LUV', 'SBUX', 'TMUS', 'TROW', 'TTWO', 'TPR', 'TGT', 'TSLA', 'TXN', 'TMO', 'TJX', 'TSCO', 'TFC', 
 'TSN', 'USB', 'ULTA', 'UNP', 'UAL', 'UPS', 'URI', 'UNH', 'VLO', 'VZ', 'VRTX', 'VFC', 'V', 'WBA', 'WMT', 'WBD', 'WM', 'WFC', 'WDC', 'WHR', 'WMB', 'WYNN', 'ZION','LYFT', 'UBER', 'SNOW', 'ZM', 'TWLO', 'PTON', 'SOFI', 
-'DKNG', 'NET', 'TTD', 'OKTA', 'ARM', 'CRWD', 'GIS', 'W', 'PINS', 'MARA', 'PLTR', 'ZS', 'ABNB', 'DOCU', 'TDOC', 'SHOP', 'TEAM', 'TSM', 'SQ', 'PANW', 'DDOG',]
+'DKNG', 'NET', 'TTD', 'OKTA', 'ARM', 'CRWD', 'GIS', 'W', 'PINS', 'MARA', 'PLTR', 'ZS', 'ABNB', 'DOCU', 'TDOC', 'SHOP', 'TEAM', 'TSM', 'SQ', 'PANW', 'DDOG']
 
 
 TRADING_SYMBOLS =  ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
