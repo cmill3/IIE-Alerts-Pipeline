@@ -349,11 +349,11 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
 
-    for symbol in indexes:
+    for symbol in first_run:
         print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*3)
+        cpu_count = (os.cpu_count()*1)
         # options_snapshot_remediator_idx(date_list,symbol)
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
-            processed_weeks_futures = [executor.submit(options_snapshot_remediator_idx,date_str,symbol) for date_str in date_list]
+            processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")

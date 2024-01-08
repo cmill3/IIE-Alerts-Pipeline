@@ -34,17 +34,20 @@ ALL_SYM = ['SPY', 'IVV', 'VOO', 'VTI', 'QQQ', 'VEA', 'IEFA', 'VTV', 'BND', 'AGG'
 'UBER', 'JD', 'DDOG', 'CRWD', 'SQ', 'RBLX', 'SNAP', 'FUTU', 'TSM', 'LCID', 'UPST', 'TDOC', 'SNOW', 'BIDU', 'NIO', 'SHOP', 'ROKU', 
 'OKTA', 'RIVN', 'ZM', 'WBD', 'SE', 'SOFI', 'META', 'TWLO', 'ZS', 'BABA', 'PLTR', 'PINS', 'PANW', 'ABNB', 'NET', 'COIN', 'BILI', 'ARM']
 
-TRADING_SYMBOLS =  ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
- 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB','QQQ','SPY','IWM',
- 'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
- 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','TSLA','LCID','NIO','WFC',
- 'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
- 'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
- 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
- 'ORCL','SBUX','NKE','TSLA','XOM',"RTX","UPS","FDX","CAT","PG","COST","LMT","GS","MS",
- "AXP","GIS","KHC","W","CHWY","PTON","DOCU","TTD","NOW","TEAM","MDB","HOOD","MARA","AI",
- "LYFT","BYND","RIOT","U", 'BILI', 'AVGO', 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 
-'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'SNAP', 'MGM', 'CVNA','MCD','AVGO','GM','DG','DE','BKNG']
+TRADING_SYMBOLS =  [
+#   'ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
+#  'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
+#  'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
+#  'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','TSLA','LCID','NIO','WFC',
+#  'TGT', 'COST', 'RIVN', 'COIN', 'SQ', 'SHOP', 'DOCU', 'ROKU', 'TWLO', 'DDOG', 'ZS', 'NET',
+#  'OKTA', 'UPST', 'ETSY', 'PINS', 'FUTU', 'SE', 'BIDU', 'JD', 'BABA', 'RBLX', 'AMD',
+#  'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
+#  'ORCL','SBUX','NKE','TSLA','XOM',"RTX","UPS","FDX","CAT","PG","COST","LMT","GS","MS",
+#  "AXP","GIS","KHC","W","CHWY","PTON","DOCU","TTD","NOW","TEAM","MDB",
+#  "HOOD","MARA","AI", "BYND",
+#  "LYFT",'AVGO', 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 
+# 'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'SNAP', 'MGM', 'CVNA','MCD','GM','DG','DE', 'BKNG'
+    "TEAM","NOW","FDX","TTD","UPS"]
 
 FULL_SYM = ['VUG', 'IWF', 'IJH', 'IJR', 'VGT', 'VO', 'XLK', 'VB', 'XLE', 'MMM', 'AOS', 'ABT', 'ACN', 'ADM', 'ADBE', 'ADP', 'AAP', 'AES', 'AFL', 'A', 'APD', 
 'AKAM', 'ALK', 'ALB', 'ARE', 'ALGN', 'ALLE', 'LNT', 'ALL', 'GOOGL', 'GOOG', 'AMZN', 'AMCR', 'AMD', 'AEE', 'AAL', 'AEP', 'AXP', 'AIG', 'AMT', 

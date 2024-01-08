@@ -11,6 +11,7 @@ import math
 import numpy as np
 import pandas_market_calendars as mcal
 import os
+from helpers.constants import TRADING_SYMBOLS
 
 api_key = 'XpqF6xBLLrj6WALk4SS1UlkgphXmHQec'
 
@@ -232,7 +233,7 @@ def build_days(symbol, monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2018,1,1)
+    start_date = datetime(2023,1,2)
     end_date = datetime(2023,12,22)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -248,12 +249,12 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2022-10-03")
-    for symbol in ["GM"]:
+    for symbol in TRADING_SYMBOLS:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count()*2)
         # for date_str in date_list:
         #     options_snapshot_remediator(date_str, symbol)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator, date_str, symbol) for date_str in date_list]
         print(f"Finished with {symbol}")
