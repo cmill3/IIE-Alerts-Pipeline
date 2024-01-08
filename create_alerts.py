@@ -9,6 +9,7 @@ import logging
 from botocore.exceptions import ClientError
 import concurrent.futures
 import warnings
+from helpers.constants import WEEKLY_EXP, TRADING_SYMBOLS
 warnings.filterwarnings("ignore")
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
@@ -50,18 +51,18 @@ def alerts_runner(date_str):
     s3 = boto3.client('s3')
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
     for hour in hours:
-        all_symbol = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/vol_fix/{key_str}/{hour}.csv")
+        all_symbol = s3.get_object(Bucket="inv-alerts", Key=f"full_alerts/vol/{key_str}/{hour}.csv")
         all_symbol_df = pd.read_csv(all_symbol['Body'])
-        standard_df = all_symbol_df.loc[all_symbol_df['symbol'].isin(standard)]
-        high_vol_df = all_symbol_df.loc[all_symbol_df['symbol'].isin(high_vol)]
-        standard_alerts = build_alerts(standard_df)
-        high_vol_alerts = build_alerts(high_vol_df)
-        for alert in standard_alerts:
-            csv = standard_alerts[alert].to_csv()
-            put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/standard_alerts/{key_str}/{alert}/{hour}.csv", Body=csv)
-        for alert in high_vol_alerts:
-            csv = high_vol_alerts[alert].to_csv()
-            put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/high_vol_alerts/{key_str}/{alert}/{hour}.csv", Body=csv)
+        trading_df = all_symbol_df.loc[all_symbol_df['symbol'].isin(TRADING_SYMBOLS)]
+        weekly_exp_df = all_symbol_df.loc[all_symbol_df['symbol'].isin(WEEKLY_EXP)]
+        trading_alerts = build_alerts(trading_df)
+        weekly_exp_alerts = build_alerts(weekly_exp_df)
+        for alert in trading_alerts:
+            csv = trading_alerts[alert].to_csv()
+            put_response = s3.put_object(Bucket="inv-alerts", Key=f"full_alerts/trading_symbols_alerts/{key_str}/{alert}/{hour}.csv", Body=csv)
+        for alert in weekly_exp_alerts:
+            csv = weekly_exp_alerts[alert].to_csv()
+            put_response = s3.put_object(Bucket="inv-alerts", Key=f"full_alerts/weekly_exp_alerts/{key_str}/{alert}/{hour}.csv", Body=csv)
 
 def add_data_to_alerts(date_str):
     hours = ["10","11","12","13","14","15"]
@@ -136,7 +137,7 @@ def generate_dates_historic(date_str):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     print(os.cpu_count())
-    start_date = datetime(2023,10,28)
+    start_date = datetime(2018,1,1)
     end_date = datetime(2023,12,23)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -152,6 +153,6 @@ if __name__ == "__main__":
     # add_data_to_alerts("2022-01-27")
         
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
