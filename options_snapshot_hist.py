@@ -30,8 +30,9 @@ all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', '
 
 first_run = [
     # 'CMG', 'AXP', 
-    'DAL', 'MMM', 'PEP', 'GE', 'MRK', 'HD', 'LOW', 'VZ', 'PG', 'TSM',
- 'GOOG', 'GOOGL', 'BAC', 'AAPL' ,'CRM', 'MSFT', 'F' ,'V' ,'MA' ,'JNJ', 'DIS' ,'JPM',
+    # 'DAL', 'MMM', 'PEP', 'GE', 'MRK', 'HD', 'LOW', 'VZ', 'PG', 'TSM',
+#  'GOOG', 'GOOGL', 
+    'BAC', 'AAPL' ,'CRM', 'MSFT', 'F' ,'V' ,'MA' ,'JNJ', 'DIS' ,'JPM',
  'ADBE' ,'BA' ,'CVX', 'PFE' ,'C' ,'CAT', 'KO' ,'MS', 'GS', 'IBM' ,'CSCO' ,'WMT', 'WFC'
  'TGT', 'COST', 'INTC', 'PANW', 'ORCL', 'SBUX', 'NKE' ,'XOM', 'RTX' ,'UPS', 'FDX',
  'LMT' ,'GIS', 'KHC', 'AVGO', 'QCOM', 'TXN' ,'MGM','GM']
@@ -351,7 +352,7 @@ if __name__ == "__main__":
 
     for symbol in first_run:
         print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*1)
+        cpu_count = (os.cpu_count()*2)
         # options_snapshot_remediator_idx(date_list,symbol)
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor

@@ -233,7 +233,7 @@ def build_days(symbol, monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2023,1,2)
+    start_date = datetime(2023,1,1)
     end_date = datetime(2023,12,22)
     date_diff = end_date - start_date
     numdays = date_diff.days 
