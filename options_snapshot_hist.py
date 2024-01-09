@@ -73,8 +73,8 @@ def options_snapshot_runner(monday,symbol):
             print(f"{symbol} failed twice at {monday} with: {e}. Skipping")
 
 def options_snapshot_remediator(date_str,symbol):
-    dt = datetime.strptime(date_str, "%Y-%m-%d")
     hours = ["10","11","12","13","14","15"]
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
     date_np = np.datetime64(dt)
     if date_np in holidays_multiyear:
         return "holiday"
@@ -349,11 +349,11 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
 
-    for symbol in indexes:
+    for symbol in first_run:
         print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*3)
+        cpu_count = os.cpu_count()*3
         # options_snapshot_remediator_idx(date_list,symbol)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator_idx,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")
