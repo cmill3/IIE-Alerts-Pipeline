@@ -41,10 +41,10 @@ def build_historic_data(date_str):
     if date_np in holidays_multiyear:
         return "holiday"
     for hour in hours:
-        aggregates, error_list = call_polygon_histD(FULL_SYM, from_stamp, to_stamp, timespan="minute", multiplier="30")
+        aggregates, error_list = call_polygon_histD(["QQQ","IWM","SPY"], from_stamp, to_stamp, timespan="minute", multiplier="30")
         # if len(error_list) > 0:
         #     print(error_list)
-        hour_aggregates, error_list = call_polygon_histH(FULL_SYM, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+        hour_aggregates, error_list = call_polygon_histH(["QQQ","IWM","SPY"], hour_stamp, hour_stamp, timespan="minute", multiplier="30")
         # if len(error_list) > 0:
         #     print(error_list)
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
@@ -79,7 +79,7 @@ def build_historic_data(date_str):
         # new_df = pd.concat([old_df,df],ignore_index=True)
         # new_df = new_df.drop_duplicates(subset=['symbol'])
         # new_df.drop(columns=['Unnamed: 0'], inplace=True)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"full_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"idx_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
     return put_response
     
 def generate_dates_historic(date_str):
@@ -133,7 +133,7 @@ def pull_df(date_stamp, prefix, hour):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     cpu = os.cpu_count()
-    start_date = datetime(2022,3,5)
+    start_date = datetime(2018,4,20)
     end_date = datetime(2023,12,23)
     date_diff = end_date - start_date
     numdays = date_diff.days 

@@ -631,6 +631,22 @@ def convert_timestamp_est(timestamp):
     
     return dt_est
 
+def call_polygon_option_snapshot(symbol,expiration_dates):
+    symbol_dfs = []
+    for expiry in expiration_dates:
+        for option_type in ['call','put']:
+            url = f"https://api.polygon.io/v3/snapshot/options/{symbol}?expiration_date={expiry}?contract_type={option_type}&limit=250&apiKey=A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp&apiKey={KEY}"
+            response = execute_polygon_call(url)
+            response_data = json.loads(response.text)
+            results = response_data['results']
+            results_df = pd.DataFrame(results)
+            results_df['symbol'] = symbol
+            results_df['expiry'] = expiry
+            results_df['option_type'] = option_type
+            symbol_dfs.append(results_df)
+    full_df = pd.concat(symbol_dfs)
+    return full_df
+
 if __name__ == "__main__":
     import time 
     dt = time.time()

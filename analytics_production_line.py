@@ -112,8 +112,8 @@ def build_alerts_production(df):
     volume_sorted = volume_df.sort_values(by="v", ascending=False)
     v_sorted = volume_df.sort_values(by="hour_volume_vol_diff_pct", ascending=False)
     c_sorted = df.sort_values(by="close_diff", ascending=False)
-    gainers = c_sorted.head(10)
-    losers = c_sorted.tail(10)
+    gainers = c_sorted.head(15)
+    losers = c_sorted.tail(15)
     v_diff = v_sorted.head(15)
     volume = volume_sorted.head(15)
     return {"gainers": gainers, "losers": losers, "v_diff": v_diff, "most_actives": volume}

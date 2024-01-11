@@ -55,8 +55,7 @@ functions:
     environment:
       PREDICTIONS_BUCKET: "inv-alerts-trading-data"
       ALERTS_BUCKET: "inv-alerts"
-      TITLE: "LOSERS,LOSERS_1D,LOSERSC,LOSERSC_1D"
-      ENDPOINT_NAMES: "invalerts-xgb-bfp-classifier,invalerts-xgb-bfp-1d-classifier"
+      STRATEGIES: "LOSERS,LOSERS_1D,LOSERSC,LOSERSC_1D"
     layers:
       - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
       - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
@@ -67,8 +66,7 @@ functions:
     environment:
       PREDICTIONS_BUCKET: "inv-alerts-trading-data"
       ALERTS_BUCKET: "inv-alerts"
-      TITLE: "VDIFFC,VDIFFC_1D,VDIFFP,VDIFFP_1D"
-      ENDPOINT_NAMES: "invalerts-xgb-indexc-classifier,invalerts-xgb-indexc-1d-classifier"
+      STRATEGIES: "VDIFFC,VDIFFC_1D,VDIFFP,VDIFFP_1D"
     layers:
       - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
       - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
@@ -79,8 +77,7 @@ functions:
     environment:
       PREDICTIONS_BUCKET: "inv-alerts-trading-data"
       ALERTS_BUCKET: "inv-alerts"
-      TITLE: "MA,MA_1D,MAP,MAP_1D"
-      ENDPOINT_NAMES: "invalerts-xgb-indexc-classifier,invalerts-xgb-indexc-1d-classifier"
+      STRATEGIES: "MA,MA_1D,MAP,MAP_1D"
     layers:
       - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
       - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
@@ -91,8 +88,7 @@ functions:
     environment:
       PREDICTIONS_BUCKET: "inv-alerts-trading-data"
       ALERTS_BUCKET: "inv-alerts"
-      TITLE: "IDXC,IDXC_1D,IDXP,IDXP_1D"
-      ENDPOINT_NAMES: "invalerts-xgb-indexp-classifier,invalerts-xgb-indexp-1d-classifier"
+      STRATEGIES: "IDXC,IDXC_1D,IDXP,IDXP_1D"
     layers:
       - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
       - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
@@ -101,36 +97,36 @@ functions:
 
 stepFunctions:
   stateMachines:
-    inv-alerts-pipeline:
-      name: inv-alerts-pipeline
-      role: arn:aws:iam::456201388658:role/service-role/StepFunctions-Gainers-Production-Modeling-role-72889a0b
-      alarms:
-        topics:
-          alarm: arn:aws:sns:us-east-1:456201388658:yqalerts-production-modeling
-        metrics:
-          - executionsTimedOut
-          - executionsFailed
-          - executionsAborted
-          - executionThrottled
-        treatMissingData: missing
-      definition:
-        Comment: "This state machine constructs and executes trades based on results of the modeling engine"
-        StartAt: analytics-production-line
-        States:
-          analytics-production-line:
-            Type: Task
-            Resource: arn:aws:lambda:us-east-1:456201388658:function:inv-analytics-production-line
-            Retry:
-            - ErrorEquals:
-              - Lambda.ServiceException
-              - Lambda.AWSLambdaException
-              - Lambda.SdkClientException
-              IntervalSeconds: 5
-              MaxAttempts: 3
-              BackoffRate: 2
-            Next: End
-          End:
-              Type: Succeed
+    # inv-alerts-pipeline:
+    #   name: inv-alerts-pipeline
+    #   role: arn:aws:iam::456201388658:role/service-role/StepFunctions-Gainers-Production-Modeling-role-72889a0b
+    #   alarms:
+    #     topics:
+    #       alarm: arn:aws:sns:us-east-1:456201388658:yqalerts-production-modeling
+    #     metrics:
+    #       - executionsTimedOut
+    #       - executionsFailed
+    #       - executionsAborted
+    #       - executionThrottled
+    #     treatMissingData: missing
+    #   definition:
+    #     Comment: "This state machine constructs and executes trades based on results of the modeling engine"
+    #     StartAt: analytics-production-line
+    #     States:
+    #       analytics-production-line:
+    #         Type: Task
+    #         Resource: arn:aws:lambda:us-east-1:456201388658:function:inv-analytics-production-line
+    #         Retry:
+    #         - ErrorEquals:
+    #           - Lambda.ServiceException
+    #           - Lambda.AWSLambdaException
+    #           - Lambda.SdkClientException
+    #           IntervalSeconds: 5
+    #           MaxAttempts: 3
+    #           BackoffRate: 2
+    #         Next: End
+    #       End:
+    #           Type: Succeed
     invalerts-production-modeling:
       name: invalerts-production-modeling
       role: arn:aws:iam::456201388658:role/service-role/StepFunctions-Gainers-Production-Modeling-role-72889a0b
@@ -162,11 +158,11 @@ stepFunctions:
           Modeling:
             Type: Parallel
             Branches:
-              - StartAt: bfc-xgboost-classifier
+              - StartAt: losers-xgboost-classifier
                 States:
-                  bfc-xgboost-classifier:
+                  losers-xgboost-classifier:
                     Type: Task
-                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:bfc-xgboost-classifier:$LATEST"
+                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:losers-xgboost-classifier:$LATEST"
                     Retry:
                       - ErrorEquals:
                         - Lambda.ServiceException
@@ -176,11 +172,11 @@ stepFunctions:
                         MaxAttempts: 3
                         BackoffRate: 2
                     End: true
-              - StartAt: bfp-xgboost-classifier
+              - StartAt: gain-xgboost-classifier
                 States:
-                  bfp-xgboost-classifier:
+                  gain-xgboost-classifier:
                     Type: Task
-                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:bfp-xgboost-classifier:$LATEST"
+                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:gain-xgboost-classifier:$LATEST"
                     Retry:
                       - ErrorEquals:
                         - Lambda.ServiceException
@@ -190,11 +186,11 @@ stepFunctions:
                         MaxAttempts: 3
                         BackoffRate: 2
                     End: true
-              - StartAt: indexc-xgboost-classifier
+              - StartAt: idx-xgboost-classifier
                 States:
-                  indexc-xgboost-classifier:
+                  idx-xgboost-classifier:
                     Type: Task
-                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:indexc-xgboost-classifier:$LATEST"
+                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:idx-xgboost-classifier:$LATEST"
                     Retry:
                       - ErrorEquals:
                         - Lambda.ServiceException
@@ -204,11 +200,25 @@ stepFunctions:
                         MaxAttempts: 3
                         BackoffRate: 2
                     End: true
-              - StartAt: indexp-xgboost-classifier
+              - StartAt: ma-xgboost-classifier
                 States:
-                  indexp-xgboost-classifier:
+                  ma-xgboost-classifier:
                     Type: Task
-                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:indexp-xgboost-classifier:$LATEST"
+                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:ma-xgboost-classifier:$LATEST"
+                    Retry:
+                      - ErrorEquals:
+                        - Lambda.ServiceException
+                        - Lambda.AWSLambdaException
+                        - Lambda.SdkClientException
+                        IntervalSeconds: 5
+                        MaxAttempts: 3
+                        BackoffRate: 2
+                    End: true
+              - StartAt: vdiff-xgboost-classifier
+                States:
+                  vdiff-xgboost-classifier:
+                    Type: Task
+                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:vdiff-xgboost-classifier:$LATEST"
                     Retry:
                       - ErrorEquals:
                         - Lambda.ServiceException
