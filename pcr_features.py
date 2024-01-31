@@ -111,7 +111,7 @@ def pcr_feature_engineering(raw_pcr_data):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     cpu =os.cpu_count()
-    date_list = build_date_list("2018-01-02","2023-12-23")        
+    date_list = build_date_list("2022-11-01","2023-12-02")        
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=cpu) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor

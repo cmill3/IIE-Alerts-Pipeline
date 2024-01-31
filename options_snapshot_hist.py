@@ -33,7 +33,8 @@ first_run = [
     # 'DAL', 'MMM', 'PEP', 'GE', 'MRK', 'HD', 'LOW', 'VZ', 'PG', 'TSM',
 #  'GOOG', 'GOOGL', 
 #     'BAC', 'AAPL' ,'CRM', 'MSFT', 'F' ,'V' ,'MA' ,'JNJ', 'DIS' ,'JPM',
-#  'ADBE' ,'BA' ,'CVX', 'PFE' ,'C' ,'CAT', 'KO' ,'MS', 'GS', 'IBM' ,'CSCO' ,'WMT', 'WFC'
+#  'ADBE' ,'BA' ,'CVX', 'PFE' ,'C' ,'CAT', 'KO' ,'MS', 
+ 'GS', 'IBM' ,'CSCO' ,'WMT', 'WFC'
  'TGT', 'COST', 'INTC', 'PANW', 'ORCL', 'SBUX', 'NKE' ,'XOM', 'RTX' ,'UPS', 'FDX',
  'LMT' ,'GIS', 'KHC', 'AVGO', 'QCOM', 'TXN' ,'MGM','GM']
 
@@ -352,9 +353,9 @@ if __name__ == "__main__":
 
     for symbol in first_run:
         print(f"Starting {symbol}")
-        cpu_count = os.cpu_count()*3
+        cpu_count = os.cpu_count()
         # options_snapshot_remediator_idx(date_list,symbol)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")

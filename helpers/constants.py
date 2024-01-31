@@ -46,7 +46,9 @@ WEEKLY_EXP = ['MMM', 'ABT', 'ABBV', 'ACN', 'ATVI', 'ADM', 'ADBE', 'ADP',
 'DKNG', 'NET', 'TTD', 'OKTA', 'ARM', 'CRWD', 'GIS', 'W', 'PINS', 'MARA', 'PLTR', 'ZS', 'ABNB', 'DOCU', 'TDOC', 'SHOP', 'TEAM', 'TSM', 'SQ', 'PANW', 'DDOG']
 
 
-TRADING_SYMBOLS =  ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
+TRADING_SYMBOLS =  [
+                    'ZM', 'UBER', 'CMG', 
+                    'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
  'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
  'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
  'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','TSLA','LCID','NIO','WFC',
@@ -56,7 +58,8 @@ TRADING_SYMBOLS =  ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PE
  'ORCL','SBUX','NKE','TSLA','XOM',"RTX","UPS","FDX","CAT","PG","COST","LMT","GS","MS",
  "AXP","GIS","KHC","W","CHWY","PTON","DOCU","TTD","NOW","TEAM","MDB","HOOD","MARA","AI",
  "LYFT","BYND", 'AVGO', 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 
-'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'SNAP', 'MGM', 'CVNA','MCD','AVGO','GM','DG','DE','BKNG']
+'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'SNAP', 'MGM', 'CVNA','MCD','AVGO','GM','DG','DE','BKNG',
+ 'INTU','ADSK','WDAY','SPOT','LCRX']
 
 FULL_SYM = ['VUG', 'IWF', 'IJH', 'IJR', 'VGT', 'VO', 'XLK', 'VB', 'XLE', 'MMM', 'AOS', 'ABT', 'ACN', 'ADM', 'ADBE', 'ADP', 'AAP', 'AES', 'AFL', 'A', 'APD', 
 'AKAM', 'ALK', 'ALB', 'ARE', 'ALGN', 'ALLE', 'LNT', 'ALL', 'GOOGL', 'GOOG', 'AMZN', 'AMCR', 'AMD', 'AEE', 'AAL', 'AEP', 'AXP', 'AIG', 'AMT', 
