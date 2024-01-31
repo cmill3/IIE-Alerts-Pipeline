@@ -14,7 +14,7 @@ partition_assignment = os.getenv("PARTITION_ASSIGNMENT")
 partition_numbers = {
     "1":"0:46",
     "2":"46:92",
-    "3":"92:138",
+    "3":"92:",
 }
 
 s3 = get_s3_client()
@@ -24,14 +24,17 @@ now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 logger = logging.getLogger()
 
 def analytics_runner(event, context):
-    # sym_range = partition_numbers[partition_assignment]
-    # s1, s2 = sym_range.split(":")
-    # symbols = TRADING_SYMBOLS[int(s1):int(s2)]
+    sym_range = partition_numbers[partition_assignment]
+    s1, s2 = sym_range.split(":")
+    if partition_assignment == "3":
+        symbols = TRADING_SYMBOLS[int(s1):]
+    else:
+        symbols = TRADING_SYMBOLS[int(s1):int(s2)]
 
     year, month, day, hour = format_dates(date)
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date)
-    aggregates, error_list = call_polygon_histD(TRADING_SYMBOLS, from_stamp, to_stamp, timespan="minute", multiplier="30")
-    hour_aggregates, error_list = call_polygon_histH(TRADING_SYMBOLS, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+    aggregates, error_list = call_polygon_histD(symbols, from_stamp, to_stamp, timespan="minute", multiplier="30")
+    hour_aggregates, error_list = call_polygon_histH(symbols, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
     full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
     spy_aggs, _ = call_polygon_histD(["SPY"],from_stamp, to_stamp, timespan="minute", multiplier="30")
     spy_aggs = spy_aggs[0]['c']
@@ -45,14 +48,24 @@ def analytics_runner(event, context):
     min_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
     hour_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
     df = vol_feature_engineering(df, min_aggs, hour_aggs)
-    date_hour = datetime.now(est).hour
-    df['hour'] = date_hour
-    df = df.loc[~df['symbol'].isin(UNDESIRABLES)]
-    alerts = build_alerts_production(df)
+    df['hour'] = hour
+    put_response = s3.put_object(Bucket="inv-alerts", Key=f"inv_alerts/raw_alerts/{partition_assignment}/{year}/{month}/{day}/{hour}.csv", Body=df.to_csv())
+    return put_response
+
+
+def build_alerts_production(event, context):
+    dfs = []
+    year, month, day, hour = format_dates(date)
+    for num in ["1","2","3"]:
+        df = s3.get_object(Bucket="inv-alerts", Key=f"inv_alerts/raw_alerts/{num}/{year}/{month}/{day}/{hour}.csv")
+        df = pd.read_csv(df['Body'])
+        dfs.append(df)
+    full_df = pd.concat(dfs)
+    alerts = build_alerts_production(full_df)
     for alert in alerts:
         csv = alerts[alert].to_csv()
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"inv_alerts/production_alerts/{year}/{month}/{day}/{alert}/{date_hour}.csv", Body=csv)
-    return put_response
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"inv_alerts/production_alerts/{year}/{month}/{day}/{alert}/{hour}.csv", Body=csv)
+    return "done"
 
 def combine_hour_aggs(aggregates, hour_aggregates, hour):
     full_aggs = []
