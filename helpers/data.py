@@ -2,8 +2,8 @@ import requests
 import json
 import pandas as pd
 from datetime import datetime, timedelta, time
-import pandas_ta as ta
-import numpy as np
+import helpers.ta_formulas as ta
+import statistics
 import pytz
 import warnings
 from requests.adapters import HTTPAdapter
@@ -441,21 +441,21 @@ def build_analytics(aggregates, hour):
             d['adjusted_volume'] = create_adjusted_volume(d['v'].tolist(), hour)
             d['vol7'] = ta.slope(d['adjusted_volume'],7)    
             d['vol14'] = ta.slope(d['adjusted_volume'],14)
-            d['rsi'] = ta.rsi(d['c'])
-            d['rsi3'] = ta.rsi(d['c'],length=3)
-            d['rsi5'] = ta.rsi(d['c'],length=5)
-            d['roc'] = ta.roc(d['c'])
-            d['roc3'] = ta.roc(d['c'],length=3)
-            d['roc5'] = ta.roc(d['c'],length=5)
+            d['rsi'] = ta.rsi(d['c'],window=14)
+            d['rsi3'] = ta.rsi(d['c'],window=3)
+            d['rsi5'] = ta.rsi(d['c'],window=5)
+            d['roc'] = ta.roc(d['c'],window=10)
+            d['roc3'] = ta.roc(d['c'],window=3)
+            d['roc5'] = ta.roc(d['c'],window=5)
             d['threeD_returns_close'] = d['c'].pct_change(3)
             d['oneD_returns_close'] = d['c'].pct_change(1)
             d['range_vol'] = (d['h'] - d['l'])/ d['c']
             d['range_vol5MA'] = d['range_vol'].rolling(5).mean()
             d['range_vol10MA'] = d['range_vol'].rolling(10).mean()
             d['range_vol25MA'] = d['range_vol'].rolling(25).mean()
-            d['oneD_stddev50'] = np.std(d['oneD_returns_close'])
-            d['threeD_stddev50'] = np.std(d['threeD_returns_close'])
-            d['cmf'] = ta.cmf(d['h'], d['l'], d['c'], d['v'])
+            d['oneD_stddev50'] = statistics.stdev(d['oneD_returns_close'])
+            d['threeD_stddev50'] = statistics.stdev(d['threeD_returns_close'])
+            d['cmf'] = ta.cmf(d,window=20)
             try:
                 d['close_diff'] = d['c'].pct_change()
             except:
@@ -463,8 +463,7 @@ def build_analytics(aggregates, hour):
             d['close_diff3'] = d['c'].pct_change(3)
             d['close_diff5'] = d['c'].pct_change(5)
             d['v_diff_pct'] = calc_vdiff_pipeline(d['v'].tolist(), hour)
-            adx = ta.adx(d['h'],d['l'],d['c'])
-            d['adx'] = adx['ADX_14']
+            d['adx'] = ta.adx(d,window=14)
             d['volume_10MA'] = d['adjusted_volume'].rolling(10).mean()
             d['volume_25MA'] = d['adjusted_volume'].rolling(25).mean()
             d['price_10MA'] = d['c'].rolling(10).mean()

@@ -6,7 +6,7 @@ import os
 import logging
 import pandas as pd
 from botocore.exceptions import ClientError
-from helpers.constants import TRADING_SYMBOLS
+from helpers.constants import TRADING_SYMBOLS, UNDESIRABLES
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
 partition_assignment = os.getenv("PARTITION_ASSIGNMENT")
@@ -45,11 +45,13 @@ def analytics_runner(event, context):
     min_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
     hour_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
     df = vol_feature_engineering(df, min_aggs, hour_aggs)
-    df['hour'] = hour
+    date_hour = datetime.now(est).hour
+    df['hour'] = date_hour
+    df = df.loc[~df['symbol'].isin(UNDESIRABLES)]
     alerts = build_alerts_production(df)
     for alert in alerts:
         csv = alerts[alert].to_csv()
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"inv_alerts/production_alerts/{year}/{month}/{day}/{alert}/{hour}.csv", Body=csv)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"inv_alerts/production_alerts/{year}/{month}/{day}/{alert}/{date_hour}.csv", Body=csv)
     return put_response
 
 def combine_hour_aggs(aggregates, hour_aggregates, hour):

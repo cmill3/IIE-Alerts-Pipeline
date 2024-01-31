@@ -38,6 +38,11 @@ bf_plus = ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX",
             "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","NKE",'META',
             'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER','SBUX','QQQ','SPY','IWM','TLT']
 
+high_vol = [
+    # 'FDX', 'NKE', 'ORCL', 'RCL', 'SBUX', 'TSLA', 'UPS', 'JD', 'SQ', 'TSM', 'TDOC', 'BIDU', 'OKTA', 'TWLO', 'BABA', 'PANW', 'WDAY', 'ZS', 'SPOT', 
+            'DOCU', 'MRNA', 'ZM', 'PINS', 'UBER', 'CRWD', 'CHWY', 'DDOG', 'FUTU', 'SNOW', 'PLTR', 'HOOD']
+
+
 all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
  'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
  'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
@@ -233,7 +238,7 @@ def build_days(symbol, monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2023,4,15)
+    start_date = datetime(2023,1,1)
     end_date = datetime(2023,12,23)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -249,12 +254,12 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2022-10-03")
-    for symbol in ["F"]:
+    for symbol in high_vol:
         print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*2)
+        cpu_count = (os.cpu_count())
         # for date_str in date_list:
         #     options_snapshot_remediator(date_str, symbol)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
-            processed_weeks_futures = [executor.submit(options_snapshot_runner, date_str, symbol) for date_str in date_list]
+            processed_weeks_futures = [executor.submit(options_snapshot_remediator, date_str, symbol) for date_str in date_list]
         print(f"Finished with {symbol}")
