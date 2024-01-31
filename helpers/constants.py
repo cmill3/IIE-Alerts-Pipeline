@@ -48,20 +48,19 @@ WEEKLY_EXP = ['MMM', 'ABT', 'ABBV', 'ACN', 'ATVI', 'ADM', 'ADBE', 'ADP',
 UNDESIRABLES = ['COIN','BILI','UPST','CVNA',"TQQQ","SQQQ","SPXS","SPXL","SOXL","SOXS","NIO","BABA","ROKU","RBLX","SE","SNAP","LCID",'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","CMG","NFLX","AVGO","BKNG","ABNB","MARA"]
 
 TRADING_SYMBOLS =  [
-    'ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
- 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL',
+                    'ZM', 'UBER', 'CMG', 
+                    'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
+ 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
  'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
  'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','WFC',
  'TGT', 'COST', 'SQ', 'SHOP', 'DOCU','TWLO', 'DDOG', 'ZS', 'NET',
  'OKTA','ETSY', 'PINS','AMD',
  'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
- 'ORCL','SBUX','NKE','XOM',"RTX","UPS","FDX","CAT","PG","COST","LMT",'WDAY','SPOT','LCRX'"GS",
- "MS","AXP","GIS","KHC","W","PTON","DOCU","TTD","NOW","TEAM","MDB","AI",
- "LYFT","BYND", 'AVGO', 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH','WDAY','SPOT','LCRX','INTU','ADSK'
-'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'MGM','MCD','AVGO','GM','DG','DE',"QQQ","SPY","IWM"]
-# DBX','GTLB'
-# 'INTU','ADSK'
-# NEW_TRADE = ['WDAY','SPOT','LCRX']
+ 'ORCL','SBUX','NKE','TSLA','XOM',"RTX","UPS","FDX","CAT","PG","COST","LMT","GS","MS",
+ "AXP","GIS","KHC","W","CHWY","PTON","DOCU","TTD","NOW","TEAM","MDB","HOOD","MARA","AI",
+ "LYFT","BYND", 'AVGO', 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 
+'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'SNAP', 'MGM', 'CVNA','MCD','AVGO','GM','DG','DE','BKNG',
+ 'INTU','ADSK','WDAY','SPOT','LCRX']
 
 FULL_SYM = ['VUG', 'IWF', 'IJH', 'IJR', 'VGT', 'VO', 'XLK', 'VB', 'XLE', 'MMM', 'AOS', 'ABT', 'ACN', 'ADM', 'ADBE', 'ADP', 'AAP', 'AES', 'AFL', 'A', 'APD', 
 'AKAM', 'ALK', 'ALB', 'ARE', 'ALGN', 'ALLE', 'LNT', 'ALL', 'GOOGL', 'GOOG', 'AMZN', 'AMCR', 'AMD', 'AEE', 'AAL', 'AEP', 'AXP', 'AIG', 'AMT', 

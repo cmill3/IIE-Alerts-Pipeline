@@ -53,6 +53,23 @@ all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', '
  'ORCL','SBUX','NKE','TSLA','XOM',"RTX","UPS","FDX","CAT","PG","COST","LMT","GS","MS","AXP","GIS","KHC","W","CHWY","PTON","DOCU",
 "TTD","NOW","TEAM","MDB","HOOD","MARA","AI","LYFT","BYND","RIOT","U", 'BILI', 'AVGO', 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'SNAP', 'MGM', 'CVNA']
 
+bf_plus = ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","FB","CRM",
+            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","NKE",'META',
+            'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER','SBUX',
+            # 'QQQ','SPY','IWM','TLT'
+            ]
+
+bf2 = [
+    # 'QQQ','IWM','SPY',
+       'AAPL','NVDA','AMD','AMZN','MSFT','GOOG','GOOGL','C','BAC', 'PFE',
+      'JPM','XOM','CVX','CSCO','INTC','DIS','IBM','BA', 'V','AXP',
+      'ADBE','F',
+    'GM','VXX','TLT']
+
+high_vol = ['COIN','BILI','UPST','CVNA',"NIO","BABA","ROKU","RBLX","SE","SNAP","LCID","ZM","TDOC","UBER","RCL",
+            'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","MARA","SNAP",'TWLO', 'DDOG', 'ZS', 'NET', 'OKTA',
+            "DOCU",'SQ', 'SHOP',"PLTR","CRWD",'MRNA', 'SNOW', 'SOFI','LYFT','TSM','PINS','PANW','ORCL','SBUX','NKE',"UPS","FDX",
+            'WDAY','SPOT']
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
 holidays_multiyear = holidays.holidays
@@ -147,7 +164,7 @@ def build_options_tickers(symbol, days, monday, date_str):
 
 def build_option_symbol(ticker, date, strike, option_type):
     #Extract the year, month, and day from the date
-    # date = date.strftime("%Y-%m-%d")
+    date = date.strftime("%Y-%m-%d")
     year, month, day = date.split('-')
     short_year = year[-2:]
     str_strk = str(strike)
@@ -239,7 +256,7 @@ def build_days(symbol, monday):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     start_date = datetime(2023,1,1)
-    end_date = datetime(2023,12,23)
+    end_date = datetime(2023,12,24)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -259,7 +276,8 @@ if __name__ == "__main__":
         cpu_count = (os.cpu_count())
         # for date_str in date_list:
         #     options_snapshot_remediator(date_str, symbol)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count*2) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator, date_str, symbol) for date_str in date_list]
+        # options_snapshot_runner("2023-02-13", symbol)
         print(f"Finished with {symbol}")

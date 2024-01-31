@@ -9,19 +9,12 @@ import logging
 from botocore.exceptions import ClientError
 import concurrent.futures
 import warnings
-# from helpers.constants import ALL_SYM, TRADING_SYMBOLS, WEEKLY_EXP,NEW_TRADE
+# from helpers.constants import ALL_SYM, TRADING_SYMBOLS, WEEKLY_EXP
 warnings.filterwarnings("ignore")
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
 ## add FB for historical
 
-big_fish =  [
-            "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","FB"
-            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","META",'QQQ','SPY','IWM'
-            ]
-indexes = ['QQQ','SPY','IWM']
-memes = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID']
-new_bf = ['C','CAT','KO','MS','GS','PANW','ORCL','IBM','CSCO','WMT','TGT','COST']
 high_vol = ['COIN','BILI','UPST','CVNA',"NIO","BABA","ROKU","RBLX","SE","SNAP","LCID","ZM","TDOC","UBER","RCL",
             'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","MARA","SNAP",'TWLO', 'DDOG', 'ZS', 'NET', 'OKTA',
             "DOCU",'SQ', 'SHOP',"PLTR","CRWD",'MRNA', 'SNOW', 'SOFI','LYFT','TSM','PINS','PANW','ORCL','SBUX','NKE',"UPS","FDX",
@@ -131,8 +124,8 @@ def consolidate_bf_vol(date_str):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     print(os.cpu_count())
-    start_date = datetime(2022,1,1)
-    end_date = datetime(2023,6,2)
+    start_date = datetime(2023,4,1)
+    end_date = datetime(2023,12,23)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -147,6 +140,6 @@ if __name__ == "__main__":
     # run_process("2021-02-12")
         
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]

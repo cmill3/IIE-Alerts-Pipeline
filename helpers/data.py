@@ -379,6 +379,7 @@ def call_polygon_backtest(symbols, from_stamp, to_stamp, timespan, multiplier):
             results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
             # results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
         except Exception as e:
+            # print(url)
             # print(f"{e} for {symbol}")
             continue
         values.append({"high": results_df['h'].max(),"low": results_df['l'].min(),"volume": results_df['v'].sum(),"symbol": symbol})
