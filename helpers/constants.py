@@ -45,7 +45,16 @@ WEEKLY_EXP = ['MMM', 'ABT', 'ABBV', 'ACN', 'ATVI', 'ADM', 'ADBE', 'ADP',
 'TSN', 'USB', 'ULTA', 'UNP', 'UAL', 'UPS', 'URI', 'UNH', 'VLO', 'VZ', 'VRTX', 'VFC', 'V', 'WBA', 'WMT', 'WBD', 'WM', 'WFC', 'WDC', 'WHR', 'WMB', 'WYNN', 'ZION','LYFT', 'UBER', 'SNOW', 'ZM', 'TWLO', 'PTON', 'SOFI', 
 'DKNG', 'NET', 'TTD', 'OKTA', 'ARM', 'CRWD', 'GIS', 'W', 'PINS', 'MARA', 'PLTR', 'ZS', 'ABNB', 'DOCU', 'TDOC', 'SHOP', 'TEAM', 'TSM', 'SQ', 'PANW', 'DDOG',"QQQ","SPY","IWM"]
 
-UNDESIRABLES = ['COIN','BILI','UPST','CVNA',"TQQQ","SQQQ","SPXS","SPXL","SOXL","SOXS","NIO","BABA","ROKU","RBLX","SE","SNAP","LCID",'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","CMG","NFLX","AVGO","BKNG","ABNB","MARA"]
+UNDESIRABLES = ['COIN','BILI','UPST','CVNA',"TQQQ","SQQQ","SPXS","SPXL","SOXL","SOXS","NIO","BABA","ROKU","RBLX",
+                "SE","SNAP","LCID",'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","CMG","NFLX","AVGO","BKNG","ABNB","MARA"]
+
+BF3 = [
+    'QQQ','SPY','IWM','ADBE', 'GOOGL', 'GOOG', 'AMZN', 'AMD', 
+    'AXP', 'AAPL', 'BAC', 'BA', 'CVX', 'CSCO', 'C', 'DIS', 'XOM', 
+    'F', 'GM', 'INTC', 'JPM', 'MSFT', 'NFLX', 'NVDA', 'PYPL', 
+    'TSLA', 'V', 'SQ', 'TSM', 'DOCU', 'UBER', 'SNOW', 'PLTR', 'ABNB','AVGO'
+    ]
+
 
 TRADING_SYMBOLS =  [
                     'ZM', 'UBER', 'CMG', 
@@ -60,6 +69,19 @@ TRADING_SYMBOLS =  [
  "AXP","GIS","KHC","W","CHWY","PTON","DOCU","TTD","NOW","TEAM","MDB","HOOD","MARA","AI",
  "LYFT","BYND", 'AVGO', 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 
 'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'SNAP', 'MGM', 'CVNA','MCD','AVGO','GM','DG','DE','BKNG',
+ 'INTU','ADSK','WDAY','SPOT','LCRX']
+
+TREND_SYMBOLS =  ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
+ 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL',
+ 'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
+ 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','WFC',
+ 'TGT', 'COST', 'SQ', 'SHOP', 'DOCU','TWLO', 'DDOG', 'ZS', 'NET',
+ 'OKTA','ETSY', 'PINS','AMD',
+ 'NVDA', 'PYPL', 'PLTR', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
+ 'ORCL','SBUX','NKE','XOM',"RTX","UPS","FDX","CAT","PG","COST","LMT","GS","MS",
+ "AXP","GIS","KHC","W","PTON","DOCU","TTD","NOW","TEAM","MDB",
+ "LYFT","BYND", 'AVGO', 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 
+ 'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'MGM','MCD','GM','DG','DE',
  'INTU','ADSK','WDAY','SPOT','LCRX']
 
 FULL_SYM = ['VUG', 'IWF', 'IJH', 'IJR', 'VGT', 'VO', 'XLK', 'VB', 'XLE', 'MMM', 'AOS', 'ABT', 'ACN', 'ADM', 'ADBE', 'ADP', 'AAP', 'AES', 'AFL', 'A', 'APD', 
@@ -135,42 +157,22 @@ MODEL_FEATURES = {
             'range_vol_diff5', 'close_diff5', 'min_vol_diff', 'SPY_diff', 'daily_vol_diff_pct30', 'SPY_3D', 'daily_volume_vol_diff_pct30', 'return_vol_16H', 'price7', 
             'rsi5', 'rsi', 'daily_vol_diff', 'rsi3', 'threeD_stddev50', 'month', 'oneD_stddev50', 'roc5', 'roc3', 'volume_vol_16H', 'roc_diff', 'hour', 'daily_volume_vol_diff_pct', 
             'daily_vol_diff30', 'range_vol'],
-    "vdiffP": ['return_vol_30D', 'threeD_stddev50', 'month', 'return_vol_450M', 'SPY_1D', 'oneD_returns_close',
-             'min_volume_vol_diff_pct', 'price_10DDiff', 'oneD_stddev50', 'volume_vol_16H', 'min_volume_vol_diff', 
-             'volume_vol_8H', 'daily_vol_diff_pct30', 'hour_vol_diff_pct', 'volume_vol_240M', 'SPY_diff', 'hour_volume_vol_diff',
-               'volume_vol_30D', 'min_vol_diff_pct', 'return_vol_8H', 'hour', 'daily_vol_diff_pct', 'price_25DDiff', 'SPY_diff3', 
-               'range_vol', 'rsi5', 'rsi', 'roc_diff', 'roc3', 'daily_volume_vol_diff', 'hour_vol_diff', 'return_vol_240M', 
-               'close_diff', 'min_vol_diff'],
-    "vdiffP1d": ['volume_vol_240M', 'roc', 'volume_vol_450M', 'roc_diff', 'SPY_diff', 'daily_volume_vol_diff30', 'rsi5', 'SPY_1D', 
-            'range_vol_diff5', 'day_of_week', 'hour_volume_vol_diff_pct', 'daily_vol_diff_pct30', 'roc5', 'close_diff5', 
-            'volume_vol_16H', 'v_diff_pct', 'volume_vol_30D', 'cmf', 'month', 'volume_vol_8H', 'threeD_returns_close', 
-            'daily_vol_diff_pct', 'return_vol_8H', 'return_vol_240M', 'oneD_stddev50', 'day_of_month', 'range_vol', 
-            'price_10DDiff', 'hour_vol_diff_pct', 'daily_vol_diff30', 'hour', 'return_vol_16H', 'return_vol_450M', 
-            'daily_volume_vol_diff_pct', 'min_volume_vol_diff', 'hour_vol_diff', 'SPY_diff3'],
-    "vdiffC": ['rsi', 'daily_volume_vol_diff_pct', 'v_diff_pct', 'hour_volume_vol_diff', 'close_diff3', 'threeD_returns_close', 'return_vol_10D', 'min_volume_vol_diff', 
-                                           'hour', 'daily_volume_vol_diff', 'month', 'daily_vol_diff30', 'roc_diff', 'return_vol_16H', 'volume_vol_240M', 'min_vol_diff_pct', 'range_vol', 'oneD_returns_close', 
-                                           'return_vol_30D', 'price_10DDiff', 'daily_volume_vol_diff30', 'day_of_week', 'volume_vol_16H', 'roc5'],
-    "vdiffC1d": ['volume_vol_5D', 'price_10DDiff', 'volume_vol_10D', 'daily_vol_diff_pct30', 'range_vol', 'oneD_returns_close', 'day_of_month', 'volume_vol_30D', 'rsi', 'threeD_returns_close', 
-                                           'range_vol_diff5', 'return_vol_10D', 'close_diff3', 'roc', 'daily_volume_vol_diff30', 'min_volume_vol_diff', 'return_vol_8H', 'return_vol_450M', 'daily_vol_diff', 'month',
-                                             'close_diff', 'daily_volume_vol_diff_pct30', 'return_vol_30D', 'volume_vol_8H', 'volume_vol_16H', 'roc5', 'return_vol_240M', 'hour_vol_diff', 'cmf', 'min_vol_diff_pct', 'close_diff5'],
-    "idxP": ['return_vol_30D', 'threeD_stddev50', 'month', 'return_vol_450M', 'SPY_1D', 'oneD_returns_close',
-             'min_volume_vol_diff_pct', 'price_10DDiff', 'oneD_stddev50', 'volume_vol_16H', 'min_volume_vol_diff', 
-             'volume_vol_8H', 'daily_vol_diff_pct30', 'hour_vol_diff_pct', 'volume_vol_240M', 'SPY_diff', 'hour_volume_vol_diff',
-               'volume_vol_30D', 'min_vol_diff_pct', 'return_vol_8H', 'hour', 'daily_vol_diff_pct', 'price_25DDiff', 'SPY_diff3', 
-               'range_vol', 'rsi5', 'rsi', 'roc_diff', 'roc3', 'daily_volume_vol_diff', 'hour_vol_diff', 'return_vol_240M', 
-               'close_diff', 'min_vol_diff'],
-    "idxP1d": ['volume_vol_240M', 'roc', 'volume_vol_450M', 'roc_diff', 'SPY_diff', 'daily_volume_vol_diff30', 'rsi5', 'SPY_1D', 
-            'range_vol_diff5', 'day_of_week', 'hour_volume_vol_diff_pct', 'daily_vol_diff_pct30', 'roc5', 'close_diff5', 
-            'volume_vol_16H', 'v_diff_pct', 'volume_vol_30D', 'cmf', 'month', 'volume_vol_8H', 'threeD_returns_close', 
-            'daily_vol_diff_pct', 'return_vol_8H', 'return_vol_240M', 'oneD_stddev50', 'day_of_month', 'range_vol', 
-            'price_10DDiff', 'hour_vol_diff_pct', 'daily_vol_diff30', 'hour', 'return_vol_16H', 'return_vol_450M', 
-            'daily_volume_vol_diff_pct', 'min_volume_vol_diff', 'hour_vol_diff', 'SPY_diff3'],
-    "idxC": ['rsi', 'daily_volume_vol_diff_pct', 'v_diff_pct', 'hour_volume_vol_diff', 'close_diff3', 'threeD_returns_close', 'return_vol_10D', 'min_volume_vol_diff', 
-                                           'hour', 'daily_volume_vol_diff', 'month', 'daily_vol_diff30', 'roc_diff', 'return_vol_16H', 'volume_vol_240M', 'min_vol_diff_pct', 'range_vol', 'oneD_returns_close', 
-                                           'return_vol_30D', 'price_10DDiff', 'daily_volume_vol_diff30', 'day_of_week', 'volume_vol_16H', 'roc5'],
-    "idxC1d": ['volume_vol_5D', 'price_10DDiff', 'volume_vol_10D', 'daily_vol_diff_pct30', 'range_vol', 'oneD_returns_close', 'day_of_month', 'volume_vol_30D', 'rsi', 'threeD_returns_close', 
-                                           'range_vol_diff5', 'return_vol_10D', 'close_diff3', 'roc', 'daily_volume_vol_diff30', 'min_volume_vol_diff', 'return_vol_8H', 'return_vol_450M', 'daily_vol_diff', 'month',
-                                             'close_diff', 'daily_volume_vol_diff_pct30', 'return_vol_30D', 'volume_vol_8H', 'volume_vol_16H', 'roc5', 'return_vol_240M', 'hour_vol_diff', 'cmf', 'min_vol_diff_pct', 'close_diff5']
+    "CDBFP": ['return_vol_8H', 'close_diff_deviation3', 'SPY_diff5', 'volume_vol_8H', 'return_vol_10D', 'range_vol_diff5', 'min_vol_diff_pct', 'range_vol10MA', 
+            'vol7', 'daily_volume_vol_diff30', 'day_of_week', 'SPY_1D', 'oneD_returns_close', 'daily_vol_diff', 'roc_diff', 'volume_vol_5D', 'volume_vol_450M', 
+            'rsi', 'volume_vol_15M', 'threeD_stddev50', 'range_vol25MA', 'month', 'volume_vol_240M','cd_vol','cd_vol3'],
+    "CDBFP_1D": ['volume_vol_60M', 'hour_vol_diff', 'range_vol10MA', 'hour_volume_vol_diff_pct', 'close_diff_deviation3', 'threeD_returns_close', 'volume_10DDiff', 
+            '15min_vol_diff', 'close_diff', 'month', 'close_diff_deviation', 'volume_vol_8H', 'return_vol_4H', 'roc3', 'range_vol5MA', 'roc_diff', 'volume_25DDiff', 
+            'rsi5', 'price7', 'adx', 'threeD_stddev50', 'day_of_week', 'return_vol_8H', 'min_volume_vol_diff_pct', 'range_vol25MA', 'oneD_returns_close', 'roc5', 'close_diff3', 
+            'hour_vol_diff_pct', 'return_vol_120M', 'vol14', 'volume_vol_30M', 'return_vol_5D', 'daily_vol_diff_pct', 'daily_vol_diff30', 'return_vol_10D', 
+            'volume_vol_10D', 'price14', 'hour', 'vol7','cd_vol','cd_vol3'],
+    "CDBFC": ['return_vol_5D', 'volume_10DDiff', 'oneD_stddev50', 'rsi', 'volume_vol_16H', 'return_vol_8H', 'min_volume_vol_diff', 'roc3', 'daily_vol_diff30', 
+            'return_vol_3D', 'daily_vol_diff_pct30', 'hour_volume_vol_diff_pct', 'SPY_5D', 'hour_vol_diff_pct', 'volume_vol_10D', 'daily_volume_vol_diff_pct30', 
+            'range_vol5MA', 'volume_vol_60M', 'SPY_diff3', 'month', 'vol7', 'range_vol', 'hour_volume_vol_diff', 'roc_diff', 'range_vol_diff5', 'return_vol_120M', 
+            'close_diff', 'daily_volume_vol_diff', 'SPY_3D', 'volume_vol_30M', 'vol14', 'daily_vol_diff_pct'],
+    "CDBFC_1D": ['close_diff5', 'return_vol_30D', 'day_of_week', 'close_diff_deviation3', 'volume_vol_5D', 'SPY_diff3', 'oneD_returns_close', 'month', 'rsi', 
+            'volume_vol_15M', 'min_volume_vol_diff', 'volume_vol_30M', 'roc3', 'min_vol_diff_pct', 'return_vol_15M', 'range_vol5MA', 'volume_10DDiff', 'SPY_5D', 
+            'return_vol_60M', 'close_diff3', 'volume_vol_30D', 'price_25DDiff', 'hour_vol_diff_pct', 'close_diff_deviation', 'return_vol_5D', 'return_vol_8H', 
+            'return_vol_3D', 'daily_vol_diff_pct', 'rsi3', 'vol14', 'min_volume_vol_diff_pct','cd_vol','cd_vol3'],
 }
 
 ENDPOINT_NAMES = {
@@ -186,15 +188,78 @@ ENDPOINT_NAMES = {
 "MA_1D": "invalerts-xgb-MA-1D-classifier",
 "MAP": "invalerts-xgb-MAP-classifier",
 "MAP_1D": "invalerts-xgb-MAP-1D-classifier",
-"VDIFFC": "invalerts-vdiffc-classifier",
-"VDIFFC_1D": "invalerts-vdiffc1d-classifier",
-"VDIFFP": "invalerts-vdiffp-classifier",
-"VDIFFP_1D": "invalerts-vdiffp1d-classifier",
-"IDXC": "invalerts-idxc-classifier",
-"IDXC_1D": "invalerts-idxc1d-classifier",
-"IDXP": "invalerts-idxp-classifier",
-"IDXP_1D": "invalerts-idxp1d-classifier",
+"CDBFC": "invalerts-xgb-CDBFC-classifier",
+"CDBFC_1D": "invalerts-xgb-CDBFC-1D-classifier", 
+"CDBFP": "invalerts-xgb-CDBFP-classifier",
+"CDBFP_1D": "invalerts-xgb-CDBFP-1D-classifier",
 }
 
-
 UNDESIRABLES = ['COIN','BILI','UPST','CVNA',"TQQQ","SQQQ","SPXS","SPXL","SOXL","SOXS","NIO","BABA","ROKU","RBLX","SE","SNAP","LCID",'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","CMG","NFLX","AVGO","BKNG","ABNB"]
+
+ALGORITHM_CONFIG = {
+    "GAIN_1D": {
+        "target_label": "one_max",
+        "target_value": .016,
+    },
+    "GAIN": {
+        "target_label": "three_max",
+        "target_value": .026,
+    },
+    "GAINP_1D": {
+        "target_label": "one_min",
+        "target_value": -.01,
+    },
+    "GAINP": {
+        "target_label": "three_min",
+        "target_value": -.026,
+    },
+     "LOSERSC_1D": {
+        "target_label": "one_max",
+        "target_value": .02,
+    },
+    "LOSERSC": {
+        "target_label": "three_max",
+        "target_value": .031,
+    },
+    "LOSERS_1D": {
+        "target_label": "one_min",
+        "target_value": -.02,
+    },
+    "LOSERS": {
+        "target_label": "three_min",
+        "target_value": -.031,
+    },
+     "MA_1D": {
+        "target_label": "one_max",
+        "target_value": .017,
+    },
+    "MA": {
+        "target_label": "three_max",
+        "target_value": .026,
+    },
+    "MAP_1D": {
+        "target_label": "one_min",
+        "target_value": -.017,
+    },
+    "MAP": {
+        "target_label": "three_min",
+        "target_value": -.026,
+    },
+    "CDBFC": {
+        "target_label": "three_max_vol",
+        "target_value": 1.731,
+    },
+    "CDBFP": {
+        "target_label": "three_min_vol",
+        "target_value": -1.554,
+        
+    },
+    "CDBFC_1D": {
+        "target_label": "one_max_vol",
+        "target_value": 1.098,
+    },
+    "CDBFP_1D": {
+        "target_label": "one_min_vol",
+        "target_value": -1.012,
+    },
+}

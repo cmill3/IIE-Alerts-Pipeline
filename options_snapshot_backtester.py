@@ -90,32 +90,37 @@ def options_snapshot_remediator(date_str,symbol):
             print(f"{symbol} had {e} at {date_str}")
             try:
                 monday = previous_monday(date_str)
-                fridays = find_fridays(monday)
-                call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday, date_str)
-                call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str)
+                if symbol in indexes:
+                    days = idx_days(symbol, date_str)
+                    call_tickers, put_tickers = build_idx_options_tickers(symbol, days)
+                    call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str)
+                else:
+                    fridays = find_fridays(monday)
+                    call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday, date_str)
+                    call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str)
             except Exception as e:
                 print(f"This symbol: {symbol} failed twice {e}")
         return "done"
 
-def options_snapshot_runner(monday, symbol):
-    print(monday)
-    ### Implementation for index options
-    # fridays = find_fridays(monday)
-    date_str = monday.replace('-','/')
-    ## for symbol in ['SPY','IWM']: This is for you Dean.
-    days = build_days(symbol, monday)
-    try:
-        call_tickers, put_tickers = build_options_tickers(symbol, days, monday,date_str=monday)
-        call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str=monday)
-        print(f"Finished {monday} for {symbol}")
-    except Exception as e:
-        print(f"This symbol: {symbol} failed once {e}")
-        try:
-            call_tickers, put_tickers = build_options_tickers(symbol, days, monday, date_str=monday)
-            call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str=monday)
-        except Exception as e:
-            print(f"This symbol: {symbol} failed twice {e}")
-    return "done"
+# def options_snapshot_runner(monday, symbol):
+#     print(monday)
+#     ### Implementation for index options
+#     # fridays = find_fridays(monday)
+#     date_str = monday.replace('-','/')
+#     ## for symbol in ['SPY','IWM']: This is for you Dean.
+#     days = build_days(symbol, monday)
+#     try:
+#         call_tickers, put_tickers = build_options_tickers(symbol, days, monday,date_str=monday)
+#         call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str=monday)
+#         print(f"Finished {monday} for {symbol}")
+#     except Exception as e:
+#         print(f"This symbol: {symbol} failed once {e}")
+#         try:
+#             call_tickers, put_tickers = build_options_tickers(symbol, days, monday, date_str=monday)
+#             call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str=monday)
+#         except Exception as e:
+#             print(f"This symbol: {symbol} failed twice {e}")
+#     return "done"
 
 def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str):
     hours = ["10","11","12","13","14","15"]
@@ -162,9 +167,25 @@ def build_options_tickers(symbol, days, monday, date_str):
             put_tickers.append(build_option_symbol(symbol,day,strike,"put"))
     return call_tickers, put_tickers
 
+
+def build_idx_options_tickers(symbol, days):
+    call_tickers = []
+    put_tickers = []
+    for day in days:
+        day_np = np.datetime64(day)
+        if day_np in holidays_multiyear:
+            continue
+        else:
+            strikes = build_strikes(day,symbol)
+    for strike in strikes:
+        for day in days:
+            call_tickers.append(build_option_symbol(symbol,day,strike,"call"))
+            put_tickers.append(build_option_symbol(symbol,day,strike,"put"))
+    return call_tickers, put_tickers
+
 def build_option_symbol(ticker, date, strike, option_type):
     #Extract the year, month, and day from the date
-    date = date.strftime("%Y-%m-%d")
+    # date = date.strftime("%Y-%m-%d")
     year, month, day = date.split('-')
     short_year = year[-2:]
     str_strk = str(strike)
@@ -251,11 +272,27 @@ def build_days(symbol, monday):
         opt_dates.append(date_str)
     return opt_dates
 
+def idx_days(symbol, monday):
+    opt_dates = []
+    to_add = [0,1,2,3,4,7,8,9,10,11,12,13,14]
+    for x in to_add:
+        dt = datetime.strptime(monday, "%Y-%m-%d")
+        date = dt + timedelta(days=x)
+        if date.weekday() < 5:
+            if symbol == 'IWM':
+                if date.weekday() in [0,2,4]:
+                    date_str = date.strftime("%Y-%m-%d")
+                    opt_dates.append(date_str)
+            else:
+                date_str = date.strftime("%Y-%m-%d")
+                opt_dates.append(date_str)
+    return opt_dates
+
 
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2023,1,1)
+    start_date = datetime(2022,1,1)
     end_date = datetime(2023,12,24)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -271,7 +308,7 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2022-10-03")
-    for symbol in high_vol:
+    for symbol in ["SPY","IWM","QQQ"]:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count())
         # for date_str in date_list:

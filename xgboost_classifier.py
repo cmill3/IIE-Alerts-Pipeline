@@ -7,7 +7,7 @@ import datetime
 import os
 import ast
 from datetime import datetime
-from helpers.constants import MODEL_FEATURES, ENDPOINT_NAMES
+from helpers.constants import MODEL_FEATURES, ENDPOINT_NAMES, ALGORITHM_CONFIG
 import pytz 
 
 
@@ -33,6 +33,8 @@ def invoke_model(event, context):
     data['dt'] = pd.to_datetime(data['date'])
     recent_date = data['dt'].iloc[-1]
     data['roc_diff'] = data['roc'] - data['roc5']
+    data['cd_vol'] = (data['close_diff'] / data['return_vol_10D']).round(3)
+    data['cd_vol3'] = (data['close_diff3'] / data['return_vol_10D']).round(3)
     data['range_vol_diff5'] = (data['range_vol'] - data['range_vol5MA'])
     data['close_diff_deviation3'] = abs(data['close_diff3'])/(data['threeD_stddev50']*100)
     data['close_diff_deviation'] = abs(data['close_diff'])/(data['oneD_stddev50']*100)
@@ -58,7 +60,7 @@ def invoke_model(event, context):
         t = response['Body']
         results = t.read()
 
-        results_df = format_result(results, data['symbol'].to_list(), recent_date, data)
+        results_df = format_result(results, data['symbol'].to_list(), recent_date, data, strategy)
         results_csv = results_df.to_csv().encode()
         
         try:
@@ -69,7 +71,7 @@ def invoke_model(event, context):
             continue
     return put_response
     
-def format_result(result_string, symbol_list, recent_date, data) -> pd.DataFrame:
+def format_result(result_string, symbol_list, recent_date, data, strategy) -> pd.DataFrame:
     try:
         result_string = result_string.decode("utf-8") 
         array = result_string.split(",")
@@ -78,6 +80,7 @@ def format_result(result_string, symbol_list, recent_date, data) -> pd.DataFrame
         results_df['recent_date'] = recent_date
         results_df['return_vol_10D'] = data['return_vol_10D']
         results_df['return_vol_30D'] = data['return_vol_30D']
+        results_df['target_pct'] = ALGORITHM_CONFIG[strategy]['target_value']
         return results_df
     except Exception as e:
         print(e)

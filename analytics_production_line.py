@@ -6,7 +6,7 @@ import os
 import logging
 import pandas as pd
 from botocore.exceptions import ClientError
-from helpers.constants import TRADING_SYMBOLS, UNDESIRABLES
+from helpers.constants import TREND_SYMBOLS, UNDESIRABLES, BF3
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
 partition_assignment = os.getenv("PARTITION_ASSIGNMENT")
@@ -27,9 +27,9 @@ def analytics_runner(event, context):
     sym_range = partition_numbers[partition_assignment]
     s1, s2 = sym_range.split(":")
     if partition_assignment == "3":
-        symbols = TRADING_SYMBOLS[int(s1):]
+        symbols = TREND_SYMBOLS[int(s1):]
     else:
-        symbols = TRADING_SYMBOLS[int(s1):int(s2)]
+        symbols = TREND_SYMBOLS[int(s1):int(s2)]
 
     year, month, day, hour = format_dates(date)
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date)
@@ -52,8 +52,30 @@ def analytics_runner(event, context):
     put_response = s3.put_object(Bucket="inv-alerts", Key=f"inv_alerts/raw_alerts/{partition_assignment}/{year}/{month}/{day}/{hour}.csv", Body=df.to_csv())
     return put_response
 
+def cdvol_analytics_runner(event, context):
+    year, month, day, hour = format_dates(date)
+    from_stamp, to_stamp, hour_stamp = generate_dates_historic(date)
+    aggregates, error_list = call_polygon_histD(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30")
+    hour_aggregates, error_list = call_polygon_histH(BF3, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+    full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
+    spy_aggs, _ = call_polygon_histD(["SPY"],from_stamp, to_stamp, timespan="minute", multiplier="30")
+    spy_aggs = spy_aggs[0]['c']
+    current_spy, _ = call_polygon_histH(["SPY"], hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+    current_spy = current_spy[0]
+    current_spy = current_spy['c'].iloc[-1]
+    logger.info(f"Error list: {error_list}")
+    analytics = build_analytics(full_aggs, hour)
+    analytics = build_spy_features(analytics, spy_aggs, current_spy)
+    df = analytics.groupby("symbol").tail(1)
+    min_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
+    hour_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+    df = vol_feature_engineering(df, min_aggs, hour_aggs)
+    df['hour'] = hour
+    put_response = s3.put_object(Bucket="inv-alerts", Key=f"inv_alerts/production_alerts/{year}/{month}/{day}/cdvol/{hour}.csv", Body=df.to_csv())
+    return put_response
 
-def build_alerts_production(event, context):
+
+def alerts_builder(event, context):
     dfs = []
     year, month, day, hour = format_dates(date)
     for num in ["1","2","3"]:
@@ -123,9 +145,8 @@ def format_dates(now):
     return year, month, day, hour
 
 def build_alerts_production(df):
-    volume_df = df.loc[df['symbol'].isin(TRADING_SYMBOLS)]
-    volume_sorted = volume_df.sort_values(by="v", ascending=False)
-    v_sorted = volume_df.sort_values(by="hour_volume_vol_diff_pct", ascending=False)
+    volume_sorted = df.sort_values(by="v", ascending=False)
+    v_sorted = df.sort_values(by="hour_volume_vol_diff_pct", ascending=False)
     c_sorted = df.sort_values(by="close_diff", ascending=False)
     gainers = c_sorted.head(15)
     losers = c_sorted.tail(15)
