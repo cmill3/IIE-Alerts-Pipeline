@@ -30,9 +30,11 @@ all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', '
 
 first_run = [
     # 'CMG', 'AXP', 
-    'DAL', 'MMM', 'GE', 'MRK', 'HD', 'LOW', 'TSM',
- 'GOOG', 'GOOGL', 'BAC', 'AAPL' ,'CRM', 'MSFT', 'F' ,'V' ,'MA' ,'JNJ', 'DIS' ,'JPM',
- 'ADBE' ,'BA' ,'CVX', 'PFE' ,'C' ,'CAT','MS', 'GS', 'IBM' ,'CSCO' ,'WMT', 'WFC'
+    # 'DAL', 'MMM', 'PEP', 'GE', 'MRK', 'HD', 'LOW', 'VZ', 'PG', 'TSM',
+#  'GOOG', 'GOOGL', 
+#     'BAC', 'AAPL' ,'CRM', 'MSFT', 'F' ,'V' ,'MA' ,'JNJ', 'DIS' ,'JPM',
+#  'ADBE' ,'BA' ,'CVX', 'PFE' ,'C' ,'CAT', 'KO' ,'MS', 
+ 'GS', 'IBM' ,'CSCO' ,'WMT', 'WFC'
  'TGT', 'COST', 'INTC', 'PANW', 'ORCL', 'SBUX', 'NKE' ,'XOM', 'RTX' ,'UPS', 'FDX',
  'LMT' ,'GIS', 'QCOM', 'GM']
 
@@ -73,8 +75,8 @@ def options_snapshot_runner(monday,symbol):
             print(f"{symbol} failed twice at {monday} with: {e}. Skipping")
 
 def options_snapshot_remediator(date_str,symbol):
-    dt = datetime.strptime(date_str, "%Y-%m-%d")
     hours = ["10","11","12","13","14","15"]
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
     date_np = np.datetime64(dt)
     if date_np in holidays_multiyear:
         return "holiday"
@@ -351,9 +353,9 @@ if __name__ == "__main__":
 
     for symbol in first_run:
         print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*1)
+        cpu_count = os.cpu_count()
         # options_snapshot_remediator_idx(date_list,symbol)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")

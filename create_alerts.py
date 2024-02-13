@@ -29,7 +29,7 @@ def fix_alerts(date_str):
     s3 = boto3.client('s3')
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
     for hour in hours:
-        all_symbol = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/vol_features/{key_str}/{hour}.csv")
+        all_symbol = s3.get_object(Bucket="inv-alerts", Key=f"full_alerts/vol/{key_str}/{hour}.csv")
         all_symbol_df = pd.read_csv(all_symbol['Body'])
         all_symbol_df.drop(columns=['Unnamed: 0','Unnamed: 0.1'], inplace=True)
         gm = all_symbol_df.loc[all_symbol_df['symbol'] == 'GM']
@@ -53,6 +53,18 @@ def alerts_runner(date_str):
     for hour in hours:
         all_symbol = s3.get_object(Bucket="inv-alerts", Key=f"full_alerts/vol/{key_str}/{hour}.csv")
         all_symbol_df = pd.read_csv(all_symbol['Body'])
+        all_symbol_df.drop(columns=['Unnamed: 0','Unnamed: 0.1'], inplace=True)
+        # df = all_symbol_df.loc[all_symbol_df['symbol'].isin(["QQQ","SPY","IWM"])]
+        # pcr = s3.get_object(Bucket="inv-alerts", Key=f"idx_alerts/{key_str}/{hour}/pcr_features.csv")
+        # pcr_df = pd.read_csv(pcr['Body'])
+        # pcr_df['symbol'] = pcr_df['Unnamed: 0']
+        # df = df.merge(pcr_df, on=['symbol'])
+        # new_columns = [col.replace('_x', '') for col in df.columns]
+        # df.columns = new_columns
+        # y_columns = df.filter(regex='_y').columns
+        # df.drop(columns=y_columns, inplace=True)
+        # put_response = s3.put_object(Bucket="inv-alerts", Key=f"idx_alerts/{key_str}/{hour}/full_data.csv", Body=df.to_csv())
+
         trading_df = all_symbol_df.loc[all_symbol_df['symbol'].isin(TRADING_SYMBOLS)]
         weekly_exp_df = all_symbol_df.loc[all_symbol_df['symbol'].isin(WEEKLY_EXP)]
         trading_alerts = build_alerts(trading_df)
@@ -107,8 +119,8 @@ def combine_hour_aggs(aggregates, hour_aggregates, hour):
     return full_aggs
 
 def build_alerts(df):
-    df['cd_vol'] = df['close_diff']/df['oneD_stddev50'].round(3)
-    df['cd_vol3'] = df['close_diff3']/df['threeD_stddev50'].round(3)
+    df['cd_vol'] = df['close_diff']/df['return_vol_10D'].round(3)
+    df['cd_vol3'] = df['close_diff3']/df['return_vol_10D'].round(3)
     volume_sorted = df.sort_values(by="v", ascending=False)
     v_sorted = df.sort_values(by="hour_volume_vol_diff_pct", ascending=False)
     c_sorted = df.sort_values(by="close_diff", ascending=False)
@@ -122,6 +134,7 @@ def build_alerts(df):
     cdvol3_gainers = cvol3_sorted.head(30)
     cdvol3_losers = cvol3_sorted.tail(30)
     volume = volume_sorted.head(30)
+    # return {"cdvol_gainers": cdvol_gainers, "cdvol_losers": cdvol_losers, "cdvol3_gainers": cdvol3_gainers, "cdvol3_losers": cdvol3_losers}
     return {"gainers": gainers, "losers": losers, "v_diff": v_diff, "most_actives": volume,"cdvol_gainers": cdvol_gainers, "cdvol_losers": cdvol_losers, "cdvol3_gainers": cdvol3_gainers, "cdvol3_losers": cdvol3_losers}
 
 def generate_dates_historic(date_str):
@@ -137,8 +150,8 @@ def generate_dates_historic(date_str):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     print(os.cpu_count())
-    start_date = datetime(2018,1,1)
-    end_date = datetime(2023,12,23)
+    start_date = datetime(2023,12,23)
+    end_date = datetime(2024,1,27)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -153,6 +166,6 @@ if __name__ == "__main__":
     # add_data_to_alerts("2022-01-27")
         
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]

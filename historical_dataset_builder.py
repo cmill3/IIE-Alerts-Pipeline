@@ -8,8 +8,9 @@ import boto3
 import logging
 from botocore.exceptions import ClientError
 import concurrent.futures
-from helpers.constants import ALL_SYM, TRADING_SYMBOLS, FULL_SYM
+from helpers.constants import *
 import pandas_market_calendars as mcal
+import numpy as np
 
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
@@ -21,11 +22,11 @@ now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
 
-bf3 = ['QQQ','IWM','AAPL','NVDA','AMD','AMZN','SPY','MSFT','GOOG','GOOGL','C','BAC',
-      'JPM','XOM','CVX','CSCO','INTC','DIS','IBM','BA', 'V','AXP','WMT','ADBE','F','GM',
-      'SNOW','PYPL','NFLX','ABNB','SQ','SHOP','DOCU','UBER','PLTR',
-      'TSLA','COIN','TSM','META'
-      ]
+high_vol = ['COIN','BILI','UPST','CVNA',"NIO","BABA","ROKU","RBLX","SE","SNAP","LCID","ZM","TDOC","UBER","RCL",
+            'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","MARA","SNAP",'TWLO', 'DDOG', 'ZS', 'NET', 'OKTA',
+            "DOCU",'SQ', 'SHOP',"PLTR","CRWD",'MRNA', 'SNOW', 'SOFI','LYFT','TSM','PINS','PANW','ORCL','SBUX','NKE',"UPS","FDX",
+            'WDAY','SPOT']
+
 
 def run_process(date_str):
     try:
@@ -46,10 +47,10 @@ def build_historic_data(date_str):
     if date_np in holidays_multiyear:
         return "holiday"
     for hour in hours:
-        aggregates, error_list = call_polygon_histD(bf3, from_stamp, to_stamp, timespan="minute", multiplier="30")
+        aggregates, error_list = call_polygon_histD(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30")
         # if len(error_list) > 0:
         #     print(error_list)
-        hour_aggregates, error_list = call_polygon_histH(bf3, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+        hour_aggregates, error_list = call_polygon_histH(BF3, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
         # if len(error_list) > 0:
         #     print(error_list)
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
@@ -79,7 +80,7 @@ def build_historic_data(date_str):
         df['SPY_1D'] = SPY_diff
         df['SPY_3D'] = SPY_diff3
         df['SPY_5D'] = SPY_diff5
-        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv")
+        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"full_alerts/{key_str}/{hour}.csv")
         # old_df = pd.read_csv(old_df['Body'])
         # new_df = pd.concat([old_df,df],ignore_index=True)
         # new_df = new_df.drop_duplicates(subset=['symbol'])
@@ -138,8 +139,8 @@ def pull_df(date_stamp, prefix, hour):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     cpu = os.cpu_count()
-    start_date = datetime(2018,1,1)
-    end_date = datetime(2023,12,23)
+    start_date = datetime(2024,1,27)
+    end_date = datetime(2024,2,3)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -152,6 +153,6 @@ if __name__ == "__main__":
 
     # run_process("2021-02-12")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
