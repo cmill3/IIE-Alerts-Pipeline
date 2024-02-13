@@ -48,6 +48,15 @@ all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', '
  'ORCL','SBUX','NKE','TSLA','XOM',"RTX","UPS","FDX","CAT","PG","COST","LMT","GS","MS","AXP","GIS","KHC","W","CHWY","PTON","DOCU",
 "TTD","NOW","TEAM","MDB","HOOD","MARA","AI","LYFT","BYND","RIOT","U", 'BILI', 'AVGO', 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'SNAP', 'MGM', 'CVNA']
 
+bf2 = [
+    # 'QQQ','IWM','SPY','AAPL','NVDA','AMD','AMZN','MSFT','GOOG','GOOGL','C','BAC', 'PFE',
+    #   'JPM','XOM','CVX','CSCO',
+      'INTC','DIS','IBM','BA', 'V','AXP','ADBE','F','GM','JNJ','MA','NFLX','META','PYPL']
+
+high_vol = [
+    # 'FDX', 'NKE', 'ORCL', 'RCL', 'SBUX', 'TSLA', 'UPS', 'JD', 'SQ', 'TSM', 'TDOC', 'BIDU', 'OKTA', 'TWLO', 'BABA', 'PANW', 'WDAY', 
+            'ZS', 'SPOT', 'DOCU', 'MRNA', 'ZM', 'PINS', 'UBER', 'CRWD', 'CHWY', 'DDOG', 'FUTU', 'SNOW', 'PLTR', 'HOOD']
+
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
 holidays_multiyear = holidays.holidays
@@ -233,8 +242,8 @@ def build_days(symbol, monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2023,1,2)
-    end_date = datetime(2023,12,22)
+    start_date = datetime(2023,1,1)
+    end_date = datetime(2023,12,23)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -249,7 +258,7 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2022-10-03")
-    for symbol in TRADING_SYMBOLS:
+    for symbol in high_vol:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count()*2)
         # for date_str in date_list:
