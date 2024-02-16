@@ -473,8 +473,14 @@ def build_analytics(aggregates, hour):
             d['volume_25DDiff'] = d.apply(lambda x: ((x.adjusted_volume - x.volume_25MA)/x.volume_25MA)*100, axis=1)
             d['price_10DDiff'] = d.apply(lambda x: ((x.c - x.price_10MA)/x.price_10MA)*100, axis=1)
             d['price_25DDiff'] = d.apply(lambda x: ((x.c - x.price_25MA)/x.price_25MA)*100, axis=1)
-            # macd = ta.macd(d['c'])
-            # d['macd'] = macd.MACD_12_26_9
+            upper_band, lower_band, middle_band = ta.bbands(d['c'],window=20)
+            d['bbu'] = upper_band
+            d['bbl'] = lower_band
+            d['bbm'] = middle_band
+            d['macd'] = ta.macd(d['c'])
+            d['bb_spread'] = (d['bbu'] - d['bbl'])/d['c']
+            d['bb_trend'] = (d['c'] - d['bbm'])/d['bbm']
+            d['bb_category'] = d.apply(lambda x: ta.bbands_category(x['c'],x['bbu'],x['bbl']), axis=1)
             indicators.append(d)
         except Exception as e:
             print(d.symbol)

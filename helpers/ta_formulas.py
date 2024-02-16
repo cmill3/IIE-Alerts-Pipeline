@@ -192,4 +192,12 @@ def calculate_bollinger_bands(data, window, num_std_dev):
 def bbands(close,window=20, num_std_dev=2):
     upper_band, lower_band = calculate_bollinger_bands(close, window, num_std_dev)
     middle_band = calculate_middle_band(close, window)
-    return upper_band, lower_band
+    return upper_band, lower_band, middle_band
+
+def bbands_category(close,upper_band, lower_band):
+    if close > upper_band:
+        return "Above Upper Band"
+    elif close < lower_band:
+        return "Below Lower Band"
+    else:
+        return "Within Bands"
