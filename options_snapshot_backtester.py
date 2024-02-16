@@ -11,7 +11,7 @@ import math
 import numpy as np
 import pandas_market_calendars as mcal
 import os
-from helpers.constants import TRADING_SYMBOLS, WEEKLY_EXP, FULL_SYM
+from helpers.constants import TRADING_SYMBOLS, WEEKLY_EXP, FULL_SYM, BF3
 
 api_key = 'XpqF6xBLLrj6WALk4SS1UlkgphXmHQec'
 
@@ -318,11 +318,11 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2022-10-03")
-    for symbol in ["QQQ"]:
+    for symbol in BF3:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count())
-        # for date_str in date_list:
-        #     options_snapshot_remediator(date_str, symbol)
+        for date_str in date_list:
+            options_snapshot_remediator(date_str, symbol)
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator, date_str, symbol) for date_str in date_list]
         # options_snapshot_runner("2023-02-13", symbol)
