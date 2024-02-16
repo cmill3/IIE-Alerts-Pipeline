@@ -293,7 +293,7 @@ def idx_days(symbol, monday):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     start_date = datetime(2022,1,1)
-    end_date = datetime(2023,12,24)
+    end_date = datetime(2023,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -308,7 +308,7 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2022-10-03")
-    for symbol in ["SPY","IWM","QQQ"]:
+    for symbol in TRADING_SYMBOLS:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count())
         # for date_str in date_list:

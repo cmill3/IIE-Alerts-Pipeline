@@ -51,8 +51,9 @@ UNDESIRABLES = ['COIN','BILI','UPST','CVNA',"TQQQ","SQQQ","SPXS","SPXL","SOXL","
 BF3 = [
     'QQQ','SPY','IWM','ADBE', 'GOOGL', 'GOOG', 'AMZN', 'AMD', 
     'AXP', 'AAPL', 'BAC', 'BA', 'CVX', 'CSCO', 'C', 'DIS', 'XOM', 
-    'F', 'GM', 'INTC', 'JPM', 'MSFT', 'NFLX', 'NVDA', 'PYPL', 
-    'TSLA', 'V', 'SQ', 'TSM', 'DOCU', 'UBER', 'SNOW', 'PLTR', 'ABNB','AVGO'
+    'GM', 'INTC', 'JPM', 'MSFT', 'NFLX', 'NVDA', 'PYPL', 
+    'TSLA', 'V', 'SQ', 'TSM', 'DOCU', 'UBER', 'SNOW', 'PLTR', 'ABNB','AVGO',
+    "FB"
     ]
 
 
