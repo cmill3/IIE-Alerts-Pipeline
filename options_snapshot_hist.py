@@ -36,7 +36,7 @@ first_run = [
 #  'ADBE' ,'BA' ,'CVX', 'PFE' ,'C' ,'CAT', 'KO' ,'MS', 
  'GS', 'IBM' ,'CSCO' ,'WMT', 'WFC'
  'TGT', 'COST', 'INTC', 'PANW', 'ORCL', 'SBUX', 'NKE' ,'XOM', 'RTX' ,'UPS', 'FDX',
- 'LMT' ,'GIS', 'KHC', 'AVGO', 'QCOM', 'TXN' ,'MGM','GM']
+ 'LMT' ,'GIS', 'QCOM', 'GM']
 
 hv2 = ['ZM', 'UBER', 'TDOC', 'UAL', 'RCL', 'AMZN', 'ABNB', 'TSLA', 'SQ', 'SHOP', 'DOCU', 'TWLO', 'DDOG', 'ZS', 
 'OKTA', 'ETSY', 'PINS', 'FUTU', 'BIDU', 'JD', 'BABA', 'AMD', 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'MRNA', 'SNOW', 

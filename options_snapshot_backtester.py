@@ -64,7 +64,17 @@ bf2 = [
        'AAPL','NVDA','AMD','AMZN','MSFT','GOOG','GOOGL','C','BAC', 'PFE',
       'JPM','XOM','CVX','CSCO','INTC','DIS','IBM','BA', 'V','AXP',
       'ADBE','F',
-    'GM','VXX','TLT']
+    'GM',
+    # 'VXX','TLT'
+    ]
+
+bf3 = [
+    # 'QQQ','IWM','SPY',
+       'AAPL','NVDA','AMD','AMZN','MSFT','GOOG','GOOGL','C','BAC',
+      'JPM','XOM','CVX','CSCO','INTC','DIS','IBM','BA', 'V','AXP','WMT','ADBE','F','GM',
+      'SNOW','PYPL','NFLX','ABNB','SQ','SHOP','DOCU','UBER','PLTR',
+      'TSLA','COIN','TSM','META'
+      ]
 
 high_vol = ['COIN','BILI','UPST','CVNA',"NIO","BABA","ROKU","RBLX","SE","SNAP","LCID","ZM","TDOC","UBER","RCL",
             'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","MARA","SNAP",'TWLO', 'DDOG', 'ZS', 'NET', 'OKTA',
@@ -313,7 +323,6 @@ if __name__ == "__main__":
         cpu_count = (os.cpu_count())
         # for date_str in date_list:
         #     options_snapshot_remediator(date_str, symbol)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=cpu_count*2) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator, date_str, symbol) for date_str in date_list]
         # options_snapshot_runner("2023-02-13", symbol)
