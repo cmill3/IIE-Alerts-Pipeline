@@ -7,7 +7,8 @@ import datetime
 import os
 import ast
 from datetime import datetime
-from helpers.constants import MODEL_FEATURES, ENDPOINT_NAMES, ALGORITHM_CONFIG
+from helpers.constants import MODEL_FEATURES, ENDPOINT_NAMES
+from helpers.helper import pull_model_config
 import pytz 
 
 
@@ -72,6 +73,7 @@ def invoke_model(event, context):
     return put_response
     
 def format_result(result_string, symbol_list, recent_date, data, strategy) -> pd.DataFrame:
+    model_config = pull_model_config(strategy)
     try:
         result_string = result_string.decode("utf-8") 
         array = result_string.split(",")
@@ -80,7 +82,7 @@ def format_result(result_string, symbol_list, recent_date, data, strategy) -> pd
         results_df['recent_date'] = recent_date
         results_df['return_vol_10D'] = data['return_vol_10D']
         results_df['return_vol_30D'] = data['return_vol_30D']
-        results_df['target_pct'] = ALGORITHM_CONFIG[strategy]['target_value']
+        results_df['target_pct'] = model_config['target_value']
         return results_df
     except Exception as e:
         print(e)

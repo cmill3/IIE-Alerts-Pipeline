@@ -19,6 +19,17 @@ high_vol = ['COIN','BILI','UPST','CVNA',"NIO","BABA","ROKU","RBLX","SE","SNAP","
             'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","MARA","SNAP",'TWLO', 'DDOG', 'ZS', 'NET', 'OKTA',
             "DOCU",'SQ', 'SHOP',"PLTR","CRWD",'MRNA', 'SNOW', 'SOFI','LYFT','TSM','PINS','PANW','ORCL','SBUX','NKE',"UPS","FDX",
             'WDAY','SPOT']
+
+vol_features = ['return_vol_15M', 'volume_vol_15M', 'return_vol_30M', 'volume_vol_30M', 'return_vol_60M', 
+'volume_vol_60M', '15min_vol_diff', '15min_vol_diff_pct', 'min_vol_diff', 
+'min_vol_diff_pct', 'min_volume_vol_diff', 'min_volume_vol_diff_pct', 'return_vol_4H', 'return_vol_8H', 
+'return_vol_16H', 'volume_vol_4H', 'volume_vol_8H', 'volume_vol_16H', 'hour_vol_diff', 'hour_vol_diff_pct', 
+'hour_volume_vol_diff', 'hour_volume_vol_diff_pct', 'return_vol_3D', 'return_vol_5D', 'return_vol_10D', 
+'return_vol_30D', 'volume_vol_3D', 'volume_vol_5D', 'volume_vol_10D', 'volume_vol_30D', 'daily_vol_diff', 
+'daily_vol_diff_pct', 'daily_vol_diff30', 'daily_vol_diff_pct30', 'daily_volume_vol_diff', 'daily_volume_vol_diff_pct', 
+'daily_volume_vol_diff30', 'daily_volume_vol_diff_pct30','symbol']
+
+
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
@@ -42,15 +53,18 @@ def build_vol_features(date_str):
     for hour in hours:
         df = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/{key_str}/{hour}.csv")
         df = pd.read_csv(df['Body'])
-        df = df.loc[df['symbol'].isin(['META'])]
+        # df = df.loc[df['symbol'].isin(['META'])]
         symbols = df['symbol'].unique().tolist()
         min_aggs, error_list = call_polygon_vol(symbols, from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
         hour_aggs, error_list = call_polygon_vol(symbols, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
         results_df = vol_feature_engineering(df, min_aggs, hour_aggs)
-        old_df = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/vol/{key_str}/{hour}.csv")
-        old_df = pd.read_csv(old_df['Body'])
-        new_df = pd.concat([old_df,results_df],ignore_index=True)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/vol/{key_str}/{hour}.csv", Body=new_df.to_csv())
+        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/vol/{key_str}/{hour}.csv")
+        # old_df = pd.read_csv(old_df['Body'])
+        # old_df = old_df.loc[old_df['symbol'].isin(symbols)]
+        # old_df = old_df[vol_features]
+        # df = pd.merge(df, old_df, on="symbol", how="left")
+        # new_df = pd.concat([old_df,results_df],ignore_index=True)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/vol/{key_str}/{hour}.csv", Body=results_df.to_csv())
     return put_response
 
 
@@ -124,8 +138,8 @@ def consolidate_bf_vol(date_str):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     print(os.cpu_count())
-    start_date = datetime(2023,1,1)
-    end_date = datetime(2024,1,26)
+    start_date = datetime(2018,1,1)
+    end_date = datetime(2024,2,18)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -140,6 +154,6 @@ if __name__ == "__main__":
     # run_process("2021-02-12")
         
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
