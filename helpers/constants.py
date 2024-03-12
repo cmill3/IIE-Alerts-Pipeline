@@ -49,13 +49,13 @@ UNDESIRABLES = ['COIN','BILI','UPST','CVNA',"TQQQ","SQQQ","SPXS","SPXL","SOXL","
                 "SE","SNAP","LCID",'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","CMG","NFLX","AVGO","BKNG","ABNB","MARA"]
 
 BF3 = [
-    'QQQ','SPY','IWM','ADBE', 'GOOGL', 'GOOG', 'AMZN', 'AMD', 
+    'QQQ','SPY','IWM', 'GOOGL', 'GOOG', 'AMZN', 'AMD', 
     'AXP', 'AAPL', 'BAC', 'BA', 'CVX', 'CSCO', 'C', 'DIS', 'XOM', 
-    'GM', 'INTC', 'JPM', 'MSFT', 'NFLX', 'NVDA', 'PYPL', 
-    'TSLA', 'V', 'SQ', 'TSM', 'DOCU', 'UBER', 'SNOW', 'PLTR', 'ABNB','AVGO',
-    # "FB"
-    'META'
+    'GM', 'INTC', 'JPM', 'MSFT', 'NFLX', 'NVDA', 'PYPL',
+    'TSLA', 'V', 'SQ', 'TSM', 'QCOM', 'UBER', 'SNOW', 'PLTR', 'ABNB',
+    "FB",'META',"TGT","NKE","SBUX",'ORCL'
     ]
+## with more money add CMG,BKNG,AVGO,ADBE,COST
 
 
 TRADING_SYMBOLS =  [

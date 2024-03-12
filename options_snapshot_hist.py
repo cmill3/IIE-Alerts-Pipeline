@@ -59,7 +59,7 @@ holidays_multiyear = holidays.holidays
 s3 = boto3.client('s3', aws_access_key_id="AKIAWUN5YYJZHGIGMLQJ", aws_secret_access_key="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")
 
 def options_snapshot_runner(monday,symbol):
-    fridays = build_days(monday)
+    fridays = build_days(symbol,monday)
     try:
         print(symbol)
         call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
@@ -338,8 +338,8 @@ if __name__ == "__main__":
     
     # time.sleep(7200)
 
-    start_date = datetime(2018,1,1)
-    end_date = datetime(2023,10,28)
+    start_date = datetime(2021,1,1)
+    end_date = datetime(2023,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -351,11 +351,11 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
 
-    for symbol in first_run:
+    for symbol in ["GOOG","GOOGL","NVDA"]:
         print(f"Starting {symbol}")
         cpu_count = os.cpu_count()
-        # options_snapshot_remediator_idx(date_list,symbol)
+        # options_snapshot_runner('2021-01-05',symbol)
         with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
-            processed_weeks_futures = [executor.submit(options_snapshot_remediator,date_str,symbol) for date_str in date_list]
+            processed_weeks_futures = [executor.submit(options_snapshot_runner,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")

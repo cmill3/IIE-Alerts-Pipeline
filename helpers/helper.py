@@ -13,3 +13,6 @@ def pull_model_config(trading_strategy):
     model_config = pd.read_csv(model_config.get("Body"))
     model_config = model_config.loc[model_config['strategy'] == trading_strategy]
     return {"target_value": model_config['target_value'].values[0], "strategy": model_config['strategy'].values[0]}
+
+if __name__ == "__main__":
+    print(pull_model_config("CDBFC"))
