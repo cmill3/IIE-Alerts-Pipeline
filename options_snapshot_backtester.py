@@ -11,7 +11,7 @@ import math
 import numpy as np
 import pandas_market_calendars as mcal
 import os
-from helpers.constants import TRADING_SYMBOLS, WEEKLY_EXP, FULL_SYM, BF3
+from helpers.constants import TRADING_SYMBOLS, WEEKLY_EXP, FULL_SYM,BF3
 
 api_key = 'XpqF6xBLLrj6WALk4SS1UlkgphXmHQec'
 
@@ -112,25 +112,25 @@ def options_snapshot_remediator(date_str,symbol):
                 print(f"This symbol: {symbol} failed twice {e}")
         return "done"
 
-# def options_snapshot_runner(monday, symbol):
-#     print(monday)
-#     ### Implementation for index options
-#     # fridays = find_fridays(monday)
-#     date_str = monday.replace('-','/')
-#     ## for symbol in ['SPY','IWM']: This is for you Dean.
-#     days = build_days(symbol, monday)
-#     try:
-#         call_tickers, put_tickers = build_options_tickers(symbol, days, monday,date_str=monday)
-#         call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str=monday)
-#         print(f"Finished {monday} for {symbol}")
-#     except Exception as e:
-#         print(f"This symbol: {symbol} failed once {e}")
-#         try:
-#             call_tickers, put_tickers = build_options_tickers(symbol, days, monday, date_str=monday)
-#             call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str=monday)
-#         except Exception as e:
-#             print(f"This symbol: {symbol} failed twice {e}")
-#     return "done"
+def options_snapshot_runner(monday, symbol):
+    print(monday)
+    ### Implementation for index options
+    fridays = find_fridays(monday)
+    date_str = monday.replace('-','/')
+    ## for symbol in ['SPY','IWM']: This is for you Dean.
+    days = build_days(symbol, monday)
+    try:
+        call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday,date_str=monday)
+        call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str=monday)
+        print(f"Finished {monday} for {symbol}")
+    except Exception as e:
+        print(f"This symbol: {symbol} failed once {e}")
+        try:
+            call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday, date_str=monday)
+            call_df = get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str=monday)
+        except Exception as e:
+            print(f"This symbol: {symbol} failed twice {e}")
+    return "done"
 
 def get_options_snapshot_hist(call_tickers, put_tickers, monday, symbol, date_str):
     hours = ["10","11","12","13","14","15"]
@@ -195,7 +195,7 @@ def build_idx_options_tickers(symbol, days):
 
 def build_option_symbol(ticker, date, strike, option_type):
     #Extract the year, month, and day from the date
-    # date = date.strftime("%Y-%m-%d")
+    date = date.strftime("%Y-%m-%d")
     year, month, day = date.split('-')
     short_year = year[-2:]
     str_strk = str(strike)
@@ -303,7 +303,7 @@ def idx_days(symbol, monday):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     start_date = datetime(2021,1,1)
-    end_date = datetime(2022,1,1)
+    end_date = datetime(2023,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -318,10 +318,12 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2022-10-03")
-    for symbol in BF3:
+    for symbol in ['TGT','SBUX']:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count())
-        with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:            # options_snapshot_remediator(date_str, symbol)
+        # for date_str in date_list:
+        #     options_snapshot_remediator(date_str, symbol)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=30) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator, date_str, symbol) for date_str in date_list]
         # options_snapshot_runner("2023-02-13", symbol)

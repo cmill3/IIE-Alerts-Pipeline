@@ -328,7 +328,7 @@ def call_polygon_price(symbol, date_stamp, timespan, multiplier, hour):
 def call_polygon_price_day(symbol, from_stamp, to_stamp, timespan, multiplier):
     payload={}
     headers = {}
-    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
+    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=false&sort=asc&limit=50000&apiKey={KEY}"
 
     response = execute_polygon_call(url)
 
