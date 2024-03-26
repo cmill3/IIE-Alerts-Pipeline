@@ -8,7 +8,7 @@ import boto3
 import logging
 from botocore.exceptions import ClientError
 import concurrent.futures
-from helpers.constants import ALL_SYM, TRADING_SYMBOLS, FULL_SYM
+from helpers.constants import ALL_SYM, TRADING_SYMBOLS, FULL_SYM, BF3
 import pandas_market_calendars as mcal
 
 nyse = mcal.get_calendar('NYSE')
@@ -41,12 +41,8 @@ def build_historic_data(date_str):
     if date_np in holidays_multiyear:
         return "holiday"
     for hour in hours:
-        aggregates, error_list = call_polygon_histD(FULL_SYM, from_stamp, to_stamp, timespan="minute", multiplier="30")
-        # if len(error_list) > 0:
-        #     print(error_list)
-        hour_aggregates, error_list = call_polygon_histH(FULL_SYM, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
-        # if len(error_list) > 0:
-        #     print(error_list)
+        aggregates, error_list = call_polygon_histD(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30")
+        hour_aggregates, error_list = call_polygon_histH(BF3, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
         df = build_analytics(full_aggs, hour)
         df.reset_index(drop=True, inplace=True)
@@ -131,7 +127,6 @@ def pull_df(date_stamp, prefix, hour):
 
 
 if __name__ == "__main__":
-    # build_historic_data(None, None)
     cpu = os.cpu_count()
     start_date = datetime(2022,3,5)
     end_date = datetime(2023,12,23)

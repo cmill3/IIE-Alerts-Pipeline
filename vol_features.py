@@ -12,25 +12,17 @@ import warnings
 warnings.filterwarnings("ignore")
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
-## add FB for historical
 
-big_fish =  [
-            "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","FB"
-            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","META",'QQQ','SPY','IWM'
-            ]
-indexes = ['QQQ','SPY','IWM']
-memes = ['GME','AMC','MARA','TSLA','BBY','NIO','RIVN','XPEV','COIN','ROKU','LCID']
-new_bf = ['C','CAT','KO','MS','GS','PANW','ORCL','IBM','CSCO','WMT','TGT','COST']
-new_symbols = [ 
-    # "RTX",
-               "UPS","FDX","CAT","PG","COST","LMT","GS","MS","AXP","GIS","KHC",
-            #    "LYFT",
-            #    "CHWY",
-            #    "DOCU","TTD",
-            #    "PTON",
-               "W","NOW","TEAM",
-            #    "MDB","HOOD","MARA","AI","BYND","RIOT","U"
-               ]
+vol_features = ['return_vol_15M', 'volume_vol_15M', 'return_vol_30M', 'volume_vol_30M', 'return_vol_60M', 
+'volume_vol_60M', '15min_vol_diff', '15min_vol_diff_pct', 'min_vol_diff', 
+'min_vol_diff_pct', 'min_volume_vol_diff', 'min_volume_vol_diff_pct', 'return_vol_4H', 'return_vol_8H', 
+'return_vol_16H', 'volume_vol_4H', 'volume_vol_8H', 'volume_vol_16H', 'hour_vol_diff', 'hour_vol_diff_pct', 
+'hour_volume_vol_diff', 'hour_volume_vol_diff_pct', 'return_vol_3D', 'return_vol_5D', 'return_vol_10D', 
+'return_vol_30D', 'volume_vol_3D', 'volume_vol_5D', 'volume_vol_10D', 'volume_vol_30D', 'daily_vol_diff', 
+'daily_vol_diff_pct', 'daily_vol_diff30', 'daily_vol_diff_pct30', 'daily_volume_vol_diff', 'daily_volume_vol_diff_pct', 
+'daily_volume_vol_diff30', 'daily_volume_vol_diff_pct30','symbol']
+
+
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
