@@ -9,6 +9,7 @@ import logging
 from botocore.exceptions import ClientError
 import concurrent.futures
 import warnings
+# from helpers.constants import ALL_SYM, TRADING_SYMBOLS, WEEKLY_EXP
 warnings.filterwarnings("ignore")
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
@@ -44,16 +45,17 @@ def build_vol_features(date_str):
     from_stamp, to_stamp, hour_stamp = generate_dates_historic_vol(date_str)
 
     for hour in hours:
-        df = s3.get_object(Bucket="inv-alerts", Key=f"full_alerts/{key_str}/{hour}.csv")
+        df = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/{key_str}/{hour}.csv")
         df = pd.read_csv(df['Body'])
+        df = df.loc[df['symbol'].isin(['ORCL'])]
         symbols = df['symbol'].unique().tolist()
         min_aggs, error_list = call_polygon_vol(symbols, from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
         hour_aggs, error_list = call_polygon_vol(symbols, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
         results_df = vol_feature_engineering(df, min_aggs, hour_aggs)
-        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"full_alerts/vol/{key_str}/{hour}.csv")
+        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/vol/{key_str}/{hour}.csv")
         # old_df = pd.read_csv(old_df['Body'])
         # new_df = pd.concat([old_df,results_df],ignore_index=True)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"full_alerts/{key_str}/{hour}.csv", Body=results_df.to_csv())
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/vol/{key_str}/{hour}.csv", Body=results_df.to_csv())
     return put_response
 
 
@@ -127,8 +129,8 @@ def consolidate_bf_vol(date_str):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     print(os.cpu_count())
-    start_date = datetime(2023,10,28)
-    end_date = datetime(2023,12,23)
+    start_date = datetime(2024,3,9)
+    end_date = datetime(2024,3,16)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -140,9 +142,9 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
     # # for date_str in date_list:
-    # run_process("2018-01-03")
+    # run_process("2021-02-11")
         
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]

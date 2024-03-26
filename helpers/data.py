@@ -2,8 +2,8 @@ import requests
 import json
 import pandas as pd
 from datetime import datetime, timedelta, time
-import pandas_ta as ta
-import numpy as np
+import helpers.ta_formulas as ta
+import statistics
 import pytz
 import warnings
 from requests.adapters import HTTPAdapter
@@ -62,26 +62,32 @@ def get_pcr_historic(symbol, window, dates):
     return raw_list
 
 def calc_price_action(row):
-    t = row['t']
-    date = row['date']
-    from_stamp = date.strftime("%Y-%m-%d")
-    date = date.astimezone(pytz.timezone('US/Eastern'))
-    aggs = call_polygon_price(row['symbol'], from_stamp, "hour", 1, row['hour'])
-    one_day, three_day = build_date_dfs(aggs, t)
-    open = one_day.head(1)['o'].values[0]
-    one_c = one_day.tail(1)['c'].values[0]
-    one_h = one_day['h'].max()
-    one_l = one_day['l'].min()
-    three_c = three_day.tail(1)['c'].values[0]
-    three_h = three_day['h'].max()
-    three_l = three_day['l'].min()
-    one_high = (one_h - open)/ open
-    one_low = (one_l - open)/ open
-    one_pct = (one_c - row['c'])/row['c']
-    three_high = (three_h - open)/ open
-    three_low = (three_l - open)/ open
-    three_pct = (three_c - row['c'])/row['c']
-    return {"one_max": one_high, "one_min": one_low, "one_pct": one_pct, "three_max": three_high, "three_min": three_low, "three_pct": three_pct,"symbol": row['symbol']}
+    try:
+        t = row['t']
+        date = row['date']
+        from_stamp = date.strftime("%Y-%m-%d")
+        date = date.astimezone(pytz.timezone('US/Eastern'))
+        aggs = call_polygon_price(row['symbol'], from_stamp, "hour", 1, row['hour'])
+        one_day, three_day = build_date_dfs(aggs, t)
+        open = one_day.head(1)['o'].values[0]
+        one_c = one_day.tail(1)['c'].values[0]
+        one_h = one_day['h'].max()
+        one_l = one_day['l'].min()
+        three_c = three_day.tail(1)['c'].values[0]
+        three_h = three_day['h'].max()
+        three_l = three_day['l'].min()
+        one_high = (one_h - open)/ open
+        one_low = (one_l - open)/ open
+        one_pct = (one_c - row['c'])/row['c']
+        three_high = (three_h - open)/ open
+        three_low = (three_l - open)/ open
+        three_pct = (three_c - row['c'])/row['c']
+        return {"one_max": one_high, "one_min": one_low, "one_pct": one_pct, "three_max": three_high, "three_min": three_low, "three_pct": three_pct,"symbol": row['symbol']}
+    except Exception as e:
+        print(e)
+        print(row['symbol'])
+        print('price action')
+        return {"one_max": 0, "one_min": 0, "one_pct": 0, "three_max": 0, "three_min": 0, "three_pct": 0,"symbol": row['symbol']}
 
 def build_date_dfs(df, t):
     date = convert_timestamp_est(t)
@@ -322,7 +328,7 @@ def call_polygon_price(symbol, date_stamp, timespan, multiplier, hour):
 def call_polygon_price_day(symbol, from_stamp, to_stamp, timespan, multiplier):
     payload={}
     headers = {}
-    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
+    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=false&sort=asc&limit=50000&apiKey={KEY}"
 
     response = execute_polygon_call(url)
 
@@ -373,6 +379,7 @@ def call_polygon_backtest(symbols, from_stamp, to_stamp, timespan, multiplier):
             results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
             # results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
         except Exception as e:
+            # print(url)
             # print(f"{e} for {symbol}")
             continue
         values.append({"high": results_df['h'].max(),"low": results_df['l'].min(),"volume": results_df['v'].sum(),"symbol": symbol})
@@ -435,21 +442,21 @@ def build_analytics(aggregates, hour):
             d['adjusted_volume'] = create_adjusted_volume(d['v'].tolist(), hour)
             d['vol7'] = ta.slope(d['adjusted_volume'],7)    
             d['vol14'] = ta.slope(d['adjusted_volume'],14)
-            d['rsi'] = ta.rsi(d['c'])
-            d['rsi3'] = ta.rsi(d['c'],length=3)
-            d['rsi5'] = ta.rsi(d['c'],length=5)
-            d['roc'] = ta.roc(d['c'])
-            d['roc3'] = ta.roc(d['c'],length=3)
-            d['roc5'] = ta.roc(d['c'],length=5)
+            d['rsi'] = ta.rsi(d['c'],window=14)
+            d['rsi3'] = ta.rsi(d['c'],window=3)
+            d['rsi5'] = ta.rsi(d['c'],window=5)
+            d['roc'] = ta.roc(d['c'],window=10)
+            d['roc3'] = ta.roc(d['c'],window=3)
+            d['roc5'] = ta.roc(d['c'],window=5)
             d['threeD_returns_close'] = d['c'].pct_change(3)
             d['oneD_returns_close'] = d['c'].pct_change(1)
             d['range_vol'] = (d['h'] - d['l'])/ d['c']
             d['range_vol5MA'] = d['range_vol'].rolling(5).mean()
             d['range_vol10MA'] = d['range_vol'].rolling(10).mean()
             d['range_vol25MA'] = d['range_vol'].rolling(25).mean()
-            d['oneD_stddev50'] = np.std(d['oneD_returns_close'])
-            d['threeD_stddev50'] = np.std(d['threeD_returns_close'])
-            d['cmf'] = ta.cmf(d['h'], d['l'], d['c'], d['v'])
+            d['oneD_stddev50'] = statistics.stdev(d['oneD_returns_close'])
+            d['threeD_stddev50'] = statistics.stdev(d['threeD_returns_close'])
+            d['cmf'] = ta.cmf(d,window=20)
             try:
                 d['close_diff'] = d['c'].pct_change()
             except:
@@ -457,8 +464,7 @@ def build_analytics(aggregates, hour):
             d['close_diff3'] = d['c'].pct_change(3)
             d['close_diff5'] = d['c'].pct_change(5)
             d['v_diff_pct'] = calc_vdiff_pipeline(d['v'].tolist(), hour)
-            adx = ta.adx(d['h'],d['l'],d['c'])
-            d['adx'] = adx['ADX_14']
+            d['adx'] = ta.adx(d,window=14)
             d['volume_10MA'] = d['adjusted_volume'].rolling(10).mean()
             d['volume_25MA'] = d['adjusted_volume'].rolling(25).mean()
             d['price_10MA'] = d['c'].rolling(10).mean()
@@ -467,8 +473,14 @@ def build_analytics(aggregates, hour):
             d['volume_25DDiff'] = d.apply(lambda x: ((x.adjusted_volume - x.volume_25MA)/x.volume_25MA)*100, axis=1)
             d['price_10DDiff'] = d.apply(lambda x: ((x.c - x.price_10MA)/x.price_10MA)*100, axis=1)
             d['price_25DDiff'] = d.apply(lambda x: ((x.c - x.price_25MA)/x.price_25MA)*100, axis=1)
-            # macd = ta.macd(d['c'])
-            # d['macd'] = macd.MACD_12_26_9
+            upper_band, lower_band, middle_band = ta.bbands(d['c'],window=20)
+            d['bbu'] = upper_band
+            d['bbl'] = lower_band
+            d['bbm'] = middle_band
+            d['macd'] = ta.macd(d['c'])
+            d['bb_spread'] = (d['bbu'] - d['bbl'])/d['c']
+            d['bb_trend'] = (d['c'] - d['bbm'])/d['bbm']
+            d['bb_category'] = d.apply(lambda x: ta.bbands_category(x['c'],x['bbu'],x['bbl']), axis=1)
             indicators.append(d)
         except Exception as e:
             print(d.symbol)
@@ -630,6 +642,22 @@ def convert_timestamp_est(timestamp):
     dt_est = dt_utc.astimezone(pytz.timezone('US/Eastern'))
     
     return dt_est
+
+def call_polygon_option_snapshot(symbol,expiration_dates):
+    symbol_dfs = []
+    for expiry in expiration_dates:
+        for option_type in ['call','put']:
+            url = f"https://api.polygon.io/v3/snapshot/options/{symbol}?expiration_date={expiry}?contract_type={option_type}&limit=250&apiKey=A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp&apiKey={KEY}"
+            response = execute_polygon_call(url)
+            response_data = json.loads(response.text)
+            results = response_data['results']
+            results_df = pd.DataFrame(results)
+            results_df['symbol'] = symbol
+            results_df['expiry'] = expiry
+            results_df['option_type'] = option_type
+            symbol_dfs.append(results_df)
+    full_df = pd.concat(symbol_dfs)
+    return full_df
 
 if __name__ == "__main__":
     import time 

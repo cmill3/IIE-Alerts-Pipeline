@@ -8,8 +8,9 @@ import boto3
 import logging
 from botocore.exceptions import ClientError
 import concurrent.futures
-from helpers.constants import ALL_SYM, TRADING_SYMBOLS, FULL_SYM, BF3
+from helpers.constants import *
 import pandas_market_calendars as mcal
+import numpy as np
 
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
@@ -21,6 +22,11 @@ now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
 
+high_vol = ['COIN','BILI','UPST','CVNA',"NIO","BABA","ROKU","RBLX","SE","SNAP","LCID","ZM","TDOC","UBER","RCL",
+            'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","MARA","SNAP",'TWLO', 'DDOG', 'ZS', 'NET', 'OKTA',
+            "DOCU",'SQ', 'SHOP',"PLTR","CRWD",'MRNA', 'SNOW', 'SOFI','LYFT','TSM','PINS','PANW','ORCL','SBUX','NKE',"UPS","FDX",
+            'WDAY','SPOT']
+
 
 def run_process(date_str):
     try:
@@ -31,7 +37,6 @@ def run_process(date_str):
     print(f"Finished {date_str}")
 
 def build_historic_data(date_str):
-    print(date_str)
     hours = ["10","11","12","13","14","15"]
     key_str = date_str.replace("-","/")
     s3 = get_s3_client()
@@ -70,12 +75,12 @@ def build_historic_data(date_str):
         df['SPY_1D'] = SPY_diff
         df['SPY_3D'] = SPY_diff3
         df['SPY_5D'] = SPY_diff5
-        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv")
+        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/{key_str}/{hour}.csv")
         # old_df = pd.read_csv(old_df['Body'])
         # new_df = pd.concat([old_df,df],ignore_index=True)
         # new_df = new_df.drop_duplicates(subset=['symbol'])
         # new_df.drop(columns=['Unnamed: 0'], inplace=True)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"full_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
     return put_response
     
 def generate_dates_historic(date_str):
@@ -128,8 +133,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2022,3,5)
-    end_date = datetime(2023,12,23)
+    start_date = datetime(2024,3,9)
+    end_date = datetime(2024,3,16)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -140,7 +145,7 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # run_process("2021-02-12")
+    # run_process("2018-01-04")
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
