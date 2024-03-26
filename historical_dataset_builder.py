@@ -37,7 +37,6 @@ def run_process(date_str):
     print(f"Finished {date_str}")
 
 def build_historic_data(date_str):
-    print(date_str)
     hours = ["10","11","12","13","14","15"]
     key_str = date_str.replace("-","/")
     s3 = get_s3_client()
