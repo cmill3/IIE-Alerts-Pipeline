@@ -47,7 +47,7 @@ def build_vol_features(date_str):
     for hour in hours:
         df = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/{key_str}/{hour}.csv")
         df = pd.read_csv(df['Body'])
-        df = df.loc[df['symbol'].isin(['ORCL'])]
+        # df = df.loc[df['symbol'].isin(['ORCL'])]
         symbols = df['symbol'].unique().tolist()
         min_aggs, error_list = call_polygon_vol(symbols, from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
         hour_aggs, error_list = call_polygon_vol(symbols, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
@@ -129,8 +129,8 @@ def consolidate_bf_vol(date_str):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     print(os.cpu_count())
-    start_date = datetime(2024,3,9)
-    end_date = datetime(2024,3,16)
+    start_date = datetime(2024,3,16)
+    end_date = datetime(2024,4,8)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
