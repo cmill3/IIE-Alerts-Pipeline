@@ -11,6 +11,9 @@ import concurrent.futures
 from helpers.constants import *
 import pandas_market_calendars as mcal
 import numpy as np
+import warnings
+
+warnings.filterwarnings("ignore")
 
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
@@ -46,51 +49,50 @@ def build_historic_data(date_str):
     if date_np in holidays_multiyear:
         return "holiday"
     for hour in hours:
-        aggregates, error_list = call_polygon_histD(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30")
-        hour_aggregates, error_list = call_polygon_histH(BF3, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
-        full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
-        df = build_analytics(full_aggs, hour)
+        thirty_aggs, error_list = call_polygon_features(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+        df = feature_engineering(thirty_aggs,dt,hour)
         df.reset_index(drop=True, inplace=True)
         df = df.groupby("symbol").tail(1)
-        spy_aggs = call_polygon_spy(from_stamp, to_stamp, timespan="minute", multiplier="30")
-        current_spy = call_polygon_spyH(hour_stamp, hour_stamp, timespan="hour", multiplier="1", hour=int(hour))
-        current_spy = current_spy.values[0]
         result = df.apply(calc_price_action, axis=1)
-        result.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
-        result.reset_index()
-        price = pd.DataFrame(result.to_list())
-        df.reset_index(drop=True, inplace=True)
-        df['one_max'] = price['one_max']
-        df['one_min'] = price['one_min']
-        df['one_pct'] = price['one_pct']
-        df['three_max'] = price['three_max']
-        df['three_min'] = price['three_min']
-        df['three_pct'] = price['three_pct']
-        SPY_diff   = (current_spy - spy_aggs[-1])/spy_aggs[-1]
-        SPY_diff3  = (current_spy - spy_aggs[-3])/spy_aggs[-3]
-        SPY_diff5  = (current_spy - spy_aggs[-5])/spy_aggs[-5]
-        df['SPY_diff'] = (((df['close_diff']/100) - SPY_diff)/SPY_diff)
-        df['SPY_diff3'] = (((df['close_diff']/100) - SPY_diff3)/SPY_diff3)
-        df['SPY_diff5'] = (((df['close_diff']/100) - SPY_diff5)/SPY_diff5)
-        df['SPY_1D'] = SPY_diff
-        df['SPY_3D'] = SPY_diff3
-        df['SPY_5D'] = SPY_diff5
-        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/{key_str}/{hour}.csv")
-        # old_df = pd.read_csv(old_df['Body'])
-        # new_df = pd.concat([old_df,df],ignore_index=True)
-        # new_df = new_df.drop_duplicates(subset=['symbol'])
-        # new_df.drop(columns=['Unnamed: 0'], inplace=True)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
+        df = configure_price_features(df, result)
+        df = configure_spy_features(df)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features/{key_str}/{hour}.csv", Body=df.to_csv())
     return put_response
     
 def generate_dates_historic(date_str):
     end = datetime.strptime(date_str, "%Y-%m-%d")
     start = end - timedelta(weeks=8)
-    end_day = end - timedelta(days=1)
-    to_stamp = end_day.strftime("%Y-%m-%d")
+    to_stamp = end.strftime("%Y-%m-%d")
     hour_stamp = end.strftime("%Y-%m-%d")
     from_stamp = start.strftime("%Y-%m-%d")
     return from_stamp, to_stamp, hour_stamp
+
+def configure_price_features(df, result):
+    result.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
+    result.reset_index()
+    price = pd.DataFrame(result.to_list())
+    df.reset_index(drop=True, inplace=True)
+    df['one_max'] = price['one_max']
+    df['one_min'] = price['one_min']
+    df['one_pct'] = price['one_pct']
+    df['three_max'] = price['three_max']
+    df['three_min'] = price['three_min']
+    df['three_pct'] = price['three_pct']
+    return df
+
+def configure_spy_features(df):
+    # spy,_ = call_polygon_features(["SPY"], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+    # spy_features = feature_engineering(spy,datetime.strptime(to_stamp, "%Y-%m-%d"),hour)
+    spy = df.loc[df['symbol'] == "SPY"]
+    fived = spy["price_5Ddiff"].values[0]
+    twentyd = spy["price_20Ddiff"].values[0]
+    spy_range = spy["price_range"].values[0]
+    df["SPY_5d"] = fived
+    df["SPY_20d"] = twentyd 
+    df["SPY_5d_diff"] = (df["price_5Ddiff"] - df["SPY_5d"])/df["price_5Ddiff"]
+    df["SPY_20d_diff"] = (df["price_20Ddiff"] - df["SPY_20d"])/df["price_20Ddiff"]
+    df["SPY_range_vol"] = spy_range
+    return df
 
 
 def combine_hour_aggs(aggregates, hour_aggregates, hour):
@@ -133,7 +135,7 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2024,4,8)
+    start_date = datetime(2015,1,1)
     end_date = datetime(2024,4,14)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -145,7 +147,7 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # run_process("2018-01-04")
+    # run_process("2024-04-15")
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor

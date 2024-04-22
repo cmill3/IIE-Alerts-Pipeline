@@ -196,8 +196,40 @@ def bbands(close,window=20, num_std_dev=2):
 
 def bbands_category(close,upper_band, lower_band):
     if close > upper_band:
-        return "Above Upper Band"
+        return 1
     elif close < lower_band:
-        return "Below Lower Band"
+        return -1
     else:
-        return "Within Bands"
+        return 0
+    
+
+# def garman_klass_volatility(high_prices, low_prices, open_prices, close_prices):
+#     """
+#     Calculate the Garman-Klass Volatility Estimator.
+
+#     Parameters:
+#     high_prices : array-like, the high prices of the asset
+#     low_prices : array-like, the low prices of the asset
+#     open_prices : array-like, the opening prices of the asset
+#     close_prices : array-like, the closing prices of the asset
+
+#     Returns:
+#     float: Estimated annualized volatility
+#     """
+#     # Convert prices to numpy arrays to facilitate calculations
+#     highs = np.array(high_prices)
+#     lows = np.array(low_prices)
+#     opens = np.array(open_prices)
+#     closes = np.array(close_prices)
+    
+#     # Calculate the components of the Garman-Klass formula
+#     term1 = 0.5 * np.log(highs / lows)**2
+#     term2 = - (2 * np.log(2) - 1) * np.log(closes / opens)**2
+    
+#     # Sum up the daily values and divide by the number of observations
+#     variance = np.mean(term1 + term2)
+    
+#     # Annualize the volatility (sqrt(variance) * sqrt(number of trading days in a year))
+#     annualized_volatility = np.sqrt(variance) * np.sqrt(252)
+
+#     return annualized_volatility

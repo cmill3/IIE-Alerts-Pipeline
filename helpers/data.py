@@ -63,12 +63,10 @@ def get_pcr_historic(symbol, window, dates):
 
 def calc_price_action(row):
     try:
-        t = row['t']
         date = row['date']
         from_stamp = date.strftime("%Y-%m-%d")
-        date = date.astimezone(pytz.timezone('US/Eastern'))
         aggs = call_polygon_price(row['symbol'], from_stamp, "hour", 1, row['hour'])
-        one_day, three_day = build_date_dfs(aggs, t)
+        one_day, three_day = build_date_dfs(aggs, date)
         open = one_day.head(1)['o'].values[0]
         one_c = one_day.tail(1)['c'].values[0]
         one_h = one_day['h'].max()
@@ -78,10 +76,10 @@ def calc_price_action(row):
         three_l = three_day['l'].min()
         one_high = (one_h - open)/ open
         one_low = (one_l - open)/ open
-        one_pct = (one_c - row['c'])/row['c']
+        one_pct = (one_c - row['alert_price'])/row['alert_price']
         three_high = (three_h - open)/ open
         three_low = (three_l - open)/ open
-        three_pct = (three_c - row['c'])/row['c']
+        three_pct = (three_c - row['alert_price'])/row['alert_price']
         return {"one_max": one_high, "one_min": one_low, "one_pct": one_pct, "three_max": three_high, "three_min": three_low, "three_pct": three_pct,"symbol": row['symbol']}
     except Exception as e:
         print(e)
@@ -89,12 +87,15 @@ def calc_price_action(row):
         print('price action')
         return {"one_max": 0, "one_min": 0, "one_pct": 0, "three_max": 0, "three_min": 0, "three_pct": 0,"symbol": row['symbol']}
 
-def build_date_dfs(df, t):
-    date = convert_timestamp_est(t)
-    sell_1d = calculate_sellby_date(date, 2)
-    sell_3d = calculate_sellby_date(date, 4)
-    one_day_df = df.loc[df['date'] < sell_1d]
-    three_day_df = df.loc[df['date'] < sell_3d]
+def build_date_dfs(df, dt):
+    sell_1d = calculate_sellby_date(dt, 2)
+    sell_3d = calculate_sellby_date(dt, 4)
+    year, month, day = sell_1d.strftime("%Y-%m-%d").split("-")
+    year3, month3, day3 = sell_3d.strftime("%Y-%m-%d").split("-")
+    dt_3d = datetime(int(year3), int(month3), int(day3),tzinfo=pytz.timezone('US/Eastern'))
+    dt_1d = datetime(int(year), int(month), int(day),tzinfo=pytz.timezone('US/Eastern'))
+    one_day_df = df.loc[df['date'] < dt_3d]
+    three_day_df = df.loc[df['date'] < dt_1d]
     return one_day_df, three_day_df
     
 def calculate_sellby_date(dt, trading_days_to_add): #End date, n days later for the data set built to include just trading days, but doesnt filter holiday
@@ -205,6 +206,48 @@ def call_polygon_histH(symbol_list, from_stamp, to_stamp, timespan, multiplier):
     return dfs, error_list
 
 def call_polygon_vol(symbol_list, from_stamp, to_stamp, timespan, multiplier,hour):
+    payload={}
+    headers = {}
+    dfs = []
+    trading_hours = [9,10,11,12,13,14,15]
+    error_list = []
+
+    year, month, day = to_stamp.split("-")
+    current_date = datetime(int(year), int(month), int(day), int(hour),tzinfo=pytz.timezone('US/Eastern'))
+
+    for symbol in symbol_list:
+        data = []
+        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
+        with requests.Session() as session:
+            next_url = url
+            while next_url:
+                response = execute_polygon_call(next_url)
+                try:
+                    response_data = json.loads(response.text)
+                    results = response_data['results']
+                except:
+                    error_list.append(symbol)
+                    continue
+                results_df = pd.DataFrame(results)
+                results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
+                results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
+                results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
+                results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
+                results_df['symbol'] = symbol
+                trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+                filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
+                filtered_df = filtered_df.loc[filtered_df['date'] <= current_date]
+                data.append(filtered_df)
+                try:
+                    next_url = response_data['next_url']
+                except:
+                    next_url = None
+            full_df = pd.concat(data, ignore_index=True)
+            dfs.append(full_df)
+
+    return dfs, error_list
+
+def call_polygon_features(symbol_list, from_stamp, to_stamp, timespan, multiplier,hour):
     payload={}
     headers = {}
     dfs = []
@@ -632,6 +675,113 @@ def vol_feature_engineering(df, Min_aggs,Thirty_aggs):
     results_df = pd.merge(df, features_df, on=['symbol'], how='outer')
     return results_df
 
+def feature_engineering(dfs,date,hour):
+    features = []
+    agg_dict = {
+            'v': 'sum',
+            'o': 'first',
+            'c': 'last',
+            'h': 'max',
+            'l': 'min'
+        }
+    
+    for thirty_aggs in dfs:
+        # min_aggs.reset_index(drop=True,inplace=True)
+        thirty_aggs.set_index('date',inplace=True)
+
+        # Perform resampling and aggregation
+        hour_aggs = thirty_aggs.resample('H').agg(agg_dict)
+        daily_aggs = thirty_aggs.resample('D').agg(agg_dict)
+        hour_aggs.dropna(inplace=True)
+        daily_aggs.dropna(inplace=True)
+
+        thirty_aggs['price_change_absolute'] = abs(thirty_aggs['c'].pct_change())
+        thirty_aggs['volume_change_absolute'] = abs(thirty_aggs['v'].pct_change())
+        hour_aggs['price_change_absolute'] = abs(hour_aggs['c'].pct_change())
+        hour_aggs['volume_change_absolute'] = abs(hour_aggs['v'].pct_change())
+        daily_aggs['price_change_absolute'] = abs(daily_aggs['c'].pct_change())
+        daily_aggs['volume_change_absolute'] = abs(daily_aggs['v'].pct_change())
+        thirty_aggs['price_change'] = thirty_aggs['c'].pct_change()
+        thirty_aggs['volume_change'] = thirty_aggs['v'].pct_change()
+        hour_aggs['price_change_H'] = hour_aggs['c'].pct_change()
+        hour_aggs['volume_change'] = hour_aggs['v'].pct_change()
+        daily_aggs['price_change_D'] = daily_aggs['c'].pct_change()
+        daily_aggs['volume_change'] = daily_aggs['v'].pct_change()
+
+        ## Range volatiltiy features
+        hour_aggs['price_range'] = (hour_aggs['h'] - hour_aggs['l'])/hour_aggs['c']
+        daily_aggs['price_range'] = (daily_aggs['h'] - daily_aggs['l'])/daily_aggs['c']
+        hour_aggs['price_range_8MA'] = hour_aggs['price_range'].rolling(8).mean()
+        hour_aggs['price_range_8MA_diff'] = (hour_aggs['price_range'] - hour_aggs['price_range_8MA'])/ hour_aggs['price_range_8MA']
+        daily_aggs['price_range_5DMA'] = daily_aggs['price_range'].rolling(5).mean()
+        daily_aggs['price_range_5DMA_diff'] = (daily_aggs['price_range'] - daily_aggs['price_range_5DMA'])/ daily_aggs['price_range_5DMA']
+
+        ## Return Vol Features
+        hour_aggs['return_vol_8H'] = hour_aggs['price_change_absolute'].rolling(window=8).mean()
+        hour_aggs['return_vol_8H_diff'] = (hour_aggs['price_change_absolute'] - hour_aggs['return_vol_8H'])/hour_aggs['return_vol_8H']
+        daily_aggs['return_vol_5D'] = daily_aggs['price_change_absolute'].rolling(window=5).mean()
+        daily_aggs['return_vol_5D_diff'] = (daily_aggs['price_change_absolute'] - daily_aggs['return_vol_5D'])/daily_aggs['return_vol_5D']
+        daily_aggs['return_vol_10D'] = daily_aggs['price_change_absolute'].rolling(window=10).mean()
+        daily_aggs['return_vol_10D_diff'] = (daily_aggs['price_change_absolute'] - daily_aggs['return_vol_10D'])/daily_aggs['return_vol_10D']
+
+        ## Volume Features
+        thirty_aggs['volume_15MA'] = thirty_aggs['v'].rolling(15).mean()
+        thirty_aggs['volume_15MA_diff'] = (thirty_aggs['v'] - thirty_aggs['volume_15MA'])/thirty_aggs['volume_15MA']
+        thirty_aggs['volume_sum15'] = thirty_aggs['v'].rolling(15).sum()
+        thirty_aggs['volume_sum15_5DMA'] = thirty_aggs['v'].rolling(5).mean()
+        thirty_aggs['volume_sum15_10DMA'] = thirty_aggs['v'].rolling(10).mean()
+        thirty_aggs['volume_sum15_5DMA_diff'] = (thirty_aggs['volume_sum15'] - thirty_aggs['volume_sum15_5DMA'])/thirty_aggs['volume_sum15_5DMA']
+        thirty_aggs['volume_sum15_10DMA_diff'] = (thirty_aggs['volume_sum15'] - thirty_aggs['volume_sum15_10DMA'])/thirty_aggs['volume_sum15_10DMA']
+
+        ## Trend Features 
+        daily_aggs['price_3Ddiff'] = daily_aggs['c'].pct_change(3)
+        daily_aggs['price_5Ddiff'] = daily_aggs['c'].pct_change(5)
+        daily_aggs['price_10Ddiff'] = daily_aggs['c'].pct_change(10)
+        daily_aggs['price_20Ddiff'] = daily_aggs['c'].pct_change(20)
+        daily_aggs['price_3D20D_diff'] = (daily_aggs['price_3Ddiff'] - daily_aggs['price_20Ddiff'])/daily_aggs['price_20Ddiff']
+
+        ## Technical Indicators
+        daily_aggs['rsi'] = ta.rsi(daily_aggs['c'],window=14)
+        daily_aggs['rsi_15MA'] = daily_aggs['rsi'].rolling(15).mean()
+        daily_aggs['rsi_15MA_diff'] = (daily_aggs['rsi'] - daily_aggs['rsi_15MA'])/daily_aggs['rsi_15MA']
+        daily_aggs['roc'] = ta.roc(daily_aggs['c'],window=10)
+        daily_aggs['roc3'] = ta.roc(daily_aggs['c'],window=3)
+        daily_aggs['roc5'] = ta.roc(daily_aggs['c'],window=5)
+        daily_aggs['roc_15MA'] = daily_aggs['roc'].rolling(15).mean()
+        daily_aggs['roc_15MA_diff'] = (daily_aggs['roc'] - daily_aggs['roc_15MA'])/daily_aggs['roc_15MA']
+        daily_aggs['adx'] = ta.adx(daily_aggs,window=14)
+        daily_aggs['macd'] = ta.macd(daily_aggs['c'])
+        daily_aggs['macd_15MA'] = daily_aggs['macd'].rolling(15).mean()
+        daily_aggs['macd_15MA_diff'] = (daily_aggs['macd'] - daily_aggs['macd_15MA'])/daily_aggs['macd_15MA']
+        upper_band, lower_band, middle_band = ta.bbands(daily_aggs['c'],window=20)
+        daily_aggs['bbu'] = upper_band
+        daily_aggs['bbl'] = lower_band
+        daily_aggs['bbm'] = middle_band
+        daily_aggs['bb_spread'] = (daily_aggs['bbu'] - daily_aggs['bbl'])/daily_aggs['c']
+        daily_aggs['bb_trend'] = (daily_aggs['c'] - daily_aggs['bbm'])/daily_aggs['bbm']
+        daily_aggs['bb_category'] = daily_aggs.apply(lambda x: ta.bbands_category(x['c'],x['bbu'],x['bbl']), axis=1)
+        daily_aggs['cmf'] = ta.cmf(daily_aggs,window=20)
+        daily_aggs['cmf_15MA'] = daily_aggs['cmf'].rolling(15).mean()
+        daily_aggs['cmf_15MA_diff'] = (daily_aggs['cmf'] - daily_aggs['cmf_15MA'])/daily_aggs['cmf_15MA']
+
+        thirty_features = thirty_aggs.iloc[-1]
+        hour_features = hour_aggs.iloc[-1]
+        daily_features = daily_aggs.iloc[-1]
+        thirty_features.drop(['t','o','h','l','v','t','price_change_absolute','volume_change_absolute','price_change','volume_change'], inplace=True)
+        hour_features.drop(['o','h','l','v','c','price_change_absolute','volume_change_absolute','volume_change'], inplace=True)
+        daily_features.drop(['o','h','l','v','c','price_change_absolute','volume_change_absolute','volume_change','price_range'], inplace=True)
+        df_combined = pd.concat([thirty_features, hour_features, daily_features])
+        features.append(df_combined)
+    
+    features_df = pd.DataFrame(features)
+    features_df['date'] = date
+    features_df['hour'] = hour
+    features_df['alert_price'] = features_df['c']
+    features_df.drop(['minute','c'], axis=1, inplace=True)
+    features_df = features_df.round(4)
+    # results_df = pd.merge(df, features_df, on=['symbol'], how='outer')
+    return features_df
+
 
 def convert_timestamp_est(timestamp):
     # Create a naive datetime object from the UNIX timestamp
@@ -660,7 +810,8 @@ def call_polygon_option_snapshot(symbol,expiration_dates):
     return full_df
 
 if __name__ == "__main__":
-    import time 
-    dt = time.time()
-    df = pd.DataFrame()
-    build_date_dfs(df, dt)
+    # import time 
+    # dt = time.time()
+    # df = pd.DataFrame()
+    # build_date_dfs(df, dt)
+    calculate_sellby_date(datetime.strptime("2021-06-01","%Y-%m-%d"),4)
