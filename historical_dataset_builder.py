@@ -133,8 +133,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2024,3,16)
-    end_date = datetime(2024,4,8)
+    start_date = datetime(2024,4,8)
+    end_date = datetime(2024,4,14)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []

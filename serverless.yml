@@ -6,7 +6,7 @@ frameworkVersion: '3'
 provider:
   name: aws
   region: us-east-1
-  runtime: python3.7
+  runtime: python3.9
   timeout: 900
   deploymentBucket: 
     name: "yqalerts-serverless-bucket"
@@ -18,42 +18,6 @@ plugins:
   - serverless-ignore
 
 functions:
-  analytics-production-line:
-    handler: analytics_production_line.analytics_runner
-    environment:
-      PARTITION_ASSIGNMENT: 1
-      TRADING_DATA_BUCKET: "icarus-research-data"
-      USER: "CM3"
-      ALERTS_BUCKET: "inv-alerts"
-    layers:
-      - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
-      - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
-    role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
-    name: inv-analytics-production-line
-  analytics-production-line-2:
-    handler: analytics_production_line.analytics_runner
-    environment:
-      PARTITION_ASSIGNMENT: 2
-      TRADING_DATA_BUCKET: "icarus-research-data"
-      USER: "CM3"
-      ALERTS_BUCKET: "inv-alerts"
-    layers:
-      - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
-      - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
-    role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
-    name: inv-analytics-production-line-2
-  analytics-production-line-3:
-    handler: analytics_production_line.analytics_runner
-    environment:
-      PARTITION_ASSIGNMENT: 3
-      TRADING_DATA_BUCKET: "icarus-research-data"
-      USER: "CM3"
-      ALERTS_BUCKET: "inv-alerts"
-    layers:
-      - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
-      - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
-    role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
-    name: inv-analytics-production-line-3
   analytics-production-line-cdvol:
     handler: analytics_production_line.cdvol_analytics_runner
     environment:
@@ -62,8 +26,8 @@ functions:
       USER: "CM3"
       ALERTS_BUCKET: "inv-alerts"
     layers:
-      - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
       - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
+      - arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:16
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
     name: inv-analytics-production-line-cdvol
   alerts-builder:
@@ -74,8 +38,8 @@ functions:
       USER: "CM3"
       ALERTS_BUCKET: "inv-alerts"
     layers:
-      - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
       - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
+      - arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:16
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
     name: inv-alerts-builder
   # training-data-builder:
@@ -96,8 +60,8 @@ functions:
       STRATEGIES: "GAIN,GAIN_1D,GAINP,GAINP_1D"
       ALERT_TYPE: "gainers"
     layers:
-      - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
       - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
+      - arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:16
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
     name: gain-xgboost-classifier
   losers-xgboost-classifier:
@@ -108,8 +72,8 @@ functions:
       STRATEGIES: "LOSERS,LOSERS_1D,LOSERSC,LOSERSC_1D"
       ALERT_TYPE: "losers"
     layers:
-      - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
       - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
+      - arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:16
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
     name: losers-xgboost-classifier
   ma-xgboost-classifier:
@@ -120,8 +84,8 @@ functions:
       STRATEGIES: "MA,MA_1D,MAP,MAP_1D"
       ALERT_TYPE: "most_actives"
     layers:
-      - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
       - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
+      - arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:16
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
     name: ma-xgboost-classifier
   cdvol-xgboost-classifier:
@@ -132,43 +96,13 @@ functions:
       STRATEGIES: "CDBFC,CDBFP,CDBFC_1D,CDBFP_1D"
       ALERT_TYPE: "cdvol"
     layers:
-      - arn:aws:lambda:us-east-1:456201388658:layer:scout_lambdas_ta:5
       - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
+      - arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:16
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
     name: cdvol-xgboost-classifier
 
 stepFunctions:
   stateMachines:
-    # inv-alerts-pipeline:
-    #   name: inv-alerts-pipeline
-    #   role: arn:aws:iam::456201388658:role/service-role/StepFunctions-Gainers-Production-Modeling-role-72889a0b
-    #   alarms:
-    #     topics:
-    #       alarm: arn:aws:sns:us-east-1:456201388658:yqalerts-production-modeling
-    #     metrics:
-    #       - executionsTimedOut
-    #       - executionsFailed
-    #       - executionsAborted
-    #       - executionThrottled
-    #     treatMissingData: missing
-    #   definition:
-    #     Comment: "This state machine constructs and executes trades based on results of the modeling engine"
-    #     StartAt: analytics-production-line
-    #     States:
-    #       analytics-production-line:
-    #         Type: Task
-    #         Resource: arn:aws:lambda:us-east-1:456201388658:function:inv-analytics-production-line
-    #         Retry:
-    #         - ErrorEquals:
-    #           - Lambda.ServiceException
-    #           - Lambda.AWSLambdaException
-    #           - Lambda.SdkClientException
-    #           IntervalSeconds: 5
-    #           MaxAttempts: 3
-    #           BackoffRate: 2
-    #         Next: End
-    #       End:
-    #           Type: Succeed
     invalerts-production-modeling:
       name: invalerts-production-modeling
       role: arn:aws:iam::456201388658:role/service-role/StepFunctions-Gainers-Production-Modeling-role-72889a0b
@@ -188,48 +122,6 @@ stepFunctions:
           AnalyticsProcessor:
             Type: Parallel
             Branches:
-              - StartAt: AnalyticsProductionLine
-                States:
-                  AnalyticsProductionLine:
-                    Type: Task
-                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:inv-analytics-production-line:$LATEST"
-                    Retry:
-                      - ErrorEquals:
-                        - Lambda.ServiceException
-                        - Lambda.AWSLambdaException
-                        - Lambda.SdkClientException
-                        IntervalSeconds: 5
-                        MaxAttempts: 3
-                        BackoffRate: 2
-                    End: true
-              - StartAt: AnalyticsProductionLine2
-                States:
-                  AnalyticsProductionLine2:
-                      Type: Task
-                      Resource:  "arn:aws:lambda:us-east-1:456201388658:function:inv-analytics-production-line-2:$LATEST"
-                      Retry:
-                        - ErrorEquals:
-                          - Lambda.ServiceException
-                          - Lambda.AWSLambdaException
-                          - Lambda.SdkClientException
-                          IntervalSeconds: 5
-                          MaxAttempts: 3
-                          BackoffRate: 2
-                      End: true
-              - StartAt: AnalyticsProductionLine3
-                States:
-                  AnalyticsProductionLine3:
-                    Type: Task
-                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:inv-analytics-production-line-3:$LATEST"
-                    Retry:
-                      - ErrorEquals:
-                        - Lambda.ServiceException
-                        - Lambda.AWSLambdaException
-                        - Lambda.SdkClientException
-                        IntervalSeconds: 5
-                        MaxAttempts: 3
-                        BackoffRate: 2
-                    End: true
               - StartAt: AnalyticsProductionLineCDVOL
                 States:
                   AnalyticsProductionLineCDVOL:
@@ -244,64 +136,10 @@ stepFunctions:
                         MaxAttempts: 3
                         BackoffRate: 2
                     End: true
-            Next: AlertsBuilder
-          AlertsBuilder:
-            Type: Task
-            Resource:  "arn:aws:lambda:us-east-1:456201388658:function:inv-alerts-builder:$LATEST"
-            Retry:
-              - ErrorEquals:
-                - Lambda.ServiceException
-                - Lambda.AWSLambdaException
-                - Lambda.SdkClientException
-                IntervalSeconds: 5
-                MaxAttempts: 3
-                BackoffRate: 2
             Next: Modeling
           Modeling:
             Type: Parallel
             Branches:
-              - StartAt: losers-xgboost-classifier
-                States:
-                  losers-xgboost-classifier:
-                    Type: Task
-                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:losers-xgboost-classifier:$LATEST"
-                    Retry:
-                      - ErrorEquals:
-                        - Lambda.ServiceException
-                        - Lambda.AWSLambdaException
-                        - Lambda.SdkClientException
-                        IntervalSeconds: 5
-                        MaxAttempts: 3
-                        BackoffRate: 2
-                    End: true
-              - StartAt: gain-xgboost-classifier
-                States:
-                  gain-xgboost-classifier:
-                    Type: Task
-                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:gain-xgboost-classifier:$LATEST"
-                    Retry:
-                      - ErrorEquals:
-                        - Lambda.ServiceException
-                        - Lambda.AWSLambdaException
-                        - Lambda.SdkClientException
-                        IntervalSeconds: 5
-                        MaxAttempts: 3
-                        BackoffRate: 2
-                    End: true
-              - StartAt: ma-xgboost-classifier
-                States:
-                  ma-xgboost-classifier:
-                    Type: Task
-                    Resource:  "arn:aws:lambda:us-east-1:456201388658:function:ma-xgboost-classifier:$LATEST"
-                    Retry:
-                      - ErrorEquals:
-                        - Lambda.ServiceException
-                        - Lambda.AWSLambdaException
-                        - Lambda.SdkClientException
-                        IntervalSeconds: 5
-                        MaxAttempts: 3
-                        BackoffRate: 2
-                    End: true
               - StartAt: cdvol-xgboost-classifier
                 States:
                   cdvol-xgboost-classifier:

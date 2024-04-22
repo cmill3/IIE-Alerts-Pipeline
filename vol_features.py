@@ -129,8 +129,8 @@ def consolidate_bf_vol(date_str):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     print(os.cpu_count())
-    start_date = datetime(2024,3,16)
-    end_date = datetime(2024,4,8)
+    start_date = datetime(2024,4,8)
+    end_date = datetime(2024,4,16)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
