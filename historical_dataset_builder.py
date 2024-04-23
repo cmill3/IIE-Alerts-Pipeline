@@ -8,8 +8,9 @@ import boto3
 import logging
 from botocore.exceptions import ClientError
 import concurrent.futures
-from helpers.constants import ALL_SYM, TRADING_SYMBOLS, FULL_SYM
+from helpers.constants import *
 import pandas_market_calendars as mcal
+import numpy as np
 
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
@@ -21,6 +22,11 @@ now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 s3 = boto3.client('s3')
 logger = logging.getLogger()
 
+high_vol = ['COIN','BILI','UPST','CVNA',"NIO","BABA","ROKU","RBLX","SE","SNAP","LCID","ZM","TDOC","UBER","RCL",
+            'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","MARA","SNAP",'TWLO', 'DDOG', 'ZS', 'NET', 'OKTA',
+            "DOCU",'SQ', 'SHOP',"PLTR","CRWD",'MRNA', 'SNOW', 'SOFI','LYFT','TSM','PINS','PANW','ORCL','SBUX','NKE',"UPS","FDX",
+            'WDAY','SPOT']
+
 
 def run_process(date_str):
     try:
@@ -31,7 +37,6 @@ def run_process(date_str):
     print(f"Finished {date_str}")
 
 def build_historic_data(date_str):
-    print(date_str)
     hours = ["10","11","12","13","14","15"]
     key_str = date_str.replace("-","/")
     s3 = get_s3_client()
@@ -41,12 +46,8 @@ def build_historic_data(date_str):
     if date_np in holidays_multiyear:
         return "holiday"
     for hour in hours:
-        aggregates, error_list = call_polygon_histD(FULL_SYM, from_stamp, to_stamp, timespan="minute", multiplier="30")
-        # if len(error_list) > 0:
-        #     print(error_list)
-        hour_aggregates, error_list = call_polygon_histH(FULL_SYM, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
-        # if len(error_list) > 0:
-        #     print(error_list)
+        aggregates, error_list = call_polygon_histD(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30")
+        hour_aggregates, error_list = call_polygon_histH(BF3, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
         full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
         df = build_analytics(full_aggs, hour)
         df.reset_index(drop=True, inplace=True)
@@ -74,12 +75,12 @@ def build_historic_data(date_str):
         df['SPY_1D'] = SPY_diff
         df['SPY_3D'] = SPY_diff3
         df['SPY_5D'] = SPY_diff5
-        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv")
+        # old_df = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/{key_str}/{hour}.csv")
         # old_df = pd.read_csv(old_df['Body'])
         # new_df = pd.concat([old_df,df],ignore_index=True)
         # new_df = new_df.drop_duplicates(subset=['symbol'])
         # new_df.drop(columns=['Unnamed: 0'], inplace=True)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"full_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
     return put_response
     
 def generate_dates_historic(date_str):
@@ -131,7 +132,6 @@ def pull_df(date_stamp, prefix, hour):
 
 
 if __name__ == "__main__":
-    # build_historic_data(None, None)
     cpu = os.cpu_count()
     start_date = datetime(2024,4,15)
     end_date = datetime(2024,4,18)
@@ -145,8 +145,8 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # run_process("2018-01-02")
+    # run_process("2018-01-04")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=cpu) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]

@@ -30,11 +30,13 @@ all_symbols = ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', '
 
 first_run = [
     # 'CMG', 'AXP', 
-    'DAL', 'MMM', 'PEP', 'GE', 'MRK', 'HD', 'LOW', 'VZ', 'PG', 'TSM',
- 'GOOG', 'GOOGL', 'BAC', 'AAPL' ,'CRM', 'MSFT', 'F' ,'V' ,'MA' ,'JNJ', 'DIS' ,'JPM',
- 'ADBE' ,'BA' ,'CVX', 'PFE' ,'C' ,'CAT', 'KO' ,'MS', 'GS', 'IBM' ,'CSCO' ,'WMT', 'WFC'
+    # 'DAL', 'MMM', 'PEP', 'GE', 'MRK', 'HD', 'LOW', 'VZ', 'PG', 'TSM',
+#  'GOOG', 'GOOGL', 
+#     'BAC', 'AAPL' ,'CRM', 'MSFT', 'F' ,'V' ,'MA' ,'JNJ', 'DIS' ,'JPM',
+#  'ADBE' ,'BA' ,'CVX', 'PFE' ,'C' ,'CAT', 'KO' ,'MS', 
+ 'GS', 'IBM' ,'CSCO' ,'WMT', 'WFC'
  'TGT', 'COST', 'INTC', 'PANW', 'ORCL', 'SBUX', 'NKE' ,'XOM', 'RTX' ,'UPS', 'FDX',
- 'LMT' ,'GIS', 'KHC', 'AVGO', 'QCOM', 'TXN' ,'MGM','GM']
+ 'LMT' ,'GIS', 'QCOM', 'GM']
 
 hv2 = ['ZM', 'UBER', 'TDOC', 'UAL', 'RCL', 'AMZN', 'ABNB', 'TSLA', 'SQ', 'SHOP', 'DOCU', 'TWLO', 'DDOG', 'ZS', 
 'OKTA', 'ETSY', 'PINS', 'FUTU', 'BIDU', 'JD', 'BABA', 'AMD', 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'MRNA', 'SNOW', 
@@ -57,7 +59,7 @@ holidays_multiyear = holidays.holidays
 s3 = boto3.client('s3', aws_access_key_id="AKIAWUN5YYJZHGIGMLQJ", aws_secret_access_key="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")
 
 def options_snapshot_runner(monday,symbol):
-    fridays = build_days(monday)
+    fridays = build_days(symbol,monday)
     try:
         print(symbol)
         call_tickers, put_tickers = build_options_tickers(symbol, fridays, monday)
@@ -73,8 +75,8 @@ def options_snapshot_runner(monday,symbol):
             print(f"{symbol} failed twice at {monday} with: {e}. Skipping")
 
 def options_snapshot_remediator(date_str,symbol):
-    dt = datetime.strptime(date_str, "%Y-%m-%d")
     hours = ["10","11","12","13","14","15"]
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
     date_np = np.datetime64(dt)
     if date_np in holidays_multiyear:
         return "holiday"
@@ -336,8 +338,8 @@ if __name__ == "__main__":
     
     # time.sleep(7200)
 
-    start_date = datetime(2018,1,1)
-    end_date = datetime(2023,10,28)
+    start_date = datetime(2021,1,1)
+    end_date = datetime(2023,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -349,11 +351,11 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
 
-    for symbol in indexes:
+    for symbol in ["GOOG","GOOGL","NVDA"]:
         print(f"Starting {symbol}")
-        cpu_count = (os.cpu_count()*3)
-        # options_snapshot_remediator_idx(date_list,symbol)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        cpu_count = os.cpu_count()
+        # options_snapshot_runner('2021-01-05',symbol)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
-            processed_weeks_futures = [executor.submit(options_snapshot_remediator_idx,date_str,symbol) for date_str in date_list]
+            processed_weeks_futures = [executor.submit(options_snapshot_runner,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")

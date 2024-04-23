@@ -12,12 +12,11 @@ idx = ["QQQ","SPY","IWM"]
 
 def run_process(date_str):
     try:
-        print(f"Starting {date_str}")
-        build_pcr_features(date_str)
+        raw = build_pcr_features(date_str)
     except Exception as e:
         print(f"{date_str} {e}")
         build_pcr_features(date_str)
-    print(f"Finished {date_str}")
+    return raw
 
 
 def generate_dates_historic_vol(date_str):
@@ -30,32 +29,36 @@ def generate_dates_historic_vol(date_str):
 
 def build_pcr_features(date_str):
     hours = ["10","11","12","13","14","15"]
-    key_str = date_str.replace("-","/")
-    s3 = get_s3_client()
-    from_stamp, to_stamp, hour_stamp = generate_dates_historic_vol(date_str)
-
     for hour in hours:
-        df = s3.get_object(Bucket="inv-alerts", Key=f"all_alerts/{key_str}/{hour}.csv")
-        df = pd.read_csv(df['Body'])
-        idx = df.loc[df['symbol'].isin(idx)]
-        raw_pcr_data = pull_pcr_data(from_stamp,to_stamp,hour)
-        pcr_df = pcr_feature_engineering(idx,raw_pcr_data)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"idx_alerts/{key_str}/{hour}.csv", Body=pcr_df.to_csv())
-    return "put_response"
+        key_str = date_str.replace("-","/")
+        s3 = get_s3_client()
+        from_stamp, to_stamp, hour_stamp = generate_dates_historic_vol(date_str)
+        raw_pcr_data = pull_pcr_data(from_stamp,to_stamp,hours, current_hour=hour)
+        pcr_df = pcr_feature_engineering(raw_pcr_data)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"idx_alerts/{key_str}/{hour}/pcr_features.csv", Body=pcr_df.to_csv())
+    return raw_pcr_data
 
 
-def pull_pcr_data(from_stamp,to_stamp,hour):
+def pull_pcr_data(from_stamp,to_stamp,hours,current_hour):
     date_list = build_date_list(from_stamp,to_stamp)
     raw_pcr_data = {}
     for symbol in idx:
         dfs = []
         for date_str in date_list:
-            key_str = date_str.replace("-","/")
-            df = s3.get_object(Bucket="icarus-research-data", Key=f"options_snapshot/{key_str}/{hour}.csv")
-            df = pd.read_csv(df['Body'])
-            df['date'] = key_str
-            df['date_hour'] = f"{key_str}-{hour}"
-            dfs.append(df)
+            for hour in hours:
+                if date_str == date_list[-1] and hour > current_hour:
+                    continue
+                else:
+                    key_str = date_str.replace("-","/")
+                    try:
+                        df = s3.get_object(Bucket="icarus-research-data", Key=f"options_snapshot/{key_str}/{hour}/{symbol}.csv")
+                        df = pd.read_csv(df['Body'])
+                        df['date'] = key_str
+                        df['date_hour'] = f"{key_str}-{hour}"
+                    except Exception as e:
+                        print(f"options_snapshot/{key_str}/{hour}/{symbol}.csv {e}")
+                        continue
+                    dfs.append(df)
         full_sym = pd.concat(dfs)
         raw_pcr_data[symbol] = full_sym
     return raw_pcr_data
@@ -80,20 +83,36 @@ def pcr_feature_engineering(raw_pcr_data):
     feature_data = {}
     for symbol in idx:
         sym_data = raw_pcr_data[symbol]
-        hour = sym_data.iloc[-1]
-        day = sym_data.iloc[-6:]
-        ten_day = sym_data.iloc[-60:]
+        aggregated_df = sym_data.groupby(['date_hour', 'option_type'])['volume'].sum().reset_index()
+        pivot_df = aggregated_df.pivot(index='date_hour', columns='option_type', values='volume')
+        pivot_df.columns = ['call_volume', 'put_volume']
+        pivot_df['total_volume'] =  pivot_df['call_volume'] + pivot_df['put_volume']
+        hour = pivot_df.iloc[-1]
+        day = pivot_df.iloc[-6:]
+        ten_day = pivot_df.iloc[-60:]
+        try:
+            hour_pcr = hour['put_volume'] / hour['call_volume']
+        except Exception as e:
+            print(f"{symbol} {e}")
+            print(hour)
+            continue
+        hour_pcr = hour['put_volume'].sum() / hour['call_volume'].sum()
+        day_pcr = day['put_volume'].sum() / day['call_volume'].sum()
+        ten_day_pcr = ten_day['put_volume'].sum() / ten_day['call_volume'].sum()
+        hour_pcr_dff1D = ((hour_pcr - day_pcr)/ day_pcr) * 100
+        hour_pcr_dff10D = ((hour_pcr - ten_day_pcr)/ ten_day_pcr) * 100
+        day_pcr_dff10D = ((day_pcr - ten_day_pcr)/ ten_day_pcr) * 100
+        feature_data[symbol] = [hour_pcr, day_pcr, ten_day_pcr, hour_pcr_dff1D, hour_pcr_dff10D, day_pcr_dff10D]
+    feature_df = pd.DataFrame.from_dict(feature_data, orient='index', columns=['hour_pcr', 'day_pcr', 'ten_day_pcr', 'hour_pcr_dff1D', 'hour_pcr_dff10D', 'day_pcr_dff10D'])
+    return feature_df
 
 
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    print(os.cpu_count())
-    date_list = build_date_list("2018-01-02","2023-12-23")
-    # # for date_str in date_list:
-    # run_process("2018-01-03")
-        
+    cpu =os.cpu_count()
+    date_list = build_date_list("2022-11-01","2023-12-02")        
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=cpu) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]

@@ -6,24 +6,35 @@ import os
 import logging
 import pandas as pd
 from botocore.exceptions import ClientError
+from helpers.constants import TREND_SYMBOLS, UNDESIRABLES, BF3
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
-big_fish =  ["AMD","NVDA","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP","CRM",
-            "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI",'META',
-            'C','TGT','MMM','SQ','PANW','DAL','CSCO','UBER',"SPY","QQQ","IWM"]
+partition_assignment = os.getenv("PARTITION_ASSIGNMENT")
 
+partition_numbers = {
+    "1":"0:46",
+    "2":"46:92",
+    "3":"92:",
+}
 
+s3 = get_s3_client()
+est = pytz.timezone('US/Eastern')
+date = datetime.now(est)
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 logger = logging.getLogger()
 
 def analytics_runner(event, context):
-    s3 = get_s3_client()
-    est = pytz.timezone('US/Eastern')
-    date = datetime.now(est)
+    sym_range = partition_numbers[partition_assignment]
+    s1, s2 = sym_range.split(":")
+    if partition_assignment == "3":
+        symbols = TREND_SYMBOLS[int(s1):]
+    else:
+        symbols = TREND_SYMBOLS[int(s1):int(s2)]
+
     year, month, day, hour = format_dates(date)
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date)
-    aggregates, error_list = call_polygon_histD(big_fish, from_stamp, to_stamp, timespan="minute", multiplier="30")
-    hour_aggregates, error_list = call_polygon_histH(big_fish, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+    aggregates, error_list = call_polygon_histD(symbols, from_stamp, to_stamp, timespan="minute", multiplier="30")
+    hour_aggregates, error_list = call_polygon_histH(symbols, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
     full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
     spy_aggs, _ = call_polygon_histD(["SPY"],from_stamp, to_stamp, timespan="minute", multiplier="30")
     spy_aggs = spy_aggs[0]['c']
@@ -38,9 +49,45 @@ def analytics_runner(event, context):
     hour_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
     df = vol_feature_engineering(df, min_aggs, hour_aggs)
     df['hour'] = hour
-    csv = df.to_csv()
-    put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/{year}/{month}/{day}/{hour}.csv", Body=csv)
+    put_response = s3.put_object(Bucket="inv-alerts", Key=f"inv_alerts/raw_alerts/{partition_assignment}/{year}/{month}/{day}/{hour}.csv", Body=df.to_csv())
     return put_response
+
+def cdvol_analytics_runner(event, context):
+    year, month, day, hour = format_dates(date)
+    from_stamp, to_stamp, hour_stamp = generate_dates_historic(date)
+    aggregates, error_list = call_polygon_histD(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30")
+    hour_aggregates, error_list = call_polygon_histH(BF3, hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+    full_aggs = combine_hour_aggs(aggregates, hour_aggregates, hour)
+    spy_aggs, _ = call_polygon_histD(["SPY"],from_stamp, to_stamp, timespan="minute", multiplier="30")
+    spy_aggs = spy_aggs[0]['c']
+    current_spy, _ = call_polygon_histH(["SPY"], hour_stamp, hour_stamp, timespan="minute", multiplier="30")
+    current_spy = current_spy[0]
+    current_spy = current_spy['c'].iloc[-1]
+    logger.info(f"Error list: {error_list}")
+    analytics = build_analytics(full_aggs, hour)
+    analytics = build_spy_features(analytics, spy_aggs, current_spy)
+    df = analytics.groupby("symbol").tail(1)
+    min_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="1", hour=hour)
+    hour_aggs, error_list = call_polygon_vol(df['symbol'], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+    df = vol_feature_engineering(df, min_aggs, hour_aggs)
+    df['hour'] = hour
+    put_response = s3.put_object(Bucket="inv-alerts", Key=f"inv_alerts/production_alerts/{year}/{month}/{day}/cdvol/{hour}.csv", Body=df.to_csv())
+    return put_response
+
+
+def alerts_builder(event, context):
+    dfs = []
+    year, month, day, hour = format_dates(date)
+    for num in ["1","2","3"]:
+        df = s3.get_object(Bucket="inv-alerts", Key=f"inv_alerts/raw_alerts/{num}/{year}/{month}/{day}/{hour}.csv")
+        df = pd.read_csv(df['Body'])
+        dfs.append(df)
+    full_df = pd.concat(dfs)
+    alerts = build_alerts_production(full_df)
+    for alert in alerts:
+        csv = alerts[alert].to_csv()
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"inv_alerts/production_alerts/{year}/{month}/{day}/{alert}/{hour}.csv", Body=csv)
+    return "done"
 
 def combine_hour_aggs(aggregates, hour_aggregates, hour):
     full_aggs = []
@@ -96,6 +143,16 @@ def format_dates(now):
     year, month, day, hour = now_str.split("-")
     hour = int(hour)
     return year, month, day, hour
+
+def build_alerts_production(df):
+    volume_sorted = df.sort_values(by="v", ascending=False)
+    v_sorted = df.sort_values(by="hour_volume_vol_diff_pct", ascending=False)
+    c_sorted = df.sort_values(by="close_diff", ascending=False)
+    gainers = c_sorted.head(15)
+    losers = c_sorted.tail(15)
+    v_diff = v_sorted.head(15)
+    volume = volume_sorted.head(15)
+    return {"gainers": gainers, "losers": losers, "v_diff": v_diff, "most_actives": volume}
 
 if __name__ == "__main__":
     start_date = datetime.now()
