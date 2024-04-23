@@ -33,6 +33,7 @@ high_vol = ['COIN','BILI','UPST','CVNA',"NIO","BABA","ROKU","RBLX","SE","SNAP","
 
 def run_process(date_str):
     try:
+        print(f"starting {date_str}")
         build_historic_data(date_str)
     except Exception as e:
         print(f"{date_str} {e}")
@@ -135,8 +136,8 @@ def pull_df(date_stamp, prefix, hour):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2015,1,1)
-    end_date = datetime(2024,4,14)
+    start_date = datetime(2012,1,1)
+    end_date = datetime(2022,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -147,8 +148,8 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # run_process("2024-04-15")
+    # run_process("2016-01-08")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=8) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]

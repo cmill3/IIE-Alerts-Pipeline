@@ -53,7 +53,7 @@ BF3 = [
     'AAPL', 'BAC', 'BA', 'C', 'DIS', 'XOM', 
     'INTC', 'JPM', 'MSFT', 'NFLX', 'NVDA', 'PYPL',
     'TSLA', 'V', 'SQ', 'TSM', 'QCOM', 'UBER', 'SNOW', 'PLTR', 'ABNB',
-    'META',"TGT","NKE","SBUX",'ORCL'
+    "TGT","NKE","SBUX",'ORCL'
     ]
 ## with more money add CMG,BKNG,AVGO,ADBE,COST
 ## TRIM CSCO,AXP,CVX, GM
