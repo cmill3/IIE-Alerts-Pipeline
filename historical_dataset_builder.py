@@ -133,8 +133,8 @@ def pull_df(date_stamp, prefix, hour):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     cpu = os.cpu_count()
-    start_date = datetime(2018,1,25)
-    end_date = datetime(2019,1,1)
+    start_date = datetime(2024,4,15)
+    end_date = datetime(2024,4,18)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
