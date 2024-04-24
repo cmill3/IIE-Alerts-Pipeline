@@ -9,7 +9,7 @@ import warnings
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-warnings.filterwarnings("ignore",category=FutureWarning)
+warnings.filterwarnings("ignore")
 
 KEY = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
 
@@ -255,7 +255,9 @@ def call_polygon_features(symbol_list, from_stamp, to_stamp, timespan, multiplie
     error_list = []
 
     year, month, day = to_stamp.split("-")
-    current_date = datetime(int(year), int(month), int(day), int(hour),tzinfo=pytz.timezone('US/Eastern'))
+    current_date = datetime(int(year), int(month), int(day), int(hour))
+    current_dt = current_date.timestamp()
+    converted_date = convert_timestamp_est(current_dt)
 
     for symbol in symbol_list:
         data = []
@@ -275,10 +277,14 @@ def call_polygon_features(symbol_list, from_stamp, to_stamp, timespan, multiplie
                 results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
                 results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
                 results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
+                results_df['day'] = results_df['date'].apply(lambda x: x.day)
+                results_df['month'] = results_df['date'].apply(lambda x: x.month)
                 results_df['symbol'] = symbol
                 trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
                 filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
-                filtered_df = filtered_df.loc[filtered_df['date'] <= current_date]
+                filtered_df = filtered_df.loc[filtered_df['date'] < converted_date]
+                print(filtered_df.head(5))
+                print(filtered_df.tail(5))
                 data.append(filtered_df)
                 try:
                     next_url = response_data['next_url']
@@ -372,9 +378,7 @@ def call_polygon_price_day(symbol, from_stamp, to_stamp, timespan, multiplier):
     payload={}
     headers = {}
     url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=false&sort=asc&limit=50000&apiKey={KEY}"
-
     response = execute_polygon_call(url)
-
     response_data = json.loads(response.text)
     results = response_data['results']
     results_df = pd.DataFrame(results)
@@ -688,6 +692,7 @@ def feature_engineering(dfs,date,hour):
     for thirty_aggs in dfs:
         # min_aggs.reset_index(drop=True,inplace=True)
         thirty_aggs.set_index('date',inplace=True)
+        print(thirty_aggs.tail(5))
 
         # Perform resampling and aggregation
         hour_aggs = thirty_aggs.resample('H').agg(agg_dict)
@@ -808,6 +813,38 @@ def call_polygon_option_snapshot(symbol,expiration_dates):
             symbol_dfs.append(results_df)
     full_df = pd.concat(symbol_dfs)
     return full_df
+
+def configure_price_features(df, result):
+    result.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
+    result.reset_index()
+    price = pd.DataFrame(result.to_list())
+    df.reset_index(drop=True, inplace=True)
+    df['one_max'] = price['one_max']
+    df['one_min'] = price['one_min']
+    df['one_pct'] = price['one_pct']
+    df['three_max'] = price['three_max']
+    df['three_min'] = price['three_min']
+    df['three_pct'] = price['three_pct']
+    return df
+
+def configure_spy_features(df):
+    # spy,_ = call_polygon_features(["SPY"], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+    # spy_features = feature_engineering(spy,datetime.strptime(to_stamp, "%Y-%m-%d"),hour)
+    spy = df.loc[df['symbol'] == "SPY"]
+    fived = spy["price_5Ddiff"].values[0]
+    twentyd = spy["price_20Ddiff"].values[0]
+    spy_range = spy["price_range"].values[0]
+    df["SPY_5d"] = fived
+    df["SPY_20d"] = twentyd 
+    df["SPY_5d_diff"] = (df["price_5Ddiff"] - df["SPY_5d"])/df["price_5Ddiff"]
+    df["SPY_20d_diff"] = (df["price_20Ddiff"] - df["SPY_20d"])/df["price_20Ddiff"]
+    df["SPY_range_vol"] = spy_range
+    return df
+
+high_vol = ['COIN','BILI','UPST','CVNA',"NIO","BABA","ROKU","RBLX","SE","SNAP","LCID","ZM","TDOC","UBER","RCL",
+            'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","MARA","SNAP",'TWLO', 'DDOG', 'ZS', 'NET', 'OKTA',
+            "DOCU",'SQ', 'SHOP',"PLTR","CRWD",'MRNA', 'SNOW', 'SOFI','LYFT','TSM','PINS','PANW','ORCL','SBUX','NKE',"UPS","FDX",
+            'WDAY','SPOT']
 
 if __name__ == "__main__":
     # import time 

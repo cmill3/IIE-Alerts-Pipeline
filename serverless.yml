@@ -21,9 +21,7 @@ functions:
   analytics-production-line-cdvol:
     handler: analytics_production_line.cdvol_analytics_runner
     environment:
-      PARTITION_ASSIGNMENT: "cdvol"
-      TRADING_DATA_BUCKET: "icarus-research-data"
-      USER: "CM3"
+      ENV: "PROD_VAL"
       ALERTS_BUCKET: "inv-alerts"
     layers:
       - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
