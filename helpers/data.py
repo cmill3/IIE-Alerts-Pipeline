@@ -259,8 +259,8 @@ def call_polygon_features(symbol_list, from_stamp, to_stamp, timespan, multiplie
     current_dt = current_date.timestamp()
     converted_date = convert_timestamp_est(current_dt)
 
+    data = []
     for symbol in symbol_list:
-        data = []
         url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
         with requests.Session() as session:
             next_url = url
@@ -293,7 +293,7 @@ def call_polygon_features(symbol_list, from_stamp, to_stamp, timespan, multiplie
             full_df = pd.concat(data, ignore_index=True)
             dfs.append(full_df)
 
-    return dfs, error_list
+    return data, error_list
 
 def call_polygon_histD(symbol_list, from_stamp, to_stamp, timespan, multiplier):
     payload={}
