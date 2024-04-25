@@ -50,13 +50,18 @@ UNDESIRABLES = ['COIN','BILI','UPST','CVNA',"TQQQ","SQQQ","SPXS","SPXL","SOXL","
 
 BF3 = [
     'QQQ','SPY','IWM', 'GOOGL', 'GOOG', 'AMZN', 'AMD', 
-    'AAPL', 'BAC', 'BA', 'C', 'DIS', 'XOM', 
+    'AAPL', 'BAC', 'BA', 'C', 'DIS', 'XOM', 'ABNB',
     'INTC', 'JPM', 'MSFT', 'NFLX', 'NVDA', 'PYPL',
-    'TSLA', 'V', 'SQ', 'TSM', 'QCOM', 'UBER', 'SNOW', 'PLTR', 'ABNB',
-    "TGT","NKE","SBUX",'ORCL'
+    'TSLA', 'V', 'SQ', 'TSM', 'QCOM', 'UBER', 'SNOW','PLTR', 
+    "TGT","NKE","SBUX",'ORCL',"PANW","AXP","IBM","JNJ","CVX"
     ]
+
+MEMES = ["TSLA","PLTR","META""COIN","RBLX","U","UPST","HOOD","RIVN","AFFRM","SHOP","CRM","SQ",
+         "LYFT","TTD","DOCU","TDOC","ROKU","ZM","PINS","ETSY","W","EBAY","CHWY","CRWD","ZS",
+        "DDOG","NOW","TEAM","WDAY","NET","ADSK","MDB","MRNA","PFE",
+]
 ## with more money add CMG,BKNG,AVGO,ADBE,COST
-## TRIM CSCO,AXP,CVX, GM
+## TRIM CSCO,CVX,GM
 
 BF3X = [
     'QQQ','SPY','IWM','ADBE', 'GOOGL', 'GOOG', 'AMZN', 'AMD', 
