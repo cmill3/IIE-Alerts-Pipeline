@@ -262,36 +262,29 @@ def call_polygon_features(symbol_list, from_stamp, to_stamp, timespan, multiplie
     data = []
     for symbol in symbol_list:
         url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
-        with requests.Session() as session:
-            next_url = url
-            while next_url:
-                response = execute_polygon_call(next_url)
-                try:
-                    response_data = json.loads(response.text)
-                    results = response_data['results']
-                except:
-                    error_list.append(symbol)
-                    continue
-                results_df = pd.DataFrame(results)
-                results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
-                results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
-                results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
-                results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
-                results_df['day'] = results_df['date'].apply(lambda x: x.day)
-                results_df['month'] = results_df['date'].apply(lambda x: x.month)
-                results_df['symbol'] = symbol
-                trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
-                filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
-                filtered_df = filtered_df.loc[filtered_df['date'] < converted_date]
-                print(filtered_df.head(5))
-                print(filtered_df.tail(5))
-                data.append(filtered_df)
-                try:
-                    next_url = response_data['next_url']
-                except:
-                    next_url = None
-            full_df = pd.concat(data, ignore_index=True)
-            dfs.append(full_df)
+        # with requests.Session() as session:
+        #     next_url = url
+        #     while next_url:
+        response = execute_polygon_call(url)
+        try:
+            response_data = json.loads(response.text)
+            results = response_data['results']
+        except:
+            error_list.append(symbol)
+            continue
+        results_df = pd.DataFrame(results)
+        results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
+        results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
+        results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
+        results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
+        results_df['day'] = results_df['date'].apply(lambda x: x.day)
+        results_df['month'] = results_df['date'].apply(lambda x: x.month)
+        results_df['symbol'] = symbol
+        trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+        filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
+        filtered_df = filtered_df.loc[filtered_df['date'] < converted_date]
+        data.append(filtered_df)
+
 
     return data, error_list
 
@@ -692,8 +685,6 @@ def feature_engineering(dfs,date,hour):
     for thirty_aggs in dfs:
         # min_aggs.reset_index(drop=True,inplace=True)
         thirty_aggs.set_index('date',inplace=True)
-        print(thirty_aggs.tail(5))
-
         # Perform resampling and aggregation
         hour_aggs = thirty_aggs.resample('H').agg(agg_dict)
         daily_aggs = thirty_aggs.resample('D').agg(agg_dict)

@@ -44,14 +44,14 @@ def build_historic_data(date_str):
     if date_np in holidays_multiyear:
         return "holiday"
     for hour in hours:
-        thirty_aggs, error_list = call_polygon_features(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+        thirty_aggs, error_list = call_polygon_features(MEMES, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
         df = feature_engineering(thirty_aggs,dt,hour)
         df.reset_index(drop=True, inplace=True)
         df = df.groupby("symbol").tail(1)
         result = df.apply(calc_price_action, axis=1)
         df = configure_price_features(df, result)
         df = configure_spy_features(df)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features/{key_str}/{hour}.csv", Body=df.to_csv())
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"high_vol/{key_str}/{hour}.csv", Body=df.to_csv())
     return put_response
     
 def generate_dates_historic(date_str):
@@ -64,7 +64,7 @@ def generate_dates_historic(date_str):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2022,7,25)
+    start_date = datetime(2018,1,1)
     end_date = datetime(2024,4,20)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -76,7 +76,7 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # run_process("2016-01-08")
+    # run_process("2018-01-05")
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
