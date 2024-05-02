@@ -19,7 +19,7 @@ runtime = boto3.client("sagemaker-runtime")
 predictions_bucket = os.getenv("PREDICTIONS_BUCKET")
 alerts_bucket = os.getenv("ALERTS_BUCKET")
 strategies = os.getenv("STRATEGIES")
-alert_type = os.getenv("ALERT_TYPE")
+env = os.getenv("ENV")
 
 est = pytz.timezone('US/Eastern')
 date = datetime.now(est)
@@ -28,26 +28,19 @@ now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 def invoke_model(event, context):   
     strategies_list = strategies.split(",")
     year, month, day, hour = format_dates(date)
-    dataset = s3.get_object(Bucket=alerts_bucket, Key=f"inv_alerts/production_alerts/{year}/{month}/{day}/{alert_type}/{hour}.csv")
+    dataset = s3.get_object(Bucket=alerts_bucket, Key=f"production_alerts/{env}/{year}/{month}/{day}/{hour}.csv")
     data = pd.read_csv(dataset.get("Body"))
 
     data['dt'] = pd.to_datetime(data['date'])
     recent_date = data['dt'].iloc[-1]
-    data['roc_diff'] = data['roc'] - data['roc5']
-    data['cd_vol'] = (data['close_diff'] / data['return_vol_10D']).round(3)
-    data['cd_vol3'] = (data['close_diff3'] / data['return_vol_10D']).round(3)
-    data['range_vol_diff5'] = (data['range_vol'] - data['range_vol5MA'])
-    data['close_diff_deviation3'] = abs(data['close_diff3'])/(data['threeD_stddev50']*100)
-    data['close_diff_deviation'] = abs(data['close_diff'])/(data['oneD_stddev50']*100)
     data['day_of_week'] = data['dt'].apply(lambda x: x.dayofweek).astype(int)
     data['day_of_month'] = data['dt'].apply(lambda x: x.day).astype(int)
     data['month'] = data['dt'].apply(lambda x: x.month).astype(int)
     data['year'] = data['dt'].apply(lambda x: x.year).astype(int)
-    if alert_type == "losers":
-        alerts = data.tail(6)
-    else:
-        alerts = data.head(6)
-
+    data['cd_vol'] = (data['price_change_D']/data['return_vol_10D']).round(3)
+    data['cd_vol3'] = (data['price_3Ddiff']/data['return_vol_10D']).round(3)
+    data['DMplus'] = data.apply(lambda x: 1 if x['DMplus'] == 'TRUE' else 0, axis=1)
+    data['DMminus'] = data.apply(lambda x: 1 if x['DMminus'] == 'TRUE' else 0, axis=1)
     
     for strategy in strategies_list:
         endpoint_name = ENDPOINT_NAMES[strategy]
@@ -81,7 +74,6 @@ def format_result(result_string, symbol_list, recent_date, data, strategy) -> pd
         results_df['symbol'] = symbol_list
         results_df['recent_date'] = recent_date
         results_df['return_vol_10D'] = data['return_vol_10D']
-        results_df['return_vol_30D'] = data['return_vol_30D']
         results_df['target_pct'] = model_config['target_value']
         return results_df
     except Exception as e:
@@ -92,3 +84,6 @@ def format_dates(now):
     year, month, day, hour = now_str.split("-")
     hour = int(hour)
     return year, month, day, hour
+
+if __name__ == "__main__":
+    invoke_model(None,None)

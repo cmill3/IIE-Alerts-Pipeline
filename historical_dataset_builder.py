@@ -51,8 +51,23 @@ def build_historic_data(date_str):
         result = df.apply(calc_price_action, axis=1)
         df = configure_price_features(df, result)
         df = configure_spy_features(df)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features/{key_str}/{hour}.csv", Body=df.to_csv())
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/test/{key_str}/{hour}.csv", Body=df.to_csv())
     return put_response
+
+def configure_price_features(df, result):
+    result.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
+    print(result)
+    result.reset_index()
+    price = pd.DataFrame(result.to_list())
+    print(price)
+    df.reset_index(drop=True, inplace=True)
+    df['one_max'] = price['one_max']
+    df['one_min'] = price['one_min']
+    df['one_pct'] = price['one_pct']
+    df['three_max'] = price['three_max']
+    df['three_min'] = price['three_min']
+    df['three_pct'] = price['three_pct']
+    return df
     
 def generate_dates_historic(date_str):
     end = datetime.strptime(date_str, "%Y-%m-%d")
@@ -62,9 +77,23 @@ def generate_dates_historic(date_str):
     from_stamp = start.strftime("%Y-%m-%d")
     return from_stamp, to_stamp, hour_stamp
 
+def fix_data(date_str):
+    s3 = get_s3_client()
+    key_str = date_str.replace("-","/")
+    for hour in ["10","11","12","13","14","15"]:
+        try:
+            df = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features_expanded/{key_str}/{hour}.csv")
+            data = pd.read_csv(df.get("Body"))
+            data.rename(columns={'one_max':'three_max','one_min':'three_min','one_pct':'three_pct','three_max':'one_max','three_min':'one_min','three_pct':'one_pct'}, inplace=True)
+            put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features/{key_str}/{hour}.csv", Body=data.to_csv())
+        except Exception as e:
+            print(f"{date_str} {e}")
+            continue
+    print(f"Finished {date_str}")
+
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2022,7,25)
+    start_date = datetime(2015,1,1)
     end_date = datetime(2024,4,20)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -76,8 +105,8 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # run_process("2016-01-08")
+    # fix_data("2015-01-08")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=12) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
-        processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
+        processed_weeks_futures = [executor.submit(fix_data, date_str) for date_str in date_list]

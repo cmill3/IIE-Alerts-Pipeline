@@ -301,8 +301,8 @@ def idx_days(symbol, monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2024,4,15)
-    end_date = datetime(2024,4,20)
+    start_date = datetime(2020,1,1)
+    end_date = datetime(2024,4,27)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -317,10 +317,10 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2022-10-03")
-    for symbol in ["SPY","IWM","QQQ"]:
+    for symbol in BF3:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count())
-        with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:            # options_snapshot_remediator(date_str, symbol)
+        with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:            # options_snapshot_remediator(date_str, symbol)
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator, date_str, symbol) for date_str in date_list]
         print(f"Finished with {symbol}")
