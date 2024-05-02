@@ -91,8 +91,8 @@ def generate_dates_historic(date_str):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2015,1,1)
-    end_date = datetime(2024,4,20)
+    start_date = datetime(2022,1,1)
+    end_date = datetime(2024,4,27)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
