@@ -44,7 +44,7 @@ def build_historic_data(date_str):
     if date_np in holidays_multiyear:
         return "holiday"
     for hour in hours:
-        thirty_aggs, error_list = call_polygon_features(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+        thirty_aggs, error_list = call_polygon_features(MEMES, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
         df = feature_engineering(thirty_aggs,dt,hour)
         df.reset_index(drop=True, inplace=True)
         df = df.groupby("symbol").tail(1)

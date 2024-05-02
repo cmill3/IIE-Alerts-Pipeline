@@ -681,7 +681,6 @@ def feature_engineering(dfs,date,hour):
     for thirty_aggs in dfs:
         # min_aggs.reset_index(drop=True,inplace=True)
         thirty_aggs.set_index('date',inplace=True)
-
         # Perform resampling and aggregation
         hour_aggs = thirty_aggs.resample('H').agg(agg_dict)
         daily_aggs = thirty_aggs.resample('D').agg(agg_dict)

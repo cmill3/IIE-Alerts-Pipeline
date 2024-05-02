@@ -58,7 +58,7 @@ BF3 = [
 
 MEMES = ["TSLA","PLTR","META""COIN","RBLX","U","UPST","HOOD","RIVN","AFFRM","SHOP","CRM","SQ",
          "LYFT","TTD","DOCU","TDOC","ROKU","ZM","PINS","ETSY","W","EBAY","CHWY","CRWD","ZS",
-        "DDOG","NOW","TEAM","WDAY","NET","ADSK","MDB","MRNA","PFE",
+        "DDOG","NOW","TEAM","WDAY","NET","ADSK","MDB","MRNA","PFE","SPY"
 ]
 ## with more money add CMG,BKNG,AVGO,ADBE,COST
 ## TRIM CSCO,CVX,GM
