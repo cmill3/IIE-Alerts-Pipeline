@@ -48,6 +48,16 @@ WEEKLY_EXP = ['MMM', 'ABT', 'ABBV', 'ACN', 'ATVI', 'ADM', 'ADBE', 'ADP',
 UNDESIRABLES = ['COIN','BILI','UPST','CVNA',"TQQQ","SQQQ","SPXS","SPXL","SOXL","SOXS","NIO","BABA","ROKU","RBLX",
                 "SE","SNAP","LCID",'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","CMG","NFLX","AVGO","BKNG","ABNB","MARA"]
 
+GE = [
+    'QQQ','SPY','IWM', 'GOOGL', 'GOOG', 'AMZN', 'AMD','SHOP'
+    'AXP', 'AAPL', 'BAC', 'BA', 'CVX', 'CSCO', 'C', 'DIS', 'XOM', 
+    'GM', 'INTC', 'JPM', 'MSFT', 'NFLX', 'NVDA', 'PYPL','PANW','ADBE'
+    'TSLA', 'V', 'SQ', 'TSM', 'QCOM', 'UBER', 'SNOW', 'PLTR', 'ABNB',
+    "FB",'META',"TGT","NKE","SBUX","ORCL","DDOG","JNJ","AVGO","COST"
+    ]
+PE = ['SPY', 'TSLA', 'QQQ', 'AMD', 'GOOGL','AAPL', 'MSFT', 'IWM', 'AMZN','TSM','BAC','C','XOM','DIS','SBUX','PYPL','NKE']
+## NVDA,NFLX,GOOG,META,AVGO,COST w/ increased capital
+
 BF3 = [
     'QQQ','SPY','IWM', 'GOOGL', 'GOOG', 'AMZN', 'AMD', 
     'AAPL', 'BAC', 'BA', 'C', 'DIS', 'XOM', 'ABNB',

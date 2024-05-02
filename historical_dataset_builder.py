@@ -44,22 +44,20 @@ def build_historic_data(date_str):
     if date_np in holidays_multiyear:
         return "holiday"
     for hour in hours:
-        thirty_aggs, error_list = call_polygon_features(MEMES, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+        thirty_aggs, error_list = call_polygon_features(GE, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
         df = feature_engineering(thirty_aggs,dt,hour)
         df.reset_index(drop=True, inplace=True)
         df = df.groupby("symbol").tail(1)
         result = df.apply(calc_price_action, axis=1)
         df = configure_price_features(df, result)
         df = configure_spy_features(df)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/test/{key_str}/{hour}.csv", Body=df.to_csv())
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"cdvol_GE/{key_str}/{hour}.csv", Body=df.to_csv())
     return put_response
 
 def configure_price_features(df, result):
     result.columns = ['one_max', 'one_min', 'one_pct', 'three_max', 'three_min', 'three_pct']
-    print(result)
     result.reset_index()
     price = pd.DataFrame(result.to_list())
-    print(price)
     df.reset_index(drop=True, inplace=True)
     df['one_max'] = price['one_max']
     df['one_min'] = price['one_min']
@@ -93,7 +91,7 @@ def fix_data(date_str):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2015,1,1)
+    start_date = datetime(2016,9,16)
     end_date = datetime(2024,4,20)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -109,4 +107,4 @@ if __name__ == "__main__":
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
-        processed_weeks_futures = [executor.submit(fix_data, date_str) for date_str in date_list]
+        processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
