@@ -51,7 +51,7 @@ def alerts_runner(date_str):
     s3 = boto3.client('s3')
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
     for hour in hours:
-        all_symbol = s3.get_object(Bucket="inv-alerts", Key=f"full_alerts/vol/{key_str}/{hour}.csv")
+        all_symbol = s3.get_object(Bucket="inv-alerts", Key=f"trend/all_symbols/{key_str}/{hour}.csv")
         all_symbol_df = pd.read_csv(all_symbol['Body'])
         all_symbol_df.drop(columns=['Unnamed: 0','Unnamed: 0.1'], inplace=True)
         # df = all_symbol_df.loc[all_symbol_df['symbol'].isin(["QQQ","SPY","IWM"])]

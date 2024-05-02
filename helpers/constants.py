@@ -76,9 +76,9 @@ TREND = [
 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 
 'BAC', 'AAPL', 'ABNB', 'META'
 'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 
-'ADBE', 'BA', 'CVX', 'PFE',
+'ADBE', 'BA', 'CVX', 'PFE','TSLA','NVDA', 'CMG','COST'
 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 
-'WMT','WFC','TGT', 'COST', 'SQ', 'SHOP', 'DOCU','TWLO', 
+'WMT','WFC','TGT', 'SQ', 'SHOP', 'DOCU','TWLO', 
 'DDOG', 'NET','OKTA','ETSY', 'PINS','AMD',
 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 
 'MRNA', 'SNOW', 'PANW','ORCL','SBUX','NKE','TSLA',
@@ -86,7 +86,8 @@ TREND = [
 "AXP","KHC","DOCU","TTD","NOW","TEAM",
 "LYFT",'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 
 'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'MGM','MCD',
-'GM','DG','DE','INTU','ADSK','WDAY','SPOT']
+'GM','DG','DE','INTU','ADSK','WDAY','SPOT','QQQ','SPY','IWM',
+]
 
 
 TRADING_SYMBOLS =  [
