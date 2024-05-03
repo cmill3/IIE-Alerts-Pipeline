@@ -58,13 +58,10 @@ GE = [
 PE = ['SPY', 'TSLA', 'QQQ', 'AMD', 'GOOGL','AAPL', 'MSFT', 'IWM', 'AMZN','TSM','BAC','C','XOM','DIS','SBUX','PYPL','NKE']
 ## NVDA,NFLX,GOOG,META,AVGO,COST w/ increased capital
 
-BF3 = [
-    'QQQ','SPY','IWM', 'GOOGL', 'GOOG', 'AMZN', 'AMD', 
-    'AAPL', 'BAC', 'BA', 'C', 'DIS', 'XOM', 'ABNB',
-    'INTC', 'JPM', 'MSFT', 'NFLX', 'NVDA', 'PYPL',
-    'TSLA', 'V', 'SQ', 'TSM', 'QCOM', 'UBER', 'SNOW','PLTR', 
-    "TGT","NKE","SBUX",'ORCL',"PANW","AXP","IBM","JNJ","CVX"
-    ]
+BF3 = ['QQQ', 'SPY', 'IWM', 'GOOGL', 'GOOG', 'AMZN', 'AMD', 'AAPL', 'BAC',
+       'BA', 'C', 'DIS', 'XOM', 'INTC', 'JPM', 'MSFT', 'NFLX', 'NVDA',
+       'TSLA', 'V', 'TSM', 'QCOM', 'SNOW', 'TGT', 'NKE', 'SBUX', 'ORCL',
+       'PYPL', 'SQ', 'UBER', 'PLTR', 'ABNB', 'META']
 
 MEMES = ["TSLA","PLTR","META""COIN","RBLX","U","UPST","HOOD","RIVN","AFFRM","SHOP","CRM","SQ",
          "LYFT","TTD","DOCU","TDOC","ROKU","ZM","PINS","ETSY","W","EBAY","CHWY","CRWD","ZS",

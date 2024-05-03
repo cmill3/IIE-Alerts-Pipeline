@@ -44,14 +44,14 @@ def build_historic_data(date_str):
     if date_np in holidays_multiyear:
         return "holiday"
     for hour in hours:
-        thirty_aggs, error_list = call_polygon_features(GE, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+        thirty_aggs, error_list = call_polygon_features(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
         df = feature_engineering(thirty_aggs,dt,hour)
         df.reset_index(drop=True, inplace=True)
         df = df.groupby("symbol").tail(1)
         result = df.apply(calc_price_action, axis=1)
         df = configure_price_features(df, result)
         df = configure_spy_features(df)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"cdvol_GE/{key_str}/{hour}.csv", Body=df.to_csv())
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features/{key_str}/{hour}.csv", Body=df.to_csv())
     return put_response
 
 def configure_price_features(df, result):
@@ -75,23 +75,23 @@ def generate_dates_historic(date_str):
     from_stamp = start.strftime("%Y-%m-%d")
     return from_stamp, to_stamp, hour_stamp
 
-def fix_data(date_str):
-    s3 = get_s3_client()
-    key_str = date_str.replace("-","/")
-    for hour in ["10","11","12","13","14","15"]:
-        try:
-            df = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features_expanded/{key_str}/{hour}.csv")
-            data = pd.read_csv(df.get("Body"))
-            data.rename(columns={'one_max':'three_max','one_min':'three_min','one_pct':'three_pct','three_max':'one_max','three_min':'one_min','three_pct':'one_pct'}, inplace=True)
-            put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features/{key_str}/{hour}.csv", Body=data.to_csv())
-        except Exception as e:
-            print(f"{date_str} {e}")
-            continue
-    print(f"Finished {date_str}")
+# def fix_data(date_str):
+#     s3 = get_s3_client()
+#     key_str = date_str.replace("-","/")
+#     for hour in ["10","11","12","13","14","15"]:
+#         try:
+#             df = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features_expanded/{key_str}/{hour}.csv")
+#             data = pd.read_csv(df.get("Body"))
+#             data.rename(columns={'one_max':'three_max','one_min':'three_min','one_pct':'three_pct','three_max':'one_max','three_min':'one_min','three_pct':'one_pct'}, inplace=True)
+#             put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features/{key_str}/{hour}.csv", Body=data.to_csv())
+#         except Exception as e:
+#             print(f"{date_str} {e}")
+#             continue
+#     print(f"Finished {date_str}")
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2016,9,16)
+    start_date = datetime(2015,1,1)
     end_date = datetime(2024,4,20)
     date_diff = end_date - start_date
     numdays = date_diff.days 
