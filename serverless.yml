@@ -91,7 +91,7 @@ functions:
     environment:
       PREDICTIONS_BUCKET: "inv-alerts-trading-data"
       ALERTS_BUCKET: "inv-alerts"
-      STRATEGIES: "CDBFC,CDBFP,CDBFC_1D,CDBFP_1D"
+      STRATEGIES: "CDBFC_1D,CDBFP_1D"
       ALERT_TYPE: "cdvol"
       ENV: "PROD_VAL"
     layers:

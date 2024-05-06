@@ -30,7 +30,7 @@ def invoke_model(event, context):
     year, month, day, hour = format_dates(date)
     dataset = s3.get_object(Bucket=alerts_bucket, Key=f"production_alerts/{env}/{year}/{month}/{day}/{hour}.csv")
     data = pd.read_csv(dataset.get("Body"))
-    data = data.loc[data['symbol'].isin(PE)]
+    data = data.loc[data['symbol'].isin(PE)].reset_index(drop=True)
 
     data['dt'] = pd.to_datetime(data['date'])
     recent_date = data['dt'].iloc[-1]
@@ -64,7 +64,7 @@ def invoke_model(event, context):
             print("error")
             print(strategy)
             continue
-    return put_response
+    return "put_response"
     
 def format_result(result_string, symbol_list, recent_date, data, strategy) -> pd.DataFrame:
     model_config = pull_model_config(strategy)
