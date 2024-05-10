@@ -23,11 +23,10 @@ def analytics_runner(event, context):
     year, month, day, hour = now_str.split("/")
     from_stamp, to_stamp = generate_dates_historic(date_est)
     dt = datetime.strptime(to_stamp, "%Y-%m-%d")
-    thirty_aggs, error_list = call_polygon_features(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+    thirty_aggs, error_list = call_polygon_features(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour,month=month,day=day,year=year)
     df = feature_engineering(thirty_aggs,dt,hour)
     df.reset_index(drop=True, inplace=True)
     df = df.groupby("symbol").tail(1)
-    result = df.apply(calc_price_action, axis=1)
     df = configure_spy_features(df)
     df['hour'] = hour
     put_response = s3.put_object(Bucket=alerts_bucket, Key=f"production_alerts/{env}/{year}/{month}/{day}/{hour}.csv", Body=df.to_csv())
