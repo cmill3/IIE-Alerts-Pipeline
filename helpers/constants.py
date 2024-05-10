@@ -56,6 +56,8 @@ GE = [
     "FB",'META',"TGT","NKE","SBUX","ORCL","DDOG","JNJ","AVGO","COST"
     ]
 PE = ['SPY', 'TSLA', 'QQQ', 'AMD', 'GOOGL','AAPL', 'MSFT', 'IWM', 'AMZN','TSM','BAC','C','XOM','DIS','SBUX','PYPL','NKE']
+PE2 = ['SPY', 'TSLA', 'QQQ', 'AMD', 'GOOGL','AAPL', 'MSFT', 'IWM', 'AMZN','TSM','XOM','DIS','PYPL','BA','NFLX','NVDA','GOOG','META']
+
 ## NVDA,NFLX,GOOG,META,AVGO,COST w/ increased capital
 
 BF3 = ['QQQ', 'SPY', 'IWM', 'GOOGL', 'GOOG', 'AMZN', 'AMD', 'AAPL', 'BAC',

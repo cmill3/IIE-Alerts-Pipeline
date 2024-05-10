@@ -7,7 +7,7 @@ import datetime
 import os
 import ast
 from datetime import datetime
-from helpers.constants import MODEL_FEATURES, ENDPOINT_NAMES, PE
+from helpers.constants import MODEL_FEATURES, ENDPOINT_NAMES, PE2
 from helpers.helper import pull_model_config
 import pytz 
 
@@ -30,7 +30,7 @@ def invoke_model(event, context):
     year, month, day, hour = format_dates(date)
     dataset = s3.get_object(Bucket=alerts_bucket, Key=f"production_alerts/{env}/{year}/{month}/{day}/{hour}.csv")
     data = pd.read_csv(dataset.get("Body"))
-    data = data.loc[data['symbol'].isin(PE)].reset_index(drop=True)
+    data = data.loc[data['symbol'].isin(PE2)].reset_index(drop=True)
 
     data['dt'] = pd.to_datetime(data['date'])
     recent_date = data['dt'].iloc[-1]
@@ -38,8 +38,8 @@ def invoke_model(event, context):
     data['day_of_month'] = data['dt'].apply(lambda x: x.day).astype(int)
     data['month'] = data['dt'].apply(lambda x: x.month).astype(int)
     data['year'] = data['dt'].apply(lambda x: x.year).astype(int)
-    data['cd_vol'] = (data['price_change_D']/data['return_vol_10D']).round(3)
-    data['cd_vol3'] = (data['price_3Ddiff']/data['return_vol_10D']).round(3)
+    data['cd_vol'] = (data['price_change_D']/data['return_vol_5D']).round(3)
+    data['cd_vol3'] = (data['price_3Ddiff']/data['return_vol_5D']).round(3)
     data['DMplus'] = data.apply(lambda x: 1 if x['DMplus'] == 'TRUE' else 0, axis=1)
     data['DMminus'] = data.apply(lambda x: 1 if x['DMminus'] == 'TRUE' else 0, axis=1)
     
