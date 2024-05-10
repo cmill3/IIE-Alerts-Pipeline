@@ -80,6 +80,9 @@ high_vol = ['COIN','BILI','UPST','CVNA',"NIO","BABA","ROKU","RBLX","SE","SNAP","
             'RIVN',"BIDU","FUTU","TSLA","JD","HOOD","CHWY","MARA","SNAP",'TWLO', 'DDOG', 'ZS', 'NET', 'OKTA',
             "DOCU",'SQ', 'SHOP',"PLTR","CRWD",'MRNA', 'SNOW', 'SOFI','LYFT','TSM','PINS','PANW','ORCL','SBUX','NKE',"UPS","FDX",
             'WDAY','SPOT']
+
+PE2 = ['SPY', 'TSLA', 'QQQ', 'AMD', 'GOOGL','AAPL', 'MSFT', 'IWM', 'AMZN','TSM','XOM','DIS','PYPL','BA','NFLX','NVDA','GOOG','META']
+
 nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
 holidays_multiyear = holidays.holidays
@@ -301,8 +304,8 @@ def idx_days(symbol, monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2020,1,1)
-    end_date = datetime(2024,4,27)
+    start_date = datetime(2024,4,1)
+    end_date = datetime(2024,5,7)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -320,7 +323,7 @@ if __name__ == "__main__":
     for symbol in BF3:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count())
-        with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:            # options_snapshot_remediator(date_str, symbol)
+        with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:            # options_snapshot_remediator(date_str, symbol)
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator, date_str, symbol) for date_str in date_list]
         print(f"Finished with {symbol}")
