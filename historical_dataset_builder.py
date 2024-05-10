@@ -9,6 +9,7 @@ import logging
 from botocore.exceptions import ClientError
 import concurrent.futures
 from helpers.constants import *
+from helpers.historical_data_helpers import call_polygon_features_historical
 import pandas_market_calendars as mcal
 import numpy as np
 import warnings
@@ -40,18 +41,20 @@ def build_historic_data(date_str):
     s3 = get_s3_client()
     from_stamp, to_stamp, hour_stamp = generate_dates_historic(date_str)
     dt = datetime.strptime(date_str, "%Y-%m-%d")
+    year, month, day = dt.year, dt.month, dt.day
     date_np = np.datetime64(dt)
     if date_np in holidays_multiyear:
         return "holiday"
     for hour in hours:
-        thirty_aggs, error_list = call_polygon_features(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
+        thirty_aggs, error_list = call_polygon_features_historical(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour,month=month,day=day,year=year)
         df = feature_engineering(thirty_aggs,dt,hour)
         df.reset_index(drop=True, inplace=True)
         df = df.groupby("symbol").tail(1)
         result = df.apply(calc_price_action, axis=1)
         df = configure_price_features(df, result)
         df = configure_spy_features(df)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features/{key_str}/{hour}.csv", Body=df.to_csv())
+        df = df.round(6)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features_expanded/{key_str}/{hour}.csv", Body=df.to_csv())
     return put_response
 
 def configure_price_features(df, result):
@@ -69,7 +72,7 @@ def configure_price_features(df, result):
     
 def generate_dates_historic(date_str):
     end = datetime.strptime(date_str, "%Y-%m-%d")
-    start = end - timedelta(weeks=8)
+    start = end - timedelta(weeks=10)
     to_stamp = end.strftime("%Y-%m-%d")
     hour_stamp = end.strftime("%Y-%m-%d")
     from_stamp = start.strftime("%Y-%m-%d")
@@ -91,8 +94,8 @@ def generate_dates_historic(date_str):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2022,1,1)
-    end_date = datetime(2024,4,27)
+    start_date = datetime(2017,4,20)
+    end_date = datetime(2024,5,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -103,8 +106,8 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # fix_data("2015-01-08")
+    # run_process("2024-04-15")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=28) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
