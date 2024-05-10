@@ -81,7 +81,7 @@ TREND = [
 'ZM', 'UBER','AXP', 'TDOC', 'UAL', 'DAL', 
 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 
-'BAC', 'AAPL', 'ABNB', 'META'
+'BAC', 'AAPL', 'ABNB', 'META',
 'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 
 'ADBE', 'BA', 'CVX', 'PFE','TSLA','NVDA', 'CMG','COST'
 'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 

@@ -60,20 +60,20 @@ s3 = boto3.client('s3', aws_access_key_id="AKIAWUN5YYJZHGIGMLQJ", aws_secret_acc
 
 def options_snapshot_runner(modeling_day,symbol):
     expiration_days = build_days(modeling_day)
-    # try:
-    call_tickers, put_tickers = build_options_tickers(symbol, expiration_days, modeling_day)
-    if call_tickers == [] and put_tickers == []:
-        print(f"{symbol} had no options at {modeling_day}")
-    get_options_snapshot_hist(call_tickers, put_tickers, modeling_day, symbol)
-    print(f"Finished {modeling_day} for {symbol}")
-    # except Exception as e:
-    #     print(f"{symbol} failed at {modeling_day} with: {e}. Retrying")
-    #     try:
-    #         call_tickers, put_tickers = build_options_tickers(symbol, expiration_days, modeling_day)
-    #         get_options_snapshot_hist(call_tickers, put_tickers, modeling_day, symbol)
-    #         print(f"Finished {modeling_day} for {symbol}")
-    #     except Exception as e:
-    #         print(f"{symbol} failed twice at {modeling_day} with: {e}. Skipping")
+    try:
+        call_tickers, put_tickers = build_options_tickers(symbol, expiration_days, modeling_day)
+        if call_tickers == [] and put_tickers == []:
+            print(f"{symbol} had no options at {modeling_day}")
+        get_options_snapshot_hist(call_tickers, put_tickers, modeling_day, symbol)
+        print(f"Finished {modeling_day} for {symbol}")
+    except Exception as e:
+        print(f"{symbol} failed at {modeling_day} with: {e}. Retrying")
+        try:
+            call_tickers, put_tickers = build_options_tickers(symbol, expiration_days, modeling_day)
+            get_options_snapshot_hist(call_tickers, put_tickers, modeling_day, symbol)
+            print(f"Finished {modeling_day} for {symbol}")
+        except Exception as e:
+            print(f"{symbol} failed twice at {modeling_day} with: {e}. Skipping")
 
 # def options_snapshot_remediator(date_str,symbol):
 #     hours = ["10","11","12","13","14","15"]
@@ -285,7 +285,7 @@ def build_days(day):
 
 
 if __name__ == "__main__":
-    start_date = datetime(2022,5,11)
+    start_date = datetime(2022,7,1)
     end_date = datetime(2024,4,20)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -302,7 +302,7 @@ if __name__ == "__main__":
         print(f"Starting {symbol}")
         cpu_count = os.cpu_count()
         # options_snapshot_runner('2022-05-11',symbol)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_runner,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")
