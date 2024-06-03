@@ -59,7 +59,7 @@ def invoke_model(event, context):
         results_csv = results_df.to_csv().encode()
         
         try:
-            put_response = s3.put_object(Bucket=predictions_bucket, Key=f'classifier_predictions/{strategy}/{year}/{month}/{day}/{hour}.csv', Body=results_csv)
+            put_response = s3.put_object(Bucket=predictions_bucket, Key=f'classifier_predictions/{env}/{strategy}/{year}/{month}/{day}/{hour}.csv', Body=results_csv)
         except:
             print("error")
             print(strategy)
@@ -74,7 +74,7 @@ def format_result(result_string, symbol_list, recent_date, data, strategy) -> pd
         results_df = pd.DataFrame({'classifier_prediction': array})
         results_df['symbol'] = symbol_list
         results_df['recent_date'] = recent_date
-        results_df['return_vol_10D'] = data['return_vol_10D']
+        results_df['return_vol_5D'] = data['return_vol_5D']
         results_df['target_pct'] = model_config['target_value']
         return results_df
     except Exception as e:

@@ -247,6 +247,23 @@ def call_polygon_price(symbol, date_stamp, timespan, multiplier, hour):
 
     return results_df
 
+def call_polygon_PCR_price(symbol, date_stamp, timespan, multiplier, hour):
+    url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{date_stamp}/{date_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
+    response = execute_polygon_call(url)
+    trading_hours = [9,10,11,12,13,14,15]
+
+    response_data = json.loads(response.text)
+    results = response_data['results']
+    results_df = pd.DataFrame(results)
+    results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
+    results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
+    results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
+    results_df['day'] = results_df['date'].apply(lambda x: x.day)
+    results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
+    results_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+    results_df = results_df.loc[results_df['hour'] == int(hour)]
+    return results_df['o'].values[0]
+
 
 def call_polygon_price_day(symbol, from_stamp, to_stamp, timespan, multiplier):
     payload={}

@@ -46,7 +46,7 @@ def build_historic_data(date_str):
     if date_np in holidays_multiyear:
         return "holiday"
     for hour in hours:
-        thirty_aggs, error_list = call_polygon_features_historical(BF3, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour,month=month,day=day,year=year)
+        thirty_aggs, error_list = call_polygon_features_historical(TREND, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour,month=month,day=day,year=year)
         df = feature_engineering(thirty_aggs,dt,hour)
         df.reset_index(drop=True, inplace=True)
         df = df.groupby("symbol").tail(1)
@@ -54,7 +54,7 @@ def build_historic_data(date_str):
         df = configure_price_features(df, result)
         df = configure_spy_features(df)
         df = df.round(6)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features_expanded/{key_str}/{hour}.csv", Body=df.to_csv())
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"trend_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
     return put_response
 
 def configure_price_features(df, result):
@@ -94,7 +94,7 @@ def generate_dates_historic(date_str):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2017,7,1)
+    start_date = datetime(2015,1,1)
     end_date = datetime(2024,5,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
