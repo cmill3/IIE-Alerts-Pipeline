@@ -278,15 +278,15 @@ def build_days(day):
     for x in to_add:
         dt = datetime.strptime(day, "%Y-%m-%d")
         date = dt + timedelta(days=x)
-        if date.weekday() < 5:
+        if date.weekday() in [0,2,4]:
             date_str = date.strftime("%Y-%m-%d")
             opt_dates.append(date_str)
     return opt_dates
 
 
 if __name__ == "__main__":
-    start_date = datetime(2024,1,1)
-    end_date = datetime(2024,4,20)
+    start_date = datetime(2014,12,1)
+    end_date = datetime(2015,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []

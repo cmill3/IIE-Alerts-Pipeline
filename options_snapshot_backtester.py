@@ -317,7 +317,7 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2022-10-03")
-    for symbol in BF3:
+    for symbol in PE2:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count())
         with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:            # options_snapshot_remediator(date_str, symbol)
