@@ -1,0 +1,20 @@
+version = 0.1
+
+[development]
+[development.deploy]
+[development.deploy.parameters]
+stack_name = "inv-alerts-pipeline-dev-v2"
+s3_bucket = "icarus-trading-pipeline-deployments"
+s3_prefix = "sam/inv-alerts-pipeline-dev-v2"
+region = "us-east-1"
+confirm_changeset = true
+
+
+[prodval]
+[prodval.deploy]
+[prodval.deploy.parameters]
+stack_name = "inv-alerts-pipeline-prodval"
+s3_bucket = "icarus-trading-pipeline-deployments"
+s3_prefix = "sam/inv-alerts-pipeline-prodval"
+region = "us-east-1"
+confirm_changeset = true

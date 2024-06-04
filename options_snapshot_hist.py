@@ -12,6 +12,7 @@ import numpy as np
 import pandas_market_calendars as mcal
 import os
 import time
+from helpers.constants import BF3 
 
 api_key = 'XpqF6xBLLrj6WALk4SS1UlkgphXmHQec'
 
@@ -285,8 +286,8 @@ def build_days(day):
 
 
 if __name__ == "__main__":
-    start_date = datetime(2014,12,1)
-    end_date = datetime(2015,1,1)
+    start_date = datetime(2024,4,20)
+    end_date = datetime(2024,5,31)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -298,11 +299,11 @@ if __name__ == "__main__":
             date_list.append(date_str)
 
 
-    for symbol in ["SPY"]:
+    for symbol in BF3:
         print(f"Starting {symbol}")
         cpu_count = os.cpu_count()
         # options_snapshot_runner('2022-05-11',symbol)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_runner,date_str,symbol) for date_str in date_list]
         print(f"Finished {symbol}")

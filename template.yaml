@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    Runtime: python3.9
+    Timeout: 900
+
+Resources:
+  AnalyticsProductionLineCDVOL:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: analytics_production_line.analytics_runner
+      CodeUri: ./
+      Layers:
+        - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
+        - arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:16
+      Role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
+      Environment:
+        Variables:
+          ENV: "PROD_VAL"
+          ALERTS_BUCKET: "inv-alerts"
+          API_KEY: 'A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp'
+
+
+  CDVOLXGBoostClassifier:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: xgboost_classifier.invoke_model
+      CodeUri: ./
+      Layers:
+        - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
+        - arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:16
+      Role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
+      Environment:
+        Variables:
+          PREDICTIONS_BUCKET: "inv-alerts-trading-data"
+          ALERTS_BUCKET: "inv-alerts"
+          STRATEGIES: "CDBFC_1D,CDBFP_1D"
+          ALERT_TYPE: "cdvol"
+          ENV: "PROD_VAL"
+          API_KEY: 'A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp'
+
+
+  InvalertsProductionModeling:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      RoleArn: arn:aws:iam::456201388658:role/service-role/StepFunctions-Gainers-Production-Modeling-role-72889a0b
+      DefinitionString: !Sub |
+        {
+          "Comment": "This state machine runs the day_gainers process",
+          "StartAt": "AnalyticsProcessor",
+          "States": {
+            "AnalyticsProcessor": {
+              "Type": "Parallel",
+              "Branches": [
+                {
+                  "StartAt": "AnalyticsProductionLineCDVOL",
+                  "States": {
+                    "AnalyticsProductionLineCDVOL": {
+                      "Type": "Task",
+                      "Resource": "${AnalyticsProductionLineCDVOL.Arn}",
+                      "Retry": [
+                        {
+                          "ErrorEquals": ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException"],
+                          "IntervalSeconds": 5,
+                          "MaxAttempts": 3,
+                          "BackoffRate": 2
+                        }
+                      ],
+                      "End": true
+                    }
+                  }
+                }
+              ],
+              "Next": "Modeling"
+            },
+            "Modeling": {
+              "Type": "Parallel",
+              "Branches": [
+                {
+                  "StartAt": "CDVOLXGBoostClassifier",
+                  "States": {
+                    "CDVOLXGBoostClassifier": {
+                      "Type": "Task",
+                      "Resource": "${CDVOLXGBoostClassifier.Arn}",
+                      "Retry": [
+                        {
+                          "ErrorEquals": ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException"],
+                          "IntervalSeconds": 5,
+                          "MaxAttempts": 3,
+                          "BackoffRate": 2
+                        }
+                      ],
+                      "End": true
+                    }
+                  }
+                }
+              ],
+              "End": true
+            }
+          }
+        }
