@@ -279,7 +279,7 @@ def build_days(day):
     for x in to_add:
         dt = datetime.strptime(day, "%Y-%m-%d")
         date = dt + timedelta(days=x)
-        if date.weekday() < 5:
+        if date.weekday() in [0,2,4]:
             date_str = date.strftime("%Y-%m-%d")
             opt_dates.append(date_str)
     return opt_dates

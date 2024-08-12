@@ -86,10 +86,10 @@ TREND = [
 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 
 'BAC', 'AAPL', 'ABNB', 'META',
 'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 
-'ADBE', 'BA', 'CVX', 'PFE','TSLA','NVDA', 'CMG','COST'
-'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 
+'ADBE', 'BA', 'CVX', 'PFE','TSLA','NVDA', 'CMG','COST',
+'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 
 'WMT','WFC','TGT', 'SQ', 'SHOP', 'DOCU','TWLO', 
-'DDOG', 'NET','OKTA','ETSY', 'PINS','AMD',
+'DDOG','NET','OKTA','ETSY', 'PINS','AMD',
 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 
 'MRNA', 'SNOW', 'PANW','ORCL','SBUX','NKE','TSLA',
 'XOM',"UPS","FDX","CAT","PG","COST","GS","MS",
@@ -97,6 +97,7 @@ TREND = [
 "LYFT",'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 
 'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'MGM','MCD',
 'GM','DG','DE','INTU','ADSK','WDAY','SPOT','QQQ','SPY','IWM',
+'VTI'
 ]
 
 TOP = [

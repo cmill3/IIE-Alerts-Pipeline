@@ -48,22 +48,19 @@ def build_historic_data(date_str):
     if date_np in holidays_multiyear:
         return "holiday"
     for hour in hours:
-        thirty_aggs, error_list = call_polygon_features_historical(["AVGO",'COST','ADBE','ABNB','SPY','CRWD'], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour,month=month,day=day,year=year)
-        df = feature_engineering(thirty_aggs,dt,hour)
-        df.reset_index(drop=True, inplace=True)
-        df = df.groupby("symbol").tail(1)
-        result = df.apply(calc_price_action, axis=1)
-        df = configure_price_features(df, result)
-        df = configure_spy_features(df)
-        df = df.round(6)
-        df = df.loc[~df['symbol'].str.contains("SPY")]
-        # df.drop(columns=['Unnamed: 0'], inplace=True)
-        old_df = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features_expanded/{key_str}/{hour}.csv")
-        old_data = pd.read_csv(old_df.get("Body"))
-        full_df = pd.concat([old_data,df])
-        full_df.reset_index(drop=True, inplace=True)
-        print(full_df)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features_expanded/{key_str}/{hour}.csv", Body=full_df.to_csv())
+        for minute in [0,30]:
+            thirty_aggs, error_list = call_polygon_features_historical(TREND, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour,month=month,day=day,year=year, minute=minute)
+            df = feature_engineering(thirty_aggs,dt,hour)
+            df.reset_index(drop=True, inplace=True)
+            df = df.groupby("symbol").tail(1)
+            result = df.apply(calc_price_action, axis=1)
+            df = configure_price_features(df, result)
+            df = configure_vti_features(df)
+            df = df.round(6)
+            if minute == 30:
+                put_response = s3.put_object(Bucket="inv-alerts", Key=f"trend_alerts/{key_str}/{hour}-{minute}.csv", Body=df.to_csv())
+            else:
+                put_response = s3.put_object(Bucket="inv-alerts", Key=f"trend_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
     return put_response
 
 def configure_price_features(df, result):
@@ -77,6 +74,12 @@ def configure_price_features(df, result):
     df['three_max'] = price['three_max']
     df['three_min'] = price['three_min']
     df['three_pct'] = price['three_pct']
+    df['twoH_max'] = price['twoH_max']
+    df['twoH_min'] = price['twoH_min']
+    df['twoH_pct'] = price['twoH_pct']
+    df['fourH_max'] = price['fourH_max']
+    df['fourH_min'] = price['fourH_min']
+    df['fourH_pct'] = price['fourH_pct']
     return df
     
 def generate_dates_historic(date_str):
@@ -103,8 +106,8 @@ def generate_dates_historic(date_str):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2015,1,1)
-    end_date = datetime(2024,6,8)
+    start_date = datetime(2021,5,1)
+    end_date = datetime(2022,8,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -117,6 +120,6 @@ if __name__ == "__main__":
 
     # run_process("2024-06-06")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
