@@ -49,7 +49,7 @@ def build_historic_data(date_str):
         return "holiday"
     for hour in hours:
         for minute in [0,30]:
-            thirty_aggs, error_list = call_polygon_features_historical(TREND, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour,month=month,day=day,year=year, minute=minute)
+            thirty_aggs, error_list = call_polygon_features_historical(TRADING_SYMBOLS, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour,month=month,day=day,year=year, minute=minute)
             df = feature_engineering(thirty_aggs,dt,hour)
             df.reset_index(drop=True, inplace=True)
             df = df.groupby("symbol").tail(1)
@@ -106,8 +106,8 @@ def generate_dates_historic(date_str):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2021,5,1)
-    end_date = datetime(2022,8,1)
+    start_date = datetime(2015,1,1)
+    end_date = datetime(2020,1,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -120,6 +120,6 @@ if __name__ == "__main__":
 
     # run_process("2024-06-06")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]

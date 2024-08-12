@@ -82,22 +82,22 @@ BF3X = [
 
 TREND = [
 'ZM', 'UBER','AXP', 'TDOC', 'UAL', 'DAL', 
-'MMM', 'PEP', 'GE', 'RCL', 'MRK',
+'MMM', 'PEP', 'GE', 'RCL', 'MRK','AVGO','FB'
 'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 
 'BAC', 'AAPL', 'ABNB', 'META',
 'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 
-'ADBE', 'BA', 'CVX', 'PFE','TSLA','NVDA', 'CMG','COST',
-'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 
+'ADBE', 'BA', 'CVX', 'PFE','TSLA','NVDA', 'CMG',
+'C', 'CAT', 'KO', 'IBM', 'CSCO', 
 'WMT','WFC','TGT', 'SQ', 'SHOP', 'DOCU','TWLO', 
 'DDOG','NET','OKTA','ETSY', 'PINS','AMD',
 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 
 'MRNA', 'SNOW', 'PANW','ORCL','SBUX','NKE','TSLA',
 'XOM',"UPS","FDX","CAT","PG","COST","GS","MS",
-"AXP","KHC","DOCU","TTD","NOW","TEAM",
+"KHC","DOCU","TTD","NOW","TEAM",
 "LYFT",'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 
 'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'MGM','MCD',
 'GM','DG','DE','INTU','ADSK','WDAY','SPOT','QQQ','SPY','IWM',
-'VTI'
+'VTI',
 ]
 
 TOP = [
@@ -107,19 +107,29 @@ TOP = [
 
 
 TRADING_SYMBOLS =  [
-                    'ZM', 'UBER', 'CMG', 
-                    'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
+'ZM', 'UBER', 'CMG', 'SPY','IWM','QQQ','VTI','VXX',
+'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
  'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL', 'ABNB',
  'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 'ADBE', 'BA', 'CVX', 'PFE',
  'META', 'C', 'CAT', 'KO', 'MS', 'GS', 'IBM', 'CSCO', 'WMT','WFC',
  'TGT', 'COST', 'SQ', 'SHOP', 'DOCU','TWLO', 'DDOG', 'ZS', 'NET',
  'OKTA','ETSY', 'PINS','AMD',
  'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 'MRNA', 'SNOW', 'SOFI', 'PANW',
- 'ORCL','SBUX','NKE','TSLA','XOM',"RTX","UPS","FDX","CAT","PG","COST","LMT","GS","MS",
- "AXP","GIS","KHC","W","CHWY","PTON","DOCU","TTD","NOW","TEAM","MDB","HOOD","MARA","AI",
- "LYFT","BYND", 'AVGO', 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH', 
+ 'ORCL','SBUX','NKE','TSLA','XOM',"RTX","UPS","FDX","CAT","PG","LMT","GS","MS",
+ "GIS","KHC","W","CHWY","PTON","TTD","NOW","TEAM","MDB","HOOD","MARA","AI",
+ "LYFT","BYND", 'QCOM', 'AAL', 'CZR', 'ARM', 'DKNG', 'NCLH',
 'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'SNAP', 'MGM', 'CVNA','MCD','AVGO','GM','DG','DE','BKNG',
- 'INTU','ADSK','WDAY','SPOT','LCRX']
+ 'INTU','ADSK','WDAY','SPOT','LCRX','F','FB'
+ ]
+
+GE = [
+    'QQQ','SPY','IWM', 'GOOGL', 'GOOG', 'AMZN', 'AMD','SHOP'
+    'AXP', 'AAPL', 'BAC', 'BA', 'CVX', 'CSCO', 'C', 'DIS', 'XOM', 
+    'GM', 'INTC', 'JPM', 'MSFT', 'NFLX', 'NVDA', 'PYPL','PANW','ADBE'
+    'TSLA', 'V', 'SQ', 'TSM', 'QCOM', 'UBER', 'SNOW', 'PLTR', 'ABNB',
+    "FB",'META',"TGT","NKE","SBUX","ORCL","DDOG","JNJ","AVGO","COST",
+    "CRWD"
+    ]
 
 TREND_SYMBOLS =  ['ZM', 'UBER', 'CMG', 'AXP', 'TDOC', 'UAL', 'DAL', 'MMM', 'PEP', 'GE', 'RCL', 'MRK',
  'HD', 'LOW', 'VZ', 'PG', 'TSM', 'GOOG', 'GOOGL', 'AMZN', 'BAC', 'AAPL',
