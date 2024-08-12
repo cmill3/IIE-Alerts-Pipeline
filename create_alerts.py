@@ -129,7 +129,7 @@ if __name__ == "__main__":
     # build_historic_data(None, None)
     print(os.cpu_count())
     start_date = datetime(2015,1,1)
-    end_date = datetime(2024,5,1)
+    end_date = datetime(2024,8,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []

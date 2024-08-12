@@ -114,7 +114,13 @@ def calc_price_action(row):
         return results_dict
     except Exception as e:
         print(f"{e} for {row['symbol']} in calc price")
-        return None
+        results_dict =  {
+            "one_max": 67, "one_min": 67, "one_pct": 67, 
+            "three_max": 67, "three_min": 67, "three_pct": 67,
+            "twoH_max": 67, "twoH_min": 67, "twoH_pct": 67,
+            "fourH_max": 67, "fourH_min": 67, "fourH_pct": 67,
+            "symbol": row['symbol']}
+        return results_dict
 
 def build_date_dfs(df, dt):
     sell_1d = calculate_sellby_date(dt, 2)
@@ -416,13 +422,13 @@ def feature_engineering(dfs,date,hour):
 
         ## Volume Features
         thirty_aggs['volume_5MA'] = thirty_aggs['v'].rolling(5).mean()
-        thirty_aggs['volume_15MA'] = thirty_aggs['v'].rolling(15).mean()
-        thirty_aggs['volume_30MA'] = thirty_aggs['v'].rolling(30).mean()
-        thirty_aggs['volume_45MA'] = thirty_aggs['v'].rolling(45).mean()
-        thirty_aggs['volume_15MA_diff'] = (thirty_aggs['v'] - thirty_aggs['volume_15MA'])/thirty_aggs['volume_15MA']
-        thirty_aggs['volume_30MA_diff'] = (thirty_aggs['v'] - thirty_aggs['volume_30MA'])/thirty_aggs['volume_30MA']
-        thirty_aggs['volume_5_30MA_diff'] = (thirty_aggs['volume_5MA'] - thirty_aggs['volume_30MA'])/thirty_aggs['volume_30MA']
-        thirty_aggs['volume_5_45MA_diff'] = (thirty_aggs['volume_5MA'] - thirty_aggs['volume_45MA'])/thirty_aggs['volume_45MA']
+        thirty_aggs['volume_14MA'] = thirty_aggs['v'].rolling(14).mean()
+        thirty_aggs['volume_28MA'] = thirty_aggs['v'].rolling(28).mean()
+        thirty_aggs['volume_56MA'] = thirty_aggs['v'].rolling(56).mean()
+        thirty_aggs['volume_84MA'] = thirty_aggs['v'].rolling(84).mean()
+        thirty_aggs['volume_14_56MA_diff'] = (thirty_aggs['volume_14MA'] - thirty_aggs['volume_56MA'])/thirty_aggs['volume_56MA']
+        thirty_aggs['volume_14_84MA_diff'] = (thirty_aggs['volume_14MA'] - thirty_aggs['volume_84MA'])/thirty_aggs['volume_84MA']
+        thirty_aggs['volume_28_84MA_diff'] = (thirty_aggs['volume_28MA'] - thirty_aggs['volume_84MA'])/thirty_aggs['volume_84MA']
         thirty_aggs['volume_sum15'] = thirty_aggs['v'].rolling(15).sum()
         thirty_aggs['volume_sum15_5DMA'] = thirty_aggs['v'].rolling(5).mean()
         thirty_aggs['volume_sum15_10DMA'] = thirty_aggs['v'].rolling(10).mean()

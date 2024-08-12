@@ -72,21 +72,21 @@ def call_polygon_features_historical(symbol_list, from_stamp, to_stamp, timespan
         try:
             response_data = json.loads(response.text)
             results = response_data['results']
+            results_df = pd.DataFrame(results)
+            results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
+            results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
+            results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
+            results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
+            results_df['day'] = results_df['date'].apply(lambda x: x.day)
+            results_df['month'] = results_df['date'].apply(lambda x: x.month)
+            results_df['symbol'] = symbol
+            trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
+            filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
+            filtered_df = filtered_df.loc[filtered_df['date'] < current_date]
+            data.append(filtered_df)
         except:
             error_list.append(symbol)
             continue
-        results_df = pd.DataFrame(results)
-        results_df['t'] = results_df['t'].apply(lambda x: int(x/1000))
-        results_df['date'] = results_df['t'].apply(lambda x: convert_timestamp_est(x))
-        results_df['hour'] = results_df['date'].apply(lambda x: x.hour)
-        results_df['minute'] = results_df['date'].apply(lambda x: x.minute)
-        results_df['day'] = results_df['date'].apply(lambda x: x.day)
-        results_df['month'] = results_df['date'].apply(lambda x: x.month)
-        results_df['symbol'] = symbol
-        trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
-        filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
-        filtered_df = filtered_df.loc[filtered_df['date'] < current_date]
-        data.append(filtered_df)
 
     return data, error_list
 
