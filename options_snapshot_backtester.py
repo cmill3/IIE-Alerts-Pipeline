@@ -11,7 +11,7 @@ import math
 import numpy as np
 import pandas_market_calendars as mcal
 import os
-from helpers.constants import TRADING_SYMBOLS, WEEKLY_EXP, FULL_SYM,BF3
+from helpers.constants import TRADING_SYMBOLS, WEEKLY_EXP, FULL_SYM,BF3, TREND
 
 api_key = 'XpqF6xBLLrj6WALk4SS1UlkgphXmHQec'
 
@@ -304,8 +304,8 @@ def idx_days(symbol, monday):
 
 if __name__ == "__main__":
     # build_historic_data(None, None)
-    start_date = datetime(2024,4,1)
-    end_date = datetime(2024,5,7)
+    start_date = datetime(2021,1,1)
+    end_date = datetime(2024,6,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -320,10 +320,10 @@ if __name__ == "__main__":
 
 
     # options_snapshot_runner("2022-10-03")
-    for symbol in PE2:
+    for symbol in TREND:
         print(f"Starting {symbol}")
         cpu_count = (os.cpu_count())
-        with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:            # options_snapshot_remediator(date_str, symbol)
+        with concurrent.futures.ProcessPoolExecutor(max_workers=6) as executor:            # options_snapshot_remediator(date_str, symbol)
             # Submit the processing tasks to the ThreadPoolExecutor
             processed_weeks_futures = [executor.submit(options_snapshot_remediator, date_str, symbol) for date_str in date_list]
         print(f"Finished with {symbol}")

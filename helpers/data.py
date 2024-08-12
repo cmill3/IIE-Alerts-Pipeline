@@ -69,26 +69,52 @@ def calc_price_action(row):
         date = row['date']
         from_stamp = date.strftime("%Y-%m-%d")
         aggs = call_polygon_price(row['symbol'], from_stamp, "hour", 1, row['hour'])
-        one_day, three_day = build_date_dfs(aggs, date)
+        one_day, three_day, two_hour, four_hour = build_date_dfs(aggs, date)
         open = one_day.head(1)['o'].values[0]
+
         one_c = one_day.tail(1)['c'].values[0]
         one_h = one_day['h'].max()
         one_l = one_day['l'].min()
+
         three_c = three_day.tail(1)['c'].values[0]
         three_h = three_day['h'].max()
         three_l = three_day['l'].min()
+
+        twoH_c = two_hour.tail(1)['c'].values[0]
+        twoH_h = two_hour['h'].max()
+        twoH_l = two_hour['l'].min()
+
+        fourH_c = four_hour.tail(1)['c'].values[0]
+        fourH_h = four_hour['h'].max()
+        fourH_l = four_hour['l'].min()
+
         one_high = (one_h - open)/ open
         one_low = (one_l - open)/ open
         one_pct = (one_c - row['alert_price'])/row['alert_price']
+
         three_high = (three_h - open)/ open
         three_low = (three_l - open)/ open
         three_pct = (three_c - row['alert_price'])/row['alert_price']
-        return {"one_max": one_high, "one_min": one_low, "one_pct": one_pct, "three_max": three_high, "three_min": three_low, "three_pct": three_pct,"symbol": row['symbol']}
+
+        twoH_high = (twoH_h - open)/ open
+        twoH_low = (twoH_l - open)/ open
+        twoH_pct = (twoH_c - row['alert_price'])/row['alert_price']
+        
+        fourH_high = (fourH_h - open)/ open
+        fourH_low = (fourH_l - open)/ open
+        fourH_pct = (fourH_c - row['alert_price'])/row['alert_price']
+
+        results_dict =  {
+            "one_max": one_high, "one_min": one_low, "one_pct": one_pct, 
+            "three_max": three_high, "three_min": three_low, "three_pct": three_pct,
+            "twoH_max": twoH_high, "twoH_min": twoH_low, "twoH_pct": twoH_pct,
+            "fourH_max": fourH_high, "fourH_min": fourH_low, "fourH_pct": fourH_pct,
+            "symbol": row['symbol']}
+        
+        return results_dict
     except Exception as e:
-        print(e)
-        print(row['symbol'])
-        print('price action')
-        return {"one_max": 0, "one_min": 0, "one_pct": 0, "three_max": 0, "three_min": 0, "three_pct": 0,"symbol": row['symbol']}
+        print(f"{e} for {row['symbol']} in calc price")
+        return None
 
 def build_date_dfs(df, dt):
     sell_1d = calculate_sellby_date(dt, 2)
@@ -99,7 +125,9 @@ def build_date_dfs(df, dt):
     dt_1d = datetime(int(year), int(month), int(day),tzinfo=pytz.timezone('US/Eastern'))
     one_day_df = df.loc[df['date'] < dt_1d]
     three_day_df = df.loc[df['date'] < dt_3d]
-    return one_day_df, three_day_df
+    two_hour_df = df.iloc[:2]
+    four_hour_df = df.iloc[:4]
+    return one_day_df, three_day_df, two_hour_df, four_hour_df
     
 def calculate_sellby_date(dt, trading_days_to_add): #End date, n days later for the data set built to include just trading days, but doesnt filter holiday
     # date_str = current_date.strftime("%Y-%m-%d %H:%M:%S")
@@ -387,8 +415,14 @@ def feature_engineering(dfs,date,hour):
 
 
         ## Volume Features
+        thirty_aggs['volume_5MA'] = thirty_aggs['v'].rolling(5).mean()
         thirty_aggs['volume_15MA'] = thirty_aggs['v'].rolling(15).mean()
+        thirty_aggs['volume_30MA'] = thirty_aggs['v'].rolling(30).mean()
+        thirty_aggs['volume_45MA'] = thirty_aggs['v'].rolling(45).mean()
         thirty_aggs['volume_15MA_diff'] = (thirty_aggs['v'] - thirty_aggs['volume_15MA'])/thirty_aggs['volume_15MA']
+        thirty_aggs['volume_30MA_diff'] = (thirty_aggs['v'] - thirty_aggs['volume_30MA'])/thirty_aggs['volume_30MA']
+        thirty_aggs['volume_5_30MA_diff'] = (thirty_aggs['volume_5MA'] - thirty_aggs['volume_30MA'])/thirty_aggs['volume_30MA']
+        thirty_aggs['volume_5_45MA_diff'] = (thirty_aggs['volume_5MA'] - thirty_aggs['volume_45MA'])/thirty_aggs['volume_45MA']
         thirty_aggs['volume_sum15'] = thirty_aggs['v'].rolling(15).sum()
         thirty_aggs['volume_sum15_5DMA'] = thirty_aggs['v'].rolling(5).mean()
         thirty_aggs['volume_sum15_10DMA'] = thirty_aggs['v'].rolling(10).mean()
@@ -497,20 +531,22 @@ def call_polygon_option_snapshot(symbol,expiration_dates):
     full_df = pd.concat(symbol_dfs)
     return full_df
 
-def configure_spy_features(df):
+def configure_vti_features(df):
     # spy,_ = call_polygon_features(["SPY"], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour)
     # spy_features = feature_engineering(spy,datetime.strptime(to_stamp, "%Y-%m-%d"),hour)
-    spy = df.loc[df['symbol'] == "SPY"]
-    fived = spy["price_5Ddiff"].values[0]
-    twentyd = spy["price_20Ddiff"].values[0]
-    spy_range = spy["price_range_D"].values[0]
-    df['SPY_diff_H'] = (df['price_change_absolute_H'] - spy['price_change_absolute_H'])/df['price_change_absolute_H']
-    df['SPY_diff_D'] = (df['price_change_absolute_D'] - spy['price_change_absolute_D'])/df['price_change_absolute_D']
-    df["SPY_5d"] = fived
-    df["SPY_20d"] = twentyd 
-    df["SPY_5d_diff"] = (df["price_5Ddiff"] - df["SPY_5d"])/df["price_5Ddiff"]
-    df["SPY_20d_diff"] = (df["price_20Ddiff"] - df["SPY_20d"])/df["price_20Ddiff"]
-    df["SPY_range_vol"] = spy_range
+    vti = df.loc[df['symbol'] == "VTI"]
+    fived = vti["price_5Ddiff"].values[0]
+    twentyd = vti["price_20Ddiff"].values[0]
+    vti_range = vti["price_range_D"].values[0]
+    hour = vti['price_change_absolute_H'].values[0]
+    day = vti['price_change_absolute_D'].values[0]
+    df['VTI_diff_H'] = (df['price_change_absolute_H'] - hour)/df['price_change_absolute_H']
+    df['VTI_diff_D'] = (df['price_change_absolute_D'] - day)/df['price_change_absolute_D']
+    df["VTI_5d"] = fived
+    df["VTI_20d"] = twentyd 
+    df["VTI_5d_diff"] = (df["price_5Ddiff"] - df["VTI_5d"])/df["price_5Ddiff"]
+    df["VTI_20d_diff"] = (df["price_20Ddiff"] - df["VTI_20d"])/df["price_20Ddiff"]
+    df["VTI_range_vol"] = vti_range
     return df
 
 # Identify the most recent index where the rolling maximum occurred

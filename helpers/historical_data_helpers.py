@@ -58,12 +58,12 @@ def execute_polygon_call(url):
     response = session.request("GET", url, headers={}, data={})
     return response 
 
-def call_polygon_features_historical(symbol_list, from_stamp, to_stamp, timespan, multiplier,hour,month,day,year):
+def call_polygon_features_historical(symbol_list, from_stamp, to_stamp, timespan, multiplier,hour,month,day,year, minute):
     trading_hours = [9,10,11,12,13,14,15]
     error_list = []
 
     year, month, day = to_stamp.split("-")
-    current_date = datetime(int(year), int(month), int(day), int(hour))
+    current_date = datetime(int(year), int(month), int(day), int(hour), int(minute))
 
     data = []
     for symbol in symbol_list:
