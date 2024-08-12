@@ -7,7 +7,7 @@ import datetime
 import os
 import ast
 from datetime import datetime
-from helpers.constants import MODEL_FEATURES, ENDPOINT_NAMES, PE2
+from helpers.constants import MODEL_FEATURES, ENDPOINT_NAMES, PE2, TOP
 from helpers.helper import pull_model_config
 import pytz 
 
@@ -20,6 +20,7 @@ predictions_bucket = os.getenv("PREDICTIONS_BUCKET")
 alerts_bucket = os.getenv("ALERTS_BUCKET")
 strategies = os.getenv("STRATEGIES")
 env = os.getenv("ENV")
+portfolio_strategy = os.getenv("PORTFOLIO_STRATEGY")
 
 est = pytz.timezone('US/Eastern')
 date = datetime.now(est)
@@ -28,9 +29,22 @@ now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
 def invoke_model(event, context):   
     strategies_list = strategies.split(",")
     year, month, day, hour = format_dates(date)
-    dataset = s3.get_object(Bucket=alerts_bucket, Key=f"production_alerts/{env}/{year}/{month}/{day}/{hour}.csv")
-    data = pd.read_csv(dataset.get("Body"))
-    data = data.loc[data['symbol'].isin(PE2)].reset_index(drop=True)
+    if portfolio_strategy == "CDVOL_GAIN":
+        dataset = s3.get_object(
+            Bucket=alerts_bucket, 
+            Key=f"trend_alerts/{env}/cdvol_gainers/{year}/{month}/{day}/{hour}.csv")
+        data = pd.read_csv(dataset.get("Body"))
+    elif portfolio_strategy == "CDVOL_LOSE":
+        dataset = s3.get_object(
+            Bucket=alerts_bucket, 
+            Key=f"trend_alerts/{env}/cdvol_losers/{year}/{month}/{day}/{hour}.csv")
+        data = pd.read_csv(dataset.get("Body"))
+    else:
+        dataset = s3.get_object(
+            Bucket=alerts_bucket, 
+            Key=f"production_alerts/{env}/{year}/{month}/{day}/{hour}.csv")
+        data = pd.read_csv(dataset.get("Body"))
+        data = data.loc[data['symbol'].isin(TOP)].reset_index(drop=True)
 
     data['dt'] = pd.to_datetime(data['date'])
     recent_date = data['dt'].iloc[-1]
@@ -75,6 +89,7 @@ def format_result(result_string, symbol_list, recent_date, data, strategy) -> pd
         results_df['symbol'] = symbol_list
         results_df['recent_date'] = recent_date
         results_df['return_vol_5D'] = data['return_vol_5D']
+        results_df['return_vol_10D'] = data['return_vol_10D']
         results_df['target_pct'] = model_config['target_value']
         return results_df
     except Exception as e:

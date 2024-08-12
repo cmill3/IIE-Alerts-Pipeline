@@ -26,6 +26,7 @@ def run_validation(event, context):
     prices = []
     year, month, day, hour = now_str.split("/")
     stamp  = f"{year}-{month}-{day}"
+    logger.info(f"Running validation for {stamp} {hour}")
     alert_df = s3.get_object(Bucket=alerts_bucket, Key=f"production_alerts/{env}/{year}/{month}/{day}/{hour}.csv")
     for stock in BF3:
         try:
@@ -33,7 +34,6 @@ def run_validation(event, context):
             df = df.loc[df['hour'] == int(hour)]
             df = df.loc[df['minute'] == 0]
             open = df['o'].values[0]
-            print(f"{stock} {open}")
             prices.append({"symbol":stock,"validation_price":open})
         except Exception as e:
             raise ValueError(f"Error in {stock} {e}")

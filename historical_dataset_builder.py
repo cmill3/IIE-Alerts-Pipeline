@@ -36,6 +36,8 @@ def run_process(date_str):
     print(f"Finished {date_str}")
 
 def build_historic_data(date_str):
+    if date_str == "2024-06-06":
+        return "done"
     hours = ["10","11","12","13","14","15"]
     key_str = date_str.replace("-","/")
     s3 = get_s3_client()
@@ -46,7 +48,7 @@ def build_historic_data(date_str):
     if date_np in holidays_multiyear:
         return "holiday"
     for hour in hours:
-        thirty_aggs, error_list = call_polygon_features_historical(TREND, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour,month=month,day=day,year=year)
+        thirty_aggs, error_list = call_polygon_features_historical(["AVGO",'COST','ADBE','ABNB','SPY','CRWD'], from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour,month=month,day=day,year=year)
         df = feature_engineering(thirty_aggs,dt,hour)
         df.reset_index(drop=True, inplace=True)
         df = df.groupby("symbol").tail(1)
@@ -54,7 +56,14 @@ def build_historic_data(date_str):
         df = configure_price_features(df, result)
         df = configure_spy_features(df)
         df = df.round(6)
-        put_response = s3.put_object(Bucket="inv-alerts", Key=f"trend_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
+        df = df.loc[~df['symbol'].str.contains("SPY")]
+        # df.drop(columns=['Unnamed: 0'], inplace=True)
+        old_df = s3.get_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features_expanded/{key_str}/{hour}.csv")
+        old_data = pd.read_csv(old_df.get("Body"))
+        full_df = pd.concat([old_data,df])
+        full_df.reset_index(drop=True, inplace=True)
+        print(full_df)
+        put_response = s3.put_object(Bucket="inv-alerts", Key=f"bf_alerts/new_features_expanded/{key_str}/{hour}.csv", Body=full_df.to_csv())
     return put_response
 
 def configure_price_features(df, result):
@@ -95,7 +104,7 @@ def generate_dates_historic(date_str):
 if __name__ == "__main__":
     cpu = os.cpu_count()
     start_date = datetime(2015,1,1)
-    end_date = datetime(2024,5,1)
+    end_date = datetime(2024,6,8)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -106,7 +115,7 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # run_process("2024-04-15")
+    # run_process("2024-06-06")
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor

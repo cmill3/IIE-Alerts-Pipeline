@@ -83,6 +83,7 @@ def calc_price_action(row):
         three_high = (three_h - open)/ open
         three_low = (three_l - open)/ open
         three_pct = (three_c - row['alert_price'])/row['alert_price']
+        print({"one_max": one_high, "one_min": one_low, "one_pct": one_pct, "three_max": three_high, "three_min": three_low, "three_pct": three_pct,"symbol": row['symbol']})
         return {"one_max": one_high, "one_min": one_low, "one_pct": one_pct, "three_max": three_high, "three_min": three_low, "three_pct": three_pct,"symbol": row['symbol']}
     except Exception as e:
         print(e)

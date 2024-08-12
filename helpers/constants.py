@@ -53,7 +53,8 @@ GE = [
     'AXP', 'AAPL', 'BAC', 'BA', 'CVX', 'CSCO', 'C', 'DIS', 'XOM', 
     'GM', 'INTC', 'JPM', 'MSFT', 'NFLX', 'NVDA', 'PYPL','PANW','ADBE'
     'TSLA', 'V', 'SQ', 'TSM', 'QCOM', 'UBER', 'SNOW', 'PLTR', 'ABNB',
-    "FB",'META',"TGT","NKE","SBUX","ORCL","DDOG","JNJ","AVGO","COST"
+    "FB",'META',"TGT","NKE","SBUX","ORCL","DDOG","JNJ","AVGO","COST",
+    "CRWD"
     ]
 PE = ['SPY', 'TSLA', 'QQQ', 'AMD', 'GOOGL','AAPL', 'MSFT', 'IWM', 'AMZN','TSM','BAC','C','XOM','DIS','SBUX','PYPL','NKE']
 PE2 = ['SPY', 'TSLA', 'QQQ', 'AMD', 'GOOGL','AAPL', 'MSFT', 'IWM', 'AMZN','TSM','XOM','DIS','PYPL','BA','NFLX','NVDA','GOOG','META']
@@ -97,6 +98,11 @@ TREND = [
 'MU', 'WBD', 'CCL', 'AMAT', 'TXN', 'MGM','MCD',
 'GM','DG','DE','INTU','ADSK','WDAY','SPOT','QQQ','SPY','IWM',
 ]
+
+TOP = [
+       'NVDA', 'SPY', 'TSLA', 'QQQ', 'AMD', 'TSM', 'NFLX',
+       'AAPL', 'MSFT', 'IWM', 'AMZN','AVGO','META','COST'
+       ]
 
 
 TRADING_SYMBOLS =  [
@@ -153,11 +159,12 @@ FULL_SYM = ['VUG', 'IWF', 'IJH', 'IJR', 'VGT', 'VO', 'XLK', 'VB', 'XLE', 'MMM', 
                                 'ZION', 'ZTS', 'CHWY', 'TEAM', 'HOOD', 'DOCU', 'TTD', 'UBER', 'JD', 'DDOG', 'CRWD', 'SQ', 'FUTU', 'TSM', 'TDOC', 'SNOW', 'BIDU', 'OKTA', 'ZM', 'WBD', 'TWLO', 'ZS', 'BABA', 'PLTR',
                                   'PINS', 'PANW', 'ABNB', 'ARM']
 
+
 MODEL_FEATURES = {
     "CDBFP": ['return_vol_10D_diff', 'price_change_D', 'price_change_H', 'price_range_5DMA_diff', 'hour', 'PrevClose-L', 'High-Low', 'macd', 'roc_15MA_diff', 
             'cmf_15MA', 'High-Close', 'DMplus', 'day_of_week', 'volume_sum15_5DMA_diff', 'adx', 'SPY_20d_diff', 'rsi', 'rsi_15MA', 'SPY_5d_diff', 'roc5', 
             'volume_sum15', 'bb_trend', 'TR', 'cd_vol3', 'DX', 'bb_category', 'return_vol_8H_diff', 'price_10Ddiff', 'return_vol_5D', 'price_5Ddiff', 'bb_spread', 
-            'return_vol_10D', 'Low-Close', 'return_vol_5D_diff', 'H-L', 'price_range_8MA_diff', 'H-PrevClose', 'roc3', 'roc_15MA', 'price_range_D', 'macd_15MA_diff', 
+            'return_vol_10D', 'Low-Close', 'return_vol_5D_diff', 'H-L', 'price_range_8MA_diff', 'H-PrevClose', 'roc3', 'roc_15MA', 'price_range', 'macd_15MA_diff', 
             'macd_15MA', 'roc', 'cmf', 'volume_sum15_10DMA_diff', 'DIminus', 'DIplus'],
     "CDBFP_1D": ['min_30_diff', 'bb_category', 'return_vol_5D_diff', 'close_10DMA_diff', 'return_vol_5D', 'price_range_H', 'price_20Ddiff', 'roc_vol5', 'DIplus', 
             'macd_15MA', 'volume_sum15_10DMA_diff', 'roc_vol_15MA_diff', 'range_vol_stddev20D_diff', 'volume_15MA_diff', 'volume_sum15', 'roc_15MA_diff', 'price_10Ddiff', 
@@ -167,16 +174,41 @@ MODEL_FEATURES = {
     "CDBFC": ['price_change_H', 'hour', 'Low-Close', 'rsi_15MA_diff', 'price_change_D', 'volume_sum15_10DMA_diff', 'PrevClose-L', 'return_vol_8H', 
             'return_vol_10D_diff', 'return_vol_10D', 'rsi_15MA', 'TR', 'DX', 'price_10Ddiff', 'volume_sum15_5DMA_diff', 'High-Close', 'cd_vol3', 
             'DIminus', 'rsi', 'return_vol_5D_diff', 'bb_spread', 'macd', 'return_vol_8H_diff', 'DMplus', 'volume_15MA_diff', 'day_of_week', 'cmf', 
-            'month', 'H-L', 'SPY_20d_diff', 'cd_vol', 'cmf_15MA', 'High-Low', 'roc5', 'bb_category', 'price_range_D', 'price_range_8MA_diff', 'macd_15MA', 
+            'month', 'H-L', 'SPY_20d_diff', 'cd_vol', 'cmf_15MA', 'High-Low', 'roc5', 'bb_category', 'price_range', 'price_range_8MA_diff', 'macd_15MA', 
             'macd_15MA_diff', 'price_range_5DMA_diff', 'SPY_5d_diff'],
-    "CDBFC_1D":  ['DIplus', 'cmf_15MA_diff', 'DMplus', 'roc', 'DMminus', 'cd_vol', 'return_vol_5D', 'price_5Ddiff', 'volume_sum15_5DMA_diff', 'H-L', 
+    "CDBFC_1D": ['DIplus', 'cmf_15MA_diff', 'DMplus', 'roc', 'DMminus', 'cd_vol', 'return_vol_5D', 'price_5Ddiff', 'volume_sum15_5DMA_diff', 'H-L', 
+                 'cmf_15MA', 'max_30_diff', 'roc5', 'SPY_range_vol', 'Low-Close', 'High-Close', 'rsiH_15MA_diff', 'H-PrevClose', 'hour', 'bb_trend', 
+                 'close_10DMA_diff', 'SPY_20d_diff', 'rsiH', 'close_20DMA_diff', 'price_20Ddiff', 'range_vol_stddev40H_diff', 'SPY_5d_diff', 'return_vol_8H_diff', 
+                 'price_change_H', 'min_30_diff', 'day_of_week', 'cmf', 'price_range_H', 'rsi', 'roc3', 'bb_category', 'TR', 'roc_vol5', 'bb_spread', 'price_3D20D_diff', 
+                 'price_range_D', 'SPY_5d', 'roc_15MA_diff'],
+    "CDLOSEP_1D": ['min_30_diff', 'bb_category', 'return_vol_5D_diff', 'close_10DMA_diff', 'return_vol_5D', 'price_range_H', 'price_20Ddiff', 'roc_vol5', 'DIplus', 
+            'macd_15MA', 'volume_sum15_10DMA_diff', 'roc_vol_15MA_diff', 'range_vol_stddev20D_diff', 'volume_15MA_diff', 'volume_sum15', 'roc_15MA_diff', 'price_10Ddiff', 
+            'Low-Close', 'roc_vol', 'SPY_diff_H', 'roc8H', 'DIminus', 'day_of_month', 'ret_vol_stddev20D_diff', 'High-Low', 'PrevClose-L', 'roc8H_15MA_diff', 'High-Close', 
+            'cmf_15MA_diff', 'roc5', 'max_30_diff', 'close_20DMA_diff', 'return_vol_10D_diff', 'roc3', 'rsi', 'cmf', 'day_of_week', 'return_vol_8H', 'return_vol_8H_diff', 
+            'SPY_5d_diff', 'H-L', 'bb_spread', 'SPY_20d_diff', 'price_range_8MA_diff'],
+    "CDGAINP_1D": ['min_30_diff', 'bb_category', 'return_vol_5D_diff', 'close_10DMA_diff', 'return_vol_5D', 'price_range_H', 'price_20Ddiff', 'roc_vol5', 'DIplus', 
+            'macd_15MA', 'volume_sum15_10DMA_diff', 'roc_vol_15MA_diff', 'range_vol_stddev20D_diff', 'volume_15MA_diff', 'volume_sum15', 'roc_15MA_diff', 'price_10Ddiff', 
+            'Low-Close', 'roc_vol', 'SPY_diff_H', 'roc8H', 'DIminus', 'day_of_month', 'ret_vol_stddev20D_diff', 'High-Low', 'PrevClose-L', 'roc8H_15MA_diff', 'High-Close', 
+            'cmf_15MA_diff', 'roc5', 'max_30_diff', 'close_20DMA_diff', 'return_vol_10D_diff', 'roc3', 'rsi', 'cmf', 'day_of_week', 'return_vol_8H', 'return_vol_8H_diff', 
+            'SPY_5d_diff', 'H-L', 'bb_spread', 'SPY_20d_diff', 'price_range_8MA_diff'],
+    "CDGAINC_1D": ['DIplus', 'cmf_15MA_diff', 'DMplus', 'roc', 'DMminus', 'cd_vol', 'return_vol_5D', 'price_5Ddiff', 'volume_sum15_5DMA_diff', 'H-L', 
+                 'cmf_15MA', 'max_30_diff', 'roc5', 'SPY_range_vol', 'Low-Close', 'High-Close', 'rsiH_15MA_diff', 'H-PrevClose', 'hour', 'bb_trend', 
+                 'close_10DMA_diff', 'SPY_20d_diff', 'rsiH', 'close_20DMA_diff', 'price_20Ddiff', 'range_vol_stddev40H_diff', 'SPY_5d_diff', 'return_vol_8H_diff', 
+                 'price_change_H', 'min_30_diff', 'day_of_week', 'cmf', 'price_range_H', 'rsi', 'roc3', 'bb_category', 'TR', 'roc_vol5', 'bb_spread', 'price_3D20D_diff', 
+                 'price_range_D', 'SPY_5d', 'roc_15MA_diff'],
+    "CDLOSEC_1D": ['DIplus', 'cmf_15MA_diff', 'DMplus', 'roc', 'DMminus', 'cd_vol', 'return_vol_5D', 'price_5Ddiff', 'volume_sum15_5DMA_diff', 'H-L', 
                  'cmf_15MA', 'max_30_diff', 'roc5', 'SPY_range_vol', 'Low-Close', 'High-Close', 'rsiH_15MA_diff', 'H-PrevClose', 'hour', 'bb_trend', 
                  'close_10DMA_diff', 'SPY_20d_diff', 'rsiH', 'close_20DMA_diff', 'price_20Ddiff', 'range_vol_stddev40H_diff', 'SPY_5d_diff', 'return_vol_8H_diff', 
                  'price_change_H', 'min_30_diff', 'day_of_week', 'cmf', 'price_range_H', 'rsi', 'roc3', 'bb_category', 'TR', 'roc_vol5', 'bb_spread', 'price_3D20D_diff', 
                  'price_range_D', 'SPY_5d', 'roc_15MA_diff'],
 }
 
+
 ENDPOINT_NAMES = {
+"CDGAINC_1D": "invalerts-xgb-CDGAINC-1D-classifier",
+"CDGAINP_1D": "invalerts-xgb-CDGAINP-1D-classifier", 
+"CDLOSEC_1D": "invalerts-xgb-CDLOSEC-1D-classifier",
+"CDLOSEP_1D": "invalerts-xgb-CDLOSEP-1D-classifier",
 "CDBFC": "invalerts-xgb-CDBFC-classifier",
 "CDBFC_1D": "invalerts-xgb-CDBFC-1D-classifier", 
 "CDBFP": "invalerts-xgb-CDBFP-classifier",
