@@ -36,8 +36,6 @@ def run_process(date_str):
     print(f"Finished {date_str}")
 
 def build_historic_data(date_str):
-    if date_str == "2024-06-06":
-        return "done"
     hours = ["10","11","12","13","14","15"]
     key_str = date_str.replace("-","/")
     s3 = get_s3_client()
@@ -61,6 +59,7 @@ def build_historic_data(date_str):
                 put_response = s3.put_object(Bucket="inv-alerts", Key=f"trend_alerts/{key_str}/{hour}-{minute}.csv", Body=df.to_csv())
             else:
                 put_response = s3.put_object(Bucket="inv-alerts", Key=f"trend_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
+
     return put_response
 
 def configure_price_features(df, result):
@@ -107,7 +106,7 @@ def generate_dates_historic(date_str):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2020,1,1)
+    start_date = datetime(2020,9,17)
     end_date = datetime(2024,8,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -119,7 +118,7 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # run_process("2020-11-20")
+    # run_process("2020-09-16")
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=24) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor

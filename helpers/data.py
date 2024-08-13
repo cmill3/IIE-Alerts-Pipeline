@@ -370,138 +370,144 @@ def feature_engineering(dfs,date,hour):
         }
     
     for thirty_aggs in dfs:
-        # min_aggs.reset_index(drop=True,inplace=True)
-        thirty_aggs.set_index('date',inplace=True)
-        # Perform resampling and aggregation
-        hour_aggs = thirty_aggs.resample('H').agg(agg_dict)
-        daily_aggs = thirty_aggs.resample('D').agg(agg_dict)
-        hour_aggs.dropna(inplace=True)
-        daily_aggs.dropna(inplace=True)
+        try:
+            if len(thirty_aggs) == 0:
+                print("Empty")
+                continue
+            # min_aggs.reset_index(drop=True,inplace=True)
+            thirty_aggs.set_index('date',inplace=True)
+            # Perform resampling and aggregation
+            hour_aggs = thirty_aggs.resample('H').agg(agg_dict)
+            daily_aggs = thirty_aggs.resample('D').agg(agg_dict)
+            hour_aggs.dropna(inplace=True)
+            daily_aggs.dropna(inplace=True)
 
-        thirty_aggs['price_change_absolute'] = abs(thirty_aggs['c'].pct_change())
-        thirty_aggs['volume_change_absolute'] = abs(thirty_aggs['v'].pct_change())
-        hour_aggs['price_change_absolute_H'] = abs(hour_aggs['c'].pct_change())
-        hour_aggs['volume_change_absolute'] = abs(hour_aggs['v'].pct_change())
-        daily_aggs['price_change_absolute_D'] = abs(daily_aggs['c'].pct_change())
-        daily_aggs['volume_change_absolute'] = abs(daily_aggs['v'].pct_change())
-        thirty_aggs['price_change'] = thirty_aggs['c'].pct_change()
-        thirty_aggs['volume_change'] = thirty_aggs['v'].pct_change()
-        hour_aggs['price_change_H'] = hour_aggs['c'].pct_change()
-        hour_aggs['volume_change'] = hour_aggs['v'].pct_change()
-        daily_aggs['price_change_D'] = daily_aggs['c'].pct_change()
-        daily_aggs['volume_change'] = daily_aggs['v'].pct_change()
+            thirty_aggs['price_change_absolute'] = abs(thirty_aggs['c'].pct_change())
+            thirty_aggs['volume_change_absolute'] = abs(thirty_aggs['v'].pct_change())
+            hour_aggs['price_change_absolute_H'] = abs(hour_aggs['c'].pct_change())
+            hour_aggs['volume_change_absolute'] = abs(hour_aggs['v'].pct_change())
+            daily_aggs['price_change_absolute_D'] = abs(daily_aggs['c'].pct_change())
+            daily_aggs['volume_change_absolute'] = abs(daily_aggs['v'].pct_change())
+            thirty_aggs['price_change'] = thirty_aggs['c'].pct_change()
+            thirty_aggs['volume_change'] = thirty_aggs['v'].pct_change()
+            hour_aggs['price_change_H'] = hour_aggs['c'].pct_change()
+            hour_aggs['volume_change'] = hour_aggs['v'].pct_change()
+            daily_aggs['price_change_D'] = daily_aggs['c'].pct_change()
+            daily_aggs['volume_change'] = daily_aggs['v'].pct_change()
 
-        ## Range volatiltiy features
-        hour_aggs['price_range_H'] = (hour_aggs['h'] - hour_aggs['l'])/hour_aggs['c']
-        daily_aggs['price_range_D'] = (daily_aggs['h'] - daily_aggs['l'])/daily_aggs['c']
-        hour_aggs['price_range_8MA'] = hour_aggs['price_range_H'].rolling(8).mean()
-        hour_aggs['price_range_8MA_diff'] = (hour_aggs['price_range_H'] - hour_aggs['price_range_8MA'])/ hour_aggs['price_range_8MA']
-        daily_aggs['price_range_5DMA'] = daily_aggs['price_range_D'].rolling(5).mean()
-        daily_aggs['price_range_5DMA_diff'] = (daily_aggs['price_range_D'] - daily_aggs['price_range_5DMA'])/ daily_aggs['price_range_5DMA']
+            ## Range volatiltiy features
+            hour_aggs['price_range_H'] = (hour_aggs['h'] - hour_aggs['l'])/hour_aggs['c']
+            daily_aggs['price_range_D'] = (daily_aggs['h'] - daily_aggs['l'])/daily_aggs['c']
+            hour_aggs['price_range_8MA'] = hour_aggs['price_range_H'].rolling(8).mean()
+            hour_aggs['price_range_8MA_diff'] = (hour_aggs['price_range_H'] - hour_aggs['price_range_8MA'])/ hour_aggs['price_range_8MA']
+            daily_aggs['price_range_5DMA'] = daily_aggs['price_range_D'].rolling(5).mean()
+            daily_aggs['price_range_5DMA_diff'] = (daily_aggs['price_range_D'] - daily_aggs['price_range_5DMA'])/ daily_aggs['price_range_5DMA']
 
-        ## Return Vol Features
-        hour_aggs['return_vol_8H'] = hour_aggs['price_change_absolute_H'].rolling(window=8).mean()
-        hour_aggs['return_vol_8H_diff'] = ((hour_aggs['price_change_absolute_H'] - hour_aggs['return_vol_8H'])/hour_aggs['return_vol_8H'])
-        daily_aggs['return_vol_5D'] = daily_aggs['price_change_absolute_D'].rolling(window=5).mean()
-        daily_aggs['return_vol_5D_diff'] = ((daily_aggs['price_change_absolute_D'] - daily_aggs['return_vol_5D'])/daily_aggs['return_vol_5D'])
-        daily_aggs['return_vol_10D'] = daily_aggs['price_change_absolute_D'].rolling(window=10).mean()
-        daily_aggs['return_vol_10D_diff'] = ((daily_aggs['price_change_absolute_D'] - daily_aggs['return_vol_10D'])/daily_aggs['return_vol_10D'])
+            ## Return Vol Features
+            hour_aggs['return_vol_8H'] = hour_aggs['price_change_absolute_H'].rolling(window=8).mean()
+            hour_aggs['return_vol_8H_diff'] = ((hour_aggs['price_change_absolute_H'] - hour_aggs['return_vol_8H'])/hour_aggs['return_vol_8H'])
+            daily_aggs['return_vol_5D'] = daily_aggs['price_change_absolute_D'].rolling(window=5).mean()
+            daily_aggs['return_vol_5D_diff'] = ((daily_aggs['price_change_absolute_D'] - daily_aggs['return_vol_5D'])/daily_aggs['return_vol_5D'])
+            daily_aggs['return_vol_10D'] = daily_aggs['price_change_absolute_D'].rolling(window=10).mean()
+            daily_aggs['return_vol_10D_diff'] = ((daily_aggs['price_change_absolute_D'] - daily_aggs['return_vol_10D'])/daily_aggs['return_vol_10D'])
 
-        ## STDDEV Features
-        hour_aggs['ret_vol_stddev40H'] = hour_aggs['price_change_absolute_H'].rolling(window=40).std()
-        hour_aggs['ret_vol_stddev40H_diff'] = ((hour_aggs['price_change_H'] - hour_aggs['ret_vol_stddev40H'])/hour_aggs['ret_vol_stddev40H'])
-        hour_aggs['volume_vol_stddev40H'] = hour_aggs['volume_change_absolute'].rolling(window=40).std()
-        hour_aggs['volume_vol_stddev40H_diff'] = ((hour_aggs['volume_change'] - hour_aggs['volume_vol_stddev40H'])/hour_aggs['volume_vol_stddev40H'])
-        daily_aggs['ret_vol_stddev20D'] = daily_aggs['price_change_absolute_D'].rolling(window=20).std()
-        daily_aggs['ret_vol_stddev20D_diff'] = ((daily_aggs['price_change_D'] - daily_aggs['ret_vol_stddev20D'])/daily_aggs['ret_vol_stddev20D'])
-        hour_aggs['range_vol_stddev40H'] = hour_aggs['price_range_H'].rolling(window=40).std()
-        hour_aggs['range_vol_stddev40H_diff'] = ((hour_aggs['price_range_H'] - hour_aggs['range_vol_stddev40H'])/hour_aggs['range_vol_stddev40H'])
-        daily_aggs['range_vol_stddev20D'] = daily_aggs['price_range_D'].rolling(window=20).std()
-        daily_aggs['range_vol_stddev20D_diff'] = ((daily_aggs['price_range_D'] - daily_aggs['range_vol_stddev20D'])/daily_aggs['range_vol_stddev20D'])
-
-
-        ## Volume Features
-        thirty_aggs['volume_5MA'] = thirty_aggs['v'].rolling(5).mean()
-        thirty_aggs['volume_14MA'] = thirty_aggs['v'].rolling(14).mean()
-        thirty_aggs['volume_28MA'] = thirty_aggs['v'].rolling(28).mean()
-        thirty_aggs['volume_56MA'] = thirty_aggs['v'].rolling(56).mean()
-        thirty_aggs['volume_84MA'] = thirty_aggs['v'].rolling(84).mean()
-        thirty_aggs['volume_14_56MA_diff'] = (thirty_aggs['volume_14MA'] - thirty_aggs['volume_56MA'])/thirty_aggs['volume_56MA']
-        thirty_aggs['volume_14_84MA_diff'] = (thirty_aggs['volume_14MA'] - thirty_aggs['volume_84MA'])/thirty_aggs['volume_84MA']
-        thirty_aggs['volume_28_84MA_diff'] = (thirty_aggs['volume_28MA'] - thirty_aggs['volume_84MA'])/thirty_aggs['volume_84MA']
-        thirty_aggs['volume_sum15'] = thirty_aggs['v'].rolling(15).sum()
-        thirty_aggs['volume_sum15_5DMA'] = thirty_aggs['v'].rolling(5).mean()
-        thirty_aggs['volume_sum15_10DMA'] = thirty_aggs['v'].rolling(10).mean()
-        thirty_aggs['volume_sum15_5DMA_diff'] = (thirty_aggs['volume_sum15'] - thirty_aggs['volume_sum15_5DMA'])/thirty_aggs['volume_sum15_5DMA']
-        thirty_aggs['volume_sum15_10DMA_diff'] = (thirty_aggs['volume_sum15'] - thirty_aggs['volume_sum15_10DMA'])/thirty_aggs['volume_sum15_10DMA']
-
-        ## Trend Features 
-        daily_aggs['price_3Ddiff'] = daily_aggs['c'].pct_change(3)
-        daily_aggs['price_5Ddiff'] = daily_aggs['c'].pct_change(5)
-        daily_aggs['price_10Ddiff'] = daily_aggs['c'].pct_change(10)
-        daily_aggs['price_20Ddiff'] = daily_aggs['c'].pct_change(20)
-        daily_aggs['price_3D20D_diff'] = (daily_aggs['price_3Ddiff'] - daily_aggs['price_20Ddiff'])/daily_aggs['price_20Ddiff']
-
-        ##CLOSE MA Features
-        daily_aggs['close_20DMA'] = daily_aggs['c'].rolling(20).mean()
-        daily_aggs['close_20DMA_diff'] = (daily_aggs['c'] - daily_aggs['close_20DMA'])/daily_aggs['close_20DMA']
-        daily_aggs['close_10DMA'] = daily_aggs['c'].rolling(10).mean()
-        daily_aggs['close_10DMA_diff'] = (daily_aggs['c'] - daily_aggs['close_10DMA'])/daily_aggs['close_10DMA']
-
-        ## Technical Indicators
-        daily_aggs['rsi'] = ta.rsi(daily_aggs['c'],window=14)
-        hour_aggs['rsiH'] = ta.rsi(hour_aggs['c'],window=16)
-        daily_aggs['rsi_15MA'] = daily_aggs['rsi'].rolling(15).mean()
-        hour_aggs['rsiH_15MA'] = hour_aggs['rsiH'].rolling(15).mean()
-        daily_aggs['rsi_15MA_diff'] = (daily_aggs['rsi'] - daily_aggs['rsi_15MA'])/daily_aggs['rsi_15MA']
-        hour_aggs['rsiH_15MA_diff'] = (hour_aggs['rsiH'] - hour_aggs['rsiH_15MA'])/hour_aggs['rsiH_15MA']
-        daily_aggs['roc'] = ta.roc(daily_aggs['c'],window=10)
-        hour_aggs['roc8H'] = ta.roc(hour_aggs['c'],window=8)
-        daily_aggs['roc3'] = ta.roc(daily_aggs['c'],window=3)
-        daily_aggs['roc5'] = ta.roc(daily_aggs['c'],window=5)
-        daily_aggs['roc_15MA'] = daily_aggs['roc'].rolling(15).mean()
-        hour_aggs['roc8H_15MA'] = hour_aggs['roc8H'].rolling(15).mean()
-        daily_aggs['roc_15MA_diff'] = (daily_aggs['roc'] - daily_aggs['roc_15MA'])/daily_aggs['roc_15MA']
-        hour_aggs['roc8H_15MA_diff'] = (hour_aggs['roc8H'] - hour_aggs['roc8H_15MA'])/hour_aggs['roc8H_15MA']
-        daily_aggs['adx'] = ta.adx(daily_aggs,window=14)
-        daily_aggs['macd'] = ta.macd(daily_aggs['c'])
-        daily_aggs['macd_15MA'] = daily_aggs['macd'].rolling(15).mean()
-        daily_aggs['macd_15MA_diff'] = (daily_aggs['macd'] - daily_aggs['macd_15MA'])/daily_aggs['macd_15MA']
-        upper_band, lower_band, middle_band = ta.bbands(daily_aggs['c'],window=20)
-        daily_aggs['bbu'] = upper_band
-        daily_aggs['bbl'] = lower_band
-        daily_aggs['bbm'] = middle_band
-        daily_aggs['bb_spread'] = (daily_aggs['bbu'] - daily_aggs['bbl'])/daily_aggs['c']
-        daily_aggs['bb_trend'] = (daily_aggs['c'] - daily_aggs['bbm'])/daily_aggs['bbm']
-        daily_aggs['bb_category'] = daily_aggs.apply(lambda x: ta.bbands_category(x['c'],x['bbu'],x['bbl']), axis=1)
-        daily_aggs['cmf'] = ta.cmf(daily_aggs,window=20)
-        daily_aggs['cmf_15MA'] = daily_aggs['cmf'].rolling(15).mean()
-        daily_aggs['cmf_15MA_diff'] = (daily_aggs['cmf'] - daily_aggs['cmf_15MA'])/daily_aggs['cmf_15MA']
-
-        ## Hi/Lo Features
-        daily_aggs['max_30'] = daily_aggs['h'].rolling(30).max()
-        daily_aggs['min_30'] = daily_aggs['l'].rolling(30).min()
-        daily_aggs['max_30_diff'] = (daily_aggs['h'] - daily_aggs['max_30'])/daily_aggs['max_30']
-        daily_aggs['min_30_diff'] = (daily_aggs['l'] - daily_aggs['min_30'])/daily_aggs['min_30']
-
-        ## Volatiltiy Oscialltor
-        daily_aggs['roc_vol'] = ta.roc(daily_aggs['price_range_D'],window=10)
-        daily_aggs['roc_vol3'] = ta.roc(daily_aggs['price_range_D'],window=3)
-        daily_aggs['roc_vol5'] = ta.roc(daily_aggs['price_range_D'],window=5)
-        daily_aggs['roc_vol_15MA'] = daily_aggs['roc_vol'].rolling(15).mean()
-        daily_aggs['roc_vol_15MA_diff'] = (daily_aggs['roc_vol'] - daily_aggs['roc_vol_15MA'])/daily_aggs['roc_vol_15MA']
+            ## STDDEV Features
+            hour_aggs['ret_vol_stddev40H'] = hour_aggs['price_change_absolute_H'].rolling(window=40).std()
+            hour_aggs['ret_vol_stddev40H_diff'] = ((hour_aggs['price_change_H'] - hour_aggs['ret_vol_stddev40H'])/hour_aggs['ret_vol_stddev40H'])
+            hour_aggs['volume_vol_stddev40H'] = hour_aggs['volume_change_absolute'].rolling(window=40).std()
+            hour_aggs['volume_vol_stddev40H_diff'] = ((hour_aggs['volume_change'] - hour_aggs['volume_vol_stddev40H'])/hour_aggs['volume_vol_stddev40H'])
+            daily_aggs['ret_vol_stddev20D'] = daily_aggs['price_change_absolute_D'].rolling(window=20).std()
+            daily_aggs['ret_vol_stddev20D_diff'] = ((daily_aggs['price_change_D'] - daily_aggs['ret_vol_stddev20D'])/daily_aggs['ret_vol_stddev20D'])
+            hour_aggs['range_vol_stddev40H'] = hour_aggs['price_range_H'].rolling(window=40).std()
+            hour_aggs['range_vol_stddev40H_diff'] = ((hour_aggs['price_range_H'] - hour_aggs['range_vol_stddev40H'])/hour_aggs['range_vol_stddev40H'])
+            daily_aggs['range_vol_stddev20D'] = daily_aggs['price_range_D'].rolling(window=20).std()
+            daily_aggs['range_vol_stddev20D_diff'] = ((daily_aggs['price_range_D'] - daily_aggs['range_vol_stddev20D'])/daily_aggs['range_vol_stddev20D'])
 
 
+            ## Volume Features
+            thirty_aggs['volume_5MA'] = thirty_aggs['v'].rolling(5).mean()
+            thirty_aggs['volume_14MA'] = thirty_aggs['v'].rolling(14).mean()
+            thirty_aggs['volume_28MA'] = thirty_aggs['v'].rolling(28).mean()
+            thirty_aggs['volume_56MA'] = thirty_aggs['v'].rolling(56).mean()
+            thirty_aggs['volume_84MA'] = thirty_aggs['v'].rolling(84).mean()
+            thirty_aggs['volume_14_56MA_diff'] = (thirty_aggs['volume_14MA'] - thirty_aggs['volume_56MA'])/thirty_aggs['volume_56MA']
+            thirty_aggs['volume_14_84MA_diff'] = (thirty_aggs['volume_14MA'] - thirty_aggs['volume_84MA'])/thirty_aggs['volume_84MA']
+            thirty_aggs['volume_28_84MA_diff'] = (thirty_aggs['volume_28MA'] - thirty_aggs['volume_84MA'])/thirty_aggs['volume_84MA']
+            thirty_aggs['volume_sum15'] = thirty_aggs['v'].rolling(15).sum()
+            thirty_aggs['volume_sum15_5DMA'] = thirty_aggs['v'].rolling(5).mean()
+            thirty_aggs['volume_sum15_10DMA'] = thirty_aggs['v'].rolling(10).mean()
+            thirty_aggs['volume_sum15_5DMA_diff'] = (thirty_aggs['volume_sum15'] - thirty_aggs['volume_sum15_5DMA'])/thirty_aggs['volume_sum15_5DMA']
+            thirty_aggs['volume_sum15_10DMA_diff'] = (thirty_aggs['volume_sum15'] - thirty_aggs['volume_sum15_10DMA'])/thirty_aggs['volume_sum15_10DMA']
 
-        thirty_features = thirty_aggs.iloc[-1]
-        hour_features = hour_aggs.iloc[-1]
-        daily_features = daily_aggs.iloc[-1]
-        thirty_features.drop(['t','o','h','l','v','t','price_change_absolute','volume_change_absolute','price_change','volume_change'], inplace=True)
-        hour_features.drop(['o','h','l','v','c','volume_change_absolute','volume_change'], inplace=True)
-        daily_features.drop(['o','h','l','v','c','volume_change_absolute','volume_change'], inplace=True)
-        df_combined = pd.concat([thirty_features, hour_features, daily_features])
-        features.append(df_combined)
-    
+            ## Trend Features 
+            daily_aggs['price_3Ddiff'] = daily_aggs['c'].pct_change(3)
+            daily_aggs['price_5Ddiff'] = daily_aggs['c'].pct_change(5)
+            daily_aggs['price_10Ddiff'] = daily_aggs['c'].pct_change(10)
+            daily_aggs['price_20Ddiff'] = daily_aggs['c'].pct_change(20)
+            daily_aggs['price_3D20D_diff'] = (daily_aggs['price_3Ddiff'] - daily_aggs['price_20Ddiff'])/daily_aggs['price_20Ddiff']
+
+            ##CLOSE MA Features
+            daily_aggs['close_20DMA'] = daily_aggs['c'].rolling(20).mean()
+            daily_aggs['close_20DMA_diff'] = (daily_aggs['c'] - daily_aggs['close_20DMA'])/daily_aggs['close_20DMA']
+            daily_aggs['close_10DMA'] = daily_aggs['c'].rolling(10).mean()
+            daily_aggs['close_10DMA_diff'] = (daily_aggs['c'] - daily_aggs['close_10DMA'])/daily_aggs['close_10DMA']
+
+            ## Technical Indicators
+            daily_aggs['rsi'] = ta.rsi(daily_aggs['c'],window=14)
+            hour_aggs['rsiH'] = ta.rsi(hour_aggs['c'],window=16)
+            daily_aggs['rsi_15MA'] = daily_aggs['rsi'].rolling(15).mean()
+            hour_aggs['rsiH_15MA'] = hour_aggs['rsiH'].rolling(15).mean()
+            daily_aggs['rsi_15MA_diff'] = (daily_aggs['rsi'] - daily_aggs['rsi_15MA'])/daily_aggs['rsi_15MA']
+            hour_aggs['rsiH_15MA_diff'] = (hour_aggs['rsiH'] - hour_aggs['rsiH_15MA'])/hour_aggs['rsiH_15MA']
+            daily_aggs['roc'] = ta.roc(daily_aggs['c'],window=10)
+            hour_aggs['roc8H'] = ta.roc(hour_aggs['c'],window=8)
+            daily_aggs['roc3'] = ta.roc(daily_aggs['c'],window=3)
+            daily_aggs['roc5'] = ta.roc(daily_aggs['c'],window=5)
+            daily_aggs['roc_15MA'] = daily_aggs['roc'].rolling(15).mean()
+            hour_aggs['roc8H_15MA'] = hour_aggs['roc8H'].rolling(15).mean()
+            daily_aggs['roc_15MA_diff'] = (daily_aggs['roc'] - daily_aggs['roc_15MA'])/daily_aggs['roc_15MA']
+            hour_aggs['roc8H_15MA_diff'] = (hour_aggs['roc8H'] - hour_aggs['roc8H_15MA'])/hour_aggs['roc8H_15MA']
+            daily_aggs['adx'] = ta.adx(daily_aggs,window=14)
+            daily_aggs['macd'] = ta.macd(daily_aggs['c'])
+            daily_aggs['macd_15MA'] = daily_aggs['macd'].rolling(15).mean()
+            daily_aggs['macd_15MA_diff'] = (daily_aggs['macd'] - daily_aggs['macd_15MA'])/daily_aggs['macd_15MA']
+            upper_band, lower_band, middle_band = ta.bbands(daily_aggs['c'],window=20)
+            daily_aggs['bbu'] = upper_band
+            daily_aggs['bbl'] = lower_band
+            daily_aggs['bbm'] = middle_band
+            daily_aggs['bb_spread'] = (daily_aggs['bbu'] - daily_aggs['bbl'])/daily_aggs['c']
+            daily_aggs['bb_trend'] = (daily_aggs['c'] - daily_aggs['bbm'])/daily_aggs['bbm']
+            daily_aggs['bb_category'] = daily_aggs.apply(lambda x: ta.bbands_category(x['c'],x['bbu'],x['bbl']), axis=1)
+            daily_aggs['cmf'] = ta.cmf(daily_aggs,window=20)
+            daily_aggs['cmf_15MA'] = daily_aggs['cmf'].rolling(15).mean()
+            daily_aggs['cmf_15MA_diff'] = (daily_aggs['cmf'] - daily_aggs['cmf_15MA'])/daily_aggs['cmf_15MA']
+
+            ## Hi/Lo Features
+            daily_aggs['max_30'] = daily_aggs['h'].rolling(30).max()
+            daily_aggs['min_30'] = daily_aggs['l'].rolling(30).min()
+            daily_aggs['max_30_diff'] = (daily_aggs['h'] - daily_aggs['max_30'])/daily_aggs['max_30']
+            daily_aggs['min_30_diff'] = (daily_aggs['l'] - daily_aggs['min_30'])/daily_aggs['min_30']
+
+            ## Volatiltiy Oscialltor
+            daily_aggs['roc_vol'] = ta.roc(daily_aggs['price_range_D'],window=10)
+            daily_aggs['roc_vol3'] = ta.roc(daily_aggs['price_range_D'],window=3)
+            daily_aggs['roc_vol5'] = ta.roc(daily_aggs['price_range_D'],window=5)
+            daily_aggs['roc_vol_15MA'] = daily_aggs['roc_vol'].rolling(15).mean()
+            daily_aggs['roc_vol_15MA_diff'] = (daily_aggs['roc_vol'] - daily_aggs['roc_vol_15MA'])/daily_aggs['roc_vol_15MA']
+
+
+
+            thirty_features = thirty_aggs.iloc[-1]
+            hour_features = hour_aggs.iloc[-1]
+            daily_features = daily_aggs.iloc[-1]
+            thirty_features.drop(['t','o','h','l','v','t','price_change_absolute','volume_change_absolute','price_change','volume_change'], inplace=True)
+            hour_features.drop(['o','h','l','v','c','volume_change_absolute','volume_change'], inplace=True)
+            daily_features.drop(['o','h','l','v','c','volume_change_absolute','volume_change'], inplace=True)
+            df_combined = pd.concat([thirty_features, hour_features, daily_features])
+            features.append(df_combined)
+        except Exception as e:
+            print(f"{e} in feature engineering")
+            continue
     features_df = pd.DataFrame(features)
     features_df['date'] = date
     features_df['hour'] = hour
