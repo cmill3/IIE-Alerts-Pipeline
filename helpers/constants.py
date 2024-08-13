@@ -87,7 +87,7 @@ TREND = [
 'BAC', 'AAPL', 'ABNB', 'META',
 'CRM', 'MSFT', 'F', 'V', 'MA', 'JNJ', 'DIS', 'JPM', 
 'ADBE', 'BA', 'CVX', 'PFE','TSLA','NVDA', 'CMG',
-'C', 'CAT', 'KO', 'IBM', 'CSCO','ZS','HUBS',
+'C', 'CAT', 'KO', 'IBM', 'CSCO','ZS',
 'WMT','WFC','TGT', 'SQ', 'SHOP', 'DOCU','TWLO', 
 'DDOG','NET','OKTA','ETSY', 'PINS','AMD',
 'NVDA', 'PYPL', 'PLTR', 'NFLX', 'CRWD', 'INTC', 
