@@ -13,6 +13,7 @@ numpy = "*"
 yahooquery = "*"
 pytz = "*"
 pandas-market-calendars = "*"
+pywavelets = "*"
 
 [dev-packages]
 

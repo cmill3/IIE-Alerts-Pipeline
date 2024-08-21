@@ -27,13 +27,13 @@ s3 = boto3.client('s3')
 logger = logging.getLogger()
 
 def run_process(date_str):
-    try:
+    # try:
         print(f"Starting {date_str}")
         build_historic_data(date_str)
-    except Exception as e:
-        print(f"{date_str} {e}")
-        build_historic_data(date_str)
-    print(f"Finished {date_str}")
+    # except Exception as e:
+    #     print(f"{date_str} {e}")
+    #     build_historic_data(date_str)
+    # print(f"Finished {date_str}")
 
 def build_historic_data(date_str):
     hours = ["10","11","12","13","14","15"]
@@ -84,7 +84,7 @@ def configure_price_features(df, result):
     
 def generate_dates_historic(date_str):
     end = datetime.strptime(date_str, "%Y-%m-%d")
-    start = end - timedelta(weeks=10)
+    start = end - timedelta(weeks=16)
     to_stamp = end.strftime("%Y-%m-%d")
     hour_stamp = end.strftime("%Y-%m-%d")
     from_stamp = start.strftime("%Y-%m-%d")
@@ -106,7 +106,7 @@ def generate_dates_historic(date_str):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2020,9,17)
+    start_date = datetime(2015,1,1)
     end_date = datetime(2024,8,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -118,7 +118,7 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # run_process("2020-09-16")
+    # run_process("2020-09-17")
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=24) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
