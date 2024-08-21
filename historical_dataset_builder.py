@@ -106,7 +106,7 @@ def generate_dates_historic(date_str):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2020,9,17)
+    start_date = datetime(2023,8,1)
     end_date = datetime(2024,8,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -120,6 +120,6 @@ if __name__ == "__main__":
 
     # run_process("2020-09-16")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=24) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=20) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
         processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
