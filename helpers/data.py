@@ -9,6 +9,9 @@ import warnings
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 import logging
+import pywt
+import numpy as np
+from scipy import stats
 
 logger = logging.getLogger()
 
@@ -65,7 +68,7 @@ def get_pcr_historic(symbol, window, dates):
     return raw_list
 
 def calc_price_action(row):
-    try:
+    # try:
         date = row['date']
         from_stamp = date.strftime("%Y-%m-%d")
         aggs = call_polygon_price(row['symbol'], from_stamp, "hour", 1, row['hour'])
@@ -112,15 +115,15 @@ def calc_price_action(row):
             "symbol": row['symbol']}
         
         return results_dict
-    except Exception as e:
-        print(f"{e} for {row['symbol']} in calc price")
-        results_dict =  {
-            "one_max": 67, "one_min": 67, "one_pct": 67, 
-            "three_max": 67, "three_min": 67, "three_pct": 67,
-            "twoH_max": 67, "twoH_min": 67, "twoH_pct": 67,
-            "fourH_max": 67, "fourH_min": 67, "fourH_pct": 67,
-            "symbol": row['symbol']}
-        return results_dict
+    # except Exception as e:
+    #     print(f"{e} for {row['symbol']} in calc price")
+    #     results_dict =  {
+    #         "one_max": 67, "one_min": 67, "one_pct": 67, 
+    #         "three_max": 67, "three_min": 67, "three_pct": 67,
+    #         "twoH_max": 67, "twoH_min": 67, "twoH_pct": 67,
+    #         "fourH_max": 67, "fourH_min": 67, "fourH_pct": 67,
+    #         "symbol": row['symbol']}
+    #     return results_dict
 
 def build_date_dfs(df, dt):
     sell_1d = calculate_sellby_date(dt, 2)
@@ -370,7 +373,7 @@ def feature_engineering(dfs,date,hour):
         }
     
     for thirty_aggs in dfs:
-        try:
+        # try:
             if len(thirty_aggs) == 0:
                 print("Empty")
                 continue
@@ -388,7 +391,8 @@ def feature_engineering(dfs,date,hour):
             hour_aggs['volume_change_absolute'] = abs(hour_aggs['v'].pct_change())
             daily_aggs['price_change_absolute_D'] = abs(daily_aggs['c'].pct_change())
             daily_aggs['volume_change_absolute'] = abs(daily_aggs['v'].pct_change())
-            thirty_aggs['price_change'] = thirty_aggs['c'].pct_change()
+            thirty_aggs['std_volatility'] = thirty_aggs['c'].pct_change()
+            thirty_aggs['range_volatility'] = (thirty_aggs['h'] - thirty_aggs['l']) / thirty_aggs['c']
             thirty_aggs['volume_change'] = thirty_aggs['v'].pct_change()
             hour_aggs['price_change_H'] = hour_aggs['c'].pct_change()
             hour_aggs['volume_change'] = hour_aggs['v'].pct_change()
@@ -495,19 +499,26 @@ def feature_engineering(dfs,date,hour):
             daily_aggs['roc_vol_15MA'] = daily_aggs['roc_vol'].rolling(15).mean()
             daily_aggs['roc_vol_15MA_diff'] = (daily_aggs['roc_vol'] - daily_aggs['roc_vol_15MA'])/daily_aggs['roc_vol_15MA']
 
+            ## Volume Cycle Features
+            thirty_aggs, error = calculate_volume_cycle_features(thirty_aggs)
+            if error:
+                continue
+
+            ## Volatility Wavelet Features
+            thirty_aggs = wavelet_features_vol(thirty_aggs)
 
 
             thirty_features = thirty_aggs.iloc[-1]
             hour_features = hour_aggs.iloc[-1]
             daily_features = daily_aggs.iloc[-1]
-            thirty_features.drop(['t','o','h','l','v','t','price_change_absolute','volume_change_absolute','price_change','volume_change'], inplace=True)
+            thirty_features.drop(['t','o','h','l','v','t','price_change_absolute','volume_change_absolute','volume_change'], inplace=True)
             hour_features.drop(['o','h','l','v','c','volume_change_absolute','volume_change'], inplace=True)
             daily_features.drop(['o','h','l','v','c','volume_change_absolute','volume_change'], inplace=True)
             df_combined = pd.concat([thirty_features, hour_features, daily_features])
             features.append(df_combined)
-        except Exception as e:
-            print(f"{e} in feature engineering")
-            continue
+        # except Exception as e:
+        #     print(f"{e} in feature engineering")
+        #     continue
     features_df = pd.DataFrame(features)
     features_df['date'] = date
     features_df['hour'] = hour
@@ -559,6 +570,125 @@ def configure_vti_features(df):
     df["VTI_5d_diff"] = (df["price_5Ddiff"] - df["VTI_5d"])/df["price_5Ddiff"]
     df["VTI_20d_diff"] = (df["price_20Ddiff"] - df["VTI_20d"])/df["price_20Ddiff"]
     df["VTI_range_vol"] = vti_range
+    return df
+
+def calculate_volume_cycle_features(features, cycle_length=14):
+    volume_data = features['v']
+    # Extract daily and weekly cycles
+    daily_cycle = extract_cycle(volume_data.values, cycle_length=cycle_length)
+    weekly_cycle = extract_cycle(volume_data.values, cycle_length=cycle_length * 5)
+    
+    # Compare daily cycle to weekly cycle
+    cycle_difference, cycle_z_scores = compare_cycles(daily_cycle, weekly_cycle, features['symbol'])
+    if cycle_difference is None:
+        return features, True
+    # Add cycle-based features
+    features['daily_cycle'] = daily_cycle
+    features['weekly_cycle'] = weekly_cycle
+    features['cycle_difference'] = cycle_difference
+    features['volume_cycle_z_scores'] = cycle_z_scores.values
+
+    
+    # Add cycle strength features
+    features['daily_volume_cycle_strength'] = np.abs(daily_cycle) / np.std(volume_data.values)
+    features['weekly_volume_cycle_strength'] = np.abs(weekly_cycle) / np.std(volume_data.values)
+    return features, False
+
+def wavelet_analysis(data, wavelet='db8', max_level=None):
+    if max_level is None:
+        max_level = pywt.dwt_max_level(len(data), pywt.Wavelet(wavelet).dec_len)
+    
+    coeffs = pywt.wavedec(data, wavelet, level=max_level)
+    reconstructed = []
+    for i in range(max_level + 1):
+        coeff_list = [np.zeros_like(c) for c in coeffs]
+        coeff_list[i] = coeffs[i]
+        reconstructed.append(pywt.waverec(coeff_list, wavelet))
+    return reconstructed, coeffs
+
+def extract_cycle(data, cycle_length):
+    kernel = np.ones(cycle_length) / cycle_length
+    extracted_cycle = np.convolve(data, kernel, mode='same')
+    return extracted_cycle
+
+def compare_cycles(short_cycle, long_cycle, symbol):
+    try:
+        difference = short_cycle - long_cycle
+    except ValueError:
+        return None, None
+    window = len(short_cycle) // 10
+    rolling_mean = pd.Series(difference).rolling(window=window).mean()
+    rolling_std = pd.Series(difference).rolling(window=window).std()
+    
+    # Add a small epsilon to avoid division by zero
+    epsilon = 1e-8
+    z_scores = (difference - rolling_mean) / (rolling_std + epsilon)
+    
+    # Replace infinite values with NaN
+    z_scores = z_scores.replace([np.inf, -np.inf], np.nan)
+    
+    # Forward fill NaN values
+    z_scores = z_scores.ffill().bfill()
+
+    
+    return difference, z_scores
+
+def compute_wavelet_energy(coeffs):
+    energy = [np.sum(np.square(c)) for c in coeffs]
+    total_energy = np.sum(energy)
+    return np.array(energy) / total_energy
+
+def wavelet_features_vol(df, volatility_columns=['std_volatility', 'range_volatility'], 
+                              wavelet='db8', max_level=4):
+    features = {}
+    
+    for col in volatility_columns:
+        series = df[col].dropna()
+        coeffs = pywt.wavedec(series, wavelet, level=max_level)
+        
+        # Reconstruct signals at each level
+        reconstructed = []
+        for i in range(len(coeffs)):
+            coeff_copy = [np.zeros_like(c) for c in coeffs]
+            coeff_copy[i] = coeffs[i]
+            reconstructed.append(pywt.waverec(coeff_copy, wavelet))
+        
+        for level, signal in enumerate(reconstructed):
+            if level == 0:
+                suffix = 'smooth'
+            else:
+                suffix = f'detail_{level}'
+            
+            # Trend features
+            features[f'{col}_{suffix}_trend'] = pd.Series(signal).diff()
+            
+            # Volatility of the wavelet component
+            features[f'{col}_{suffix}_volatility'] = pd.Series(signal).rolling(window=20).std()
+            
+            # Anomaly detection using Z-score
+            z_scores = stats.zscore(signal)
+            features[f'{col}_{suffix}_anomaly'] = pd.Series(z_scores)
+            
+            # Relative strength of the component
+            total_energy = np.sum([np.sum(np.abs(c)**2) for c in coeffs])
+            component_energy = np.sum(np.abs(coeffs[level])**2)
+            features[f'{col}_{suffix}_relative_strength'] = pd.Series(np.full(len(signal), component_energy / total_energy))
+    
+    # Additional cross-scale features
+    for col in volatility_columns:
+        for i in range(1, max_level + 1):
+            for j in range(i+1, max_level + 1):
+                ratio_name = f'{col}_detail_{i}_to_{j}_ratio'
+                features[ratio_name] = features[f'{col}_detail_{i}_volatility'] / features[f'{col}_detail_{j}_volatility']
+    
+    feat_df = pd.DataFrame(features)
+    df = df.iloc[-len(feat_df):]
+    df['std_volatility_detail_1_anomaly'] = feat_df['std_volatility_detail_1_anomaly']
+    df['range_volatility_detail_1_anomaly'] = feat_df['range_volatility_detail_1_anomaly']
+    df['std_volatility_detail_4_anomaly'] = feat_df['std_volatility_detail_4_anomaly']
+    df['range_volatility_detail_4_anomaly'] = feat_df['range_volatility_detail_4_anomaly']
+    df['range_volatility_detail_1_to_4_ratio'] = feat_df['range_volatility_detail_1_to_4_ratio']
+    df['std_volatility_detail_1_to_4_ratio'] = feat_df['std_volatility_detail_1_to_4_ratio']
     return df
 
 # Identify the most recent index where the rolling maximum occurred
