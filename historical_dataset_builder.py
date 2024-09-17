@@ -27,13 +27,13 @@ s3 = boto3.client('s3')
 logger = logging.getLogger()
 
 def run_process(date_str):
-    try:
+    # try:
         print(f"Starting {date_str}")
         build_historic_data(date_str)
-    except Exception as e:
-        print(f"{date_str} {e}")
-        build_historic_data(date_str)
-    print(f"Finished {date_str}")
+    # except Exception as e:
+    #     print(f"{date_str} {e}")
+    #     build_historic_data(date_str)
+    # print(f"Finished {date_str}")
 
 def build_historic_data(date_str):
     hours = ["10","11","12","13","14","15"]
@@ -59,6 +59,7 @@ def build_historic_data(date_str):
                 put_response = s3.put_object(Bucket="inv-alerts", Key=f"trend_alerts/{key_str}/{hour}-{minute}.csv", Body=df.to_csv())
             else:
                 put_response = s3.put_object(Bucket="inv-alerts", Key=f"trend_alerts/{key_str}/{hour}.csv", Body=df.to_csv())
+
     return put_response
 
 def configure_price_features(df, result):
@@ -78,16 +79,17 @@ def configure_price_features(df, result):
     df['fourH_max'] = price['fourH_max']
     df['fourH_min'] = price['fourH_min']
     df['fourH_pct'] = price['fourH_pct']
+    df = df.loc[df['one_max'] != 67]
     return df
     
 def generate_dates_historic(date_str):
     end = datetime.strptime(date_str, "%Y-%m-%d")
-    start = end - timedelta(weeks=10)
+    start = end - timedelta(weeks=16)
     to_stamp = end.strftime("%Y-%m-%d")
     hour_stamp = end.strftime("%Y-%m-%d")
     from_stamp = start.strftime("%Y-%m-%d")
     return from_stamp, to_stamp, hour_stamp
-
+ 
 # def fix_data(date_str):
 #     s3 = get_s3_client()
 #     key_str = date_str.replace("-","/")
@@ -116,8 +118,10 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # run_process("2024-04-15")
+    run_process("2020-09-17")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
-        # Submit the processing tasks to the ThreadPoolExecutor
-        processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
+    # with concurrent.futures.ProcessPoolExecutor(max_workers=36) as executor:
+    #     # Submit the processing tasks to the ThreadPoolExecutor
+    #     processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
+
+

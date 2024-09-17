@@ -9,18 +9,18 @@ import logging
 from botocore.exceptions import ClientError
 import concurrent.futures
 import warnings
-from helpers.constants import WEEKLY_EXP, TRADING_SYMBOLS, TREND
+from helpers.constants import WEEKLY_EXP, TRADING_SYMBOLS, TREND, PE2
 warnings.filterwarnings("ignore")
 
 alerts_bucket = os.getenv("ALERTS_BUCKET")
 
-def run_process(date_str):
+def run_process(date_str, dataset_title, data_filter):
     try:
         print(date_str)
-        alerts_runner(date_str)
+        alerts_runner(date_str, dataset_title, data_filter)
     except Exception as e:
         print(f"{date_str} {e}")
-        alerts_runner(date_str)
+        alerts_runner(date_str, dataset_title, data_filter)
     print(f"Finished {date_str}")
 
 # def fix_alerts(date_str):
@@ -45,17 +45,31 @@ def run_process(date_str):
 #         # df = df.drop_duplicates(subset=['symbol'])
 #         put_response = s3.put_object(Bucket="inv-alerts", Key=f"all_alerts/vol_fix/{key_str}/{hour}.csv", Body=all_symbol_df.to_csv())
 
-def alerts_runner(date_str):
+def alerts_runner(date_str, dataset_title, data_filter):
     hours = ["10","11","12","13","14","15"]
     key_str = date_str.replace("-","/")
     s3 = boto3.client('s3')
     for hour in hours:
-        all_symbol = s3.get_object(Bucket="inv-alerts", Key=f"trend_alerts/{key_str}/{hour}.csv")
-        all_symbol_df = pd.read_csv(all_symbol['Body'])
-        trading_alerts = build_alerts(all_symbol_df)
-        for alert in trading_alerts:
-            csv = trading_alerts[alert].to_csv()
-            put_response = s3.put_object(Bucket="inv-alerts", Key=f"sorted_alerts/{key_str}/{alert}/{hour}.csv", Body=csv)
+        for minute in [0,30]:
+            if minute == 30:
+                all_symbol = s3.get_object(Bucket="inv-alerts", Key=f"trend_alerts/{key_str}/{hour}-{minute}.csv")
+                all_symbol_df = pd.read_csv(all_symbol['Body'])
+                all_symbol_df['minute'] = 30
+            else:
+                all_symbol = s3.get_object(Bucket="inv-alerts", Key=f"trend_alerts/{key_str}/{hour}.csv")
+                all_symbol_df = pd.read_csv(all_symbol['Body'])
+                all_symbol_df['minute'] = 0
+            filtered = all_symbol_df.loc[all_symbol_df['symbol'].isin(data_filter)]
+            trading_alerts = build_alerts(filtered)
+            for alert in trading_alerts:
+                df = trading_alerts[alert]
+                if len(df) == 0:
+                    continue
+                csv = df.to_csv()
+                if minute == 30:
+                    put_response = s3.put_object(Bucket="inv-alerts", Key=f"trend_alerts/{dataset_title}/{key_str}/{alert}/{hour}-{minute}.csv", Body=csv)
+                else:
+                    put_response = s3.put_object(Bucket="inv-alerts", Key=f"trend_alerts/{dataset_title}/{key_str}/{alert}/{hour}.csv", Body=csv)
 
 
 def add_data_to_alerts(date_str):
@@ -103,17 +117,11 @@ def combine_hour_aggs(aggregates, hour_aggregates, hour):
 def build_alerts(df):
     df['cd_vol'] = (df['price_change_D']/df['return_vol_5D']).round(3)
     # df['cd_vol3'] = df['close_diff3']/df['return_vol_10D'].round(3)
-    cvol_sorted = df.sort_values(by="cd_vol", ascending=False)
-    # cvol3_sorted = df.sort_values(by="cd_vol3", ascending=False)
-    # gainers = c_sorted.head(15)
-    # losers = c_sorted.tail(15)
-    cdvol_gainers = cvol_sorted.head(15)
-    cdvol_losers = cvol_sorted.tail(15)
-    # cdvol3_gainers = cvol3_sorted.head(15)
-    # cdvol3_losers = cvol3_sorted.tail(15)
-    # volume = volume_sorted.head(15)
+    cdvol_gainers = df.loc[df['cd_vol'] > 0.36]
+    cdvol_losers = df.loc[df['cd_vol'] < -0.21]
+    volume_diff = df.loc[df['volume_14_56MA_diff'] > 0.078]
     # return {"cdvol_gainers": cdvol_gainers, "cdvol_losers": cdvol_losers, "cdvol3_gainers": cdvol3_gainers, "cdvol3_losers": cdvol3_losers}
-    return {"cdvol_gainers": cdvol_gainers, "cdvol_losers": cdvol_losers}
+    return {"cdvol_gainers": cdvol_gainers, "cdvol_losers": cdvol_losers, "volume_diff": volume_diff}
 
 def generate_dates_historic(date_str):
     end = datetime.strptime(date_str, "%Y-%m-%d")
@@ -128,8 +136,10 @@ def generate_dates_historic(date_str):
 if __name__ == "__main__":
     # build_historic_data(None, None)
     print(os.cpu_count())
+    data_filter = PE2
+    dataset_title = "pe_sixty"
     start_date = datetime(2015,1,1)
-    end_date = datetime(2024,5,1)
+    end_date = datetime(2024,8,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
     date_list = []
@@ -144,6 +154,6 @@ if __name__ == "__main__":
     # add_data_to_alerts("2022-01-27")
         
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=30) as executor:
         # Submit the processing tasks to the ThreadPoolExecutor
-        processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
+        processed_weeks_futures = [executor.submit(run_process, date_str, dataset_title, data_filter) for date_str in date_list]
