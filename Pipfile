@@ -13,6 +13,8 @@ numpy = "*"
 yahooquery = "*"
 pytz = "*"
 pandas-market-calendars = "*"
+statsmodels = "*"
+scipy = "*"
 
 [dev-packages]
 
