@@ -14,6 +14,13 @@ yahooquery = "*"
 pytz = "*"
 pandas-market-calendars = "*"
 pywavelets = "*"
+umap = "*"
+matplotlib = "*"
+plotly = "*"
+statsmodels = "*"
+seaborn = "*"
+pyemd = "*"
+emd-signal = "*"
 
 [dev-packages]
 

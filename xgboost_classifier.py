@@ -7,7 +7,7 @@ import datetime
 import os
 import ast
 from datetime import datetime
-from helpers.constants import MODEL_FEATURES, ENDPOINT_NAMES, PE2, TOP
+from helpers.constants import FEATURES, ENDPOINT_NAMES, PE2, TOP
 from helpers.helper import pull_model_config
 import pytz 
 
@@ -25,26 +25,16 @@ portfolio_strategy = os.getenv("PORTFOLIO_STRATEGY")
 est = pytz.timezone('US/Eastern')
 date = datetime.now(est)
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
+minute = date.minute
 
 def invoke_model(event, context):   
     strategies_list = strategies.split(",")
     year, month, day, hour = format_dates(date)
-    if portfolio_strategy == "CDVOL_GAIN":
-        dataset = s3.get_object(
-            Bucket=alerts_bucket, 
-            Key=f"trend_alerts/{env}/cdvol_gainers/{year}/{month}/{day}/{hour}.csv")
-        data = pd.read_csv(dataset.get("Body"))
-    elif portfolio_strategy == "CDVOL_LOSE":
-        dataset = s3.get_object(
-            Bucket=alerts_bucket, 
-            Key=f"trend_alerts/{env}/cdvol_losers/{year}/{month}/{day}/{hour}.csv")
-        data = pd.read_csv(dataset.get("Body"))
-    else:
-        dataset = s3.get_object(
-            Bucket=alerts_bucket, 
-            Key=f"production_alerts/{env}/{year}/{month}/{day}/{hour}.csv")
-        data = pd.read_csv(dataset.get("Body"))
-        data = data.loc[data['symbol'].isin(TOP)].reset_index(drop=True)
+    key = format_key(year, month, day, hour)
+    dataset = s3.get_object(
+        Bucket=alerts_bucket,
+        Key=key)
+    data = pd.read_csv(dataset.get("Body"))
 
     data['dt'] = pd.to_datetime(data['date'])
     recent_date = data['dt'].iloc[-1]
@@ -59,7 +49,7 @@ def invoke_model(event, context):
     
     for strategy in strategies_list:
         endpoint_name = ENDPOINT_NAMES[strategy]
-        prediciton_data = data[MODEL_FEATURES[strategy]]
+        prediciton_data = data[FEATURES]
         prediction_csv = prediciton_data.to_csv(header=False,index=False).encode()
         response = runtime.invoke_endpoint(
             EndpointName=endpoint_name,
@@ -73,12 +63,29 @@ def invoke_model(event, context):
         results_csv = results_df.to_csv().encode()
         
         try:
-            put_response = s3.put_object(Bucket=predictions_bucket, Key=f'classifier_predictions/{env}/{strategy}/{year}/{month}/{day}/{hour}.csv', Body=results_csv)
+            if minute >= 30:
+                s3.put_object(Bucket=predictions_bucket, Key=f'classifier_predictions/{env}/{strategy}/{year}/{month}/{day}/{hour}-30.csv', Body=results_csv)
+            else:
+                s3.put_object(Bucket=predictions_bucket, Key=f'classifier_predictions/{env}/{strategy}/{year}/{month}/{day}/{hour}.csv', Body=results_csv)
         except:
             print("error")
             print(strategy)
             continue
     return "put_response"
+
+def format_key(year, month, day, hour):
+    if portfolio_strategy == "CDVOL_GAIN":
+        if minute >= 30:
+            key = f"live_alerts/{env}/trend_alerts/cdvol_gainers/{year}/{month}/{day}/{hour}-30.csv"
+        else:
+            key = f"live_alerts/{env}/trend_alerts/cdvol_gainers/{year}/{month}/{day}/{hour}.csv"
+    elif portfolio_strategy == "CDVOL_LOSE":
+        if minute >= 30:
+            key = f"live_alerts/{env}/trend_alerts/cdvol_losers/{year}/{month}/{day}/{hour}-30.csv"
+        else:
+            key = f"live_alerts/{env}/trend_alerts/cdvol_losers/{year}/{month}/{day}/{hour}.csv"
+
+    return key
     
 def format_result(result_string, symbol_list, recent_date, data, strategy) -> pd.DataFrame:
     model_config = pull_model_config(strategy)

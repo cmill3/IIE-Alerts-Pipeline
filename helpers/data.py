@@ -11,6 +11,7 @@ from requests.packages.urllib3.util.retry import Retry
 import logging
 import pywt
 import numpy as np
+from statsmodels.tsa.seasonal import seasonal_decompose
 from scipy import stats
 
 logger = logging.getLogger()
@@ -137,6 +138,7 @@ def build_date_dfs(df, dt):
     two_hour_df = df.iloc[:2]
     four_hour_df = df.iloc[:4]
     return one_day_df, three_day_df, two_hour_df, four_hour_df
+
     
 def calculate_sellby_date(dt, trading_days_to_add): #End date, n days later for the data set built to include just trading days, but doesnt filter holiday
     # date_str = current_date.strftime("%Y-%m-%d %H:%M:%S")
@@ -499,13 +501,10 @@ def feature_engineering(dfs,date,hour):
             daily_aggs['roc_vol_15MA'] = daily_aggs['roc_vol'].rolling(15).mean()
             daily_aggs['roc_vol_15MA_diff'] = (daily_aggs['roc_vol'] - daily_aggs['roc_vol_15MA'])/daily_aggs['roc_vol_15MA']
 
-            ## Volume Cycle Features
-            thirty_aggs, error = calculate_volume_cycle_features(thirty_aggs)
-            if error:
-                continue
 
             ## Volatility Wavelet Features
             thirty_aggs = wavelet_features_vol(thirty_aggs)
+
 
 
             thirty_features = thirty_aggs.iloc[-1]
@@ -594,17 +593,17 @@ def calculate_volume_cycle_features(features, cycle_length=14):
     features['weekly_volume_cycle_strength'] = np.abs(weekly_cycle) / np.std(volume_data.values)
     return features, False
 
-def wavelet_analysis(data, wavelet='db8', max_level=None):
-    if max_level is None:
-        max_level = pywt.dwt_max_level(len(data), pywt.Wavelet(wavelet).dec_len)
+# def wavelet_analysis(data, wavelet='db8', max_level=None):
+#     if max_level is None:
+#         max_level = pywt.dwt_max_level(len(data), pywt.Wavelet(wavelet).dec_len)
     
-    coeffs = pywt.wavedec(data, wavelet, level=max_level)
-    reconstructed = []
-    for i in range(max_level + 1):
-        coeff_list = [np.zeros_like(c) for c in coeffs]
-        coeff_list[i] = coeffs[i]
-        reconstructed.append(pywt.waverec(coeff_list, wavelet))
-    return reconstructed, coeffs
+#     coeffs = pywt.wavedec(data, wavelet, level=max_level)
+#     reconstructed = []
+#     for i in range(max_level + 1):
+#         coeff_list = [np.zeros_like(c) for c in coeffs]
+#         coeff_list[i] = coeffs[i]
+#         reconstructed.append(pywt.waverec(coeff_list, wavelet))
+#     return reconstructed, coeffs
 
 def extract_cycle(data, cycle_length):
     kernel = np.ones(cycle_length) / cycle_length
@@ -633,12 +632,12 @@ def compare_cycles(short_cycle, long_cycle, symbol):
     
     return difference, z_scores
 
-def compute_wavelet_energy(coeffs):
-    energy = [np.sum(np.square(c)) for c in coeffs]
-    total_energy = np.sum(energy)
-    return np.array(energy) / total_energy
+# def compute_wavelet_energy(coeffs):
+#     energy = [np.sum(np.square(c)) for c in coeffs]
+#     total_energy = np.sum(energy)
+#     return np.array(energy) / total_energy
 
-def wavelet_features_vol(df, volatility_columns=['std_volatility', 'range_volatility'], 
+def wavelet_features_vol(df, volatility_columns=['v', 'range_volatility'], 
                               wavelet='db8', max_level=4):
     features = {}
     
@@ -682,13 +681,27 @@ def wavelet_features_vol(df, volatility_columns=['std_volatility', 'range_volati
                 features[ratio_name] = features[f'{col}_detail_{i}_volatility'] / features[f'{col}_detail_{j}_volatility']
     
     feat_df = pd.DataFrame(features)
-    df = df.iloc[-len(feat_df):]
-    df['std_volatility_detail_1_anomaly'] = feat_df['std_volatility_detail_1_anomaly']
-    df['range_volatility_detail_1_anomaly'] = feat_df['range_volatility_detail_1_anomaly']
-    df['std_volatility_detail_4_anomaly'] = feat_df['std_volatility_detail_4_anomaly']
-    df['range_volatility_detail_4_anomaly'] = feat_df['range_volatility_detail_4_anomaly']
-    df['range_volatility_detail_1_to_4_ratio'] = feat_df['range_volatility_detail_1_to_4_ratio']
-    df['std_volatility_detail_1_to_4_ratio'] = feat_df['std_volatility_detail_1_to_4_ratio']
+    df_len = len(df)
+    feat_len = len(feat_df)
+    diff = df_len - feat_len
+    print(diff)
+    print(len(feat_df))
+    print(len(df))
+    if diff != 0:
+        feat_df = feat_df.iloc[abs(diff):]
+        print(feat_df)
+    # df['std_volatility_detail_1_anomaly'] = 0
+    # df['range_volatility_detail_1_anomaly'] = 0
+    # df['std_volatility_detail_4_anomaly'] = 0
+    # df['range_volatility_detail_4_anomaly'] = 0
+    # df['range_volatility_detail_1_to_4_ratio'] = 0
+    # df['std_volatility_detail_1_to_4_ratio'] = 0
+    df['v_detail_1_anomaly'] = feat_df['v_detail_1_anomaly'].values
+    df['range_volatility_detail_1_anomaly'] = feat_df['range_volatility_detail_1_anomaly'].values
+    df['v_detail_4_anomaly'] = feat_df['v_detail_4_anomaly'].values
+    df['range_volatility_detail_4_anomaly'] = feat_df['range_volatility_detail_4_anomaly'].values
+    df['range_volatility_detail_1_to_4_ratio'] = feat_df['range_volatility_detail_1_to_4_ratio'].values
+    df['v_detail_1_to_4_ratio'] = feat_df['v_detail_1_to_4_ratio'].values
     return df
 
 # Identify the most recent index where the rolling maximum occurred

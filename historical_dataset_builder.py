@@ -118,8 +118,10 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    # run_process("2020-09-17")
+    run_process("2020-09-17")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=20) as executor:
-        # Submit the processing tasks to the ThreadPoolExecutor
-        processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
+    # with concurrent.futures.ProcessPoolExecutor(max_workers=36) as executor:
+    #     # Submit the processing tasks to the ThreadPoolExecutor
+    #     processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
+
+

@@ -67,7 +67,7 @@ def call_polygon_features_historical(symbol_list, from_stamp, to_stamp, timespan
 
     data = []
     for symbol in symbol_list:
-        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={KEY}"
+        url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=false&sort=asc&limit=50000&apiKey={KEY}"
         response = execute_polygon_call(url)
         try:
             response_data = json.loads(response.text)
@@ -83,6 +83,8 @@ def call_polygon_features_historical(symbol_list, from_stamp, to_stamp, timespan
             trimmed_df = results_df.loc[results_df['hour'].isin(trading_hours)]
             filtered_df = trimmed_df.loc[~((trimmed_df['hour'] == 9) & (trimmed_df['minute'] < 30))]
             filtered_df = filtered_df.loc[filtered_df['date'] < current_date]
+            if len(filtered_df) < 100:
+                continue
             data.append(filtered_df)
         except:
             error_list.append(symbol)
