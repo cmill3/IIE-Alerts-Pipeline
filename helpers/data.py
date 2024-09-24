@@ -690,18 +690,9 @@ def wavelet_features_vol(df, volatility_columns=['v', 'range_volatility'],
     if diff != 0:
         feat_df = feat_df.iloc[abs(diff):]
         print(feat_df)
-    # df['std_volatility_detail_1_anomaly'] = 0
-    # df['range_volatility_detail_1_anomaly'] = 0
-    # df['std_volatility_detail_4_anomaly'] = 0
-    # df['range_volatility_detail_4_anomaly'] = 0
-    # df['range_volatility_detail_1_to_4_ratio'] = 0
-    # df['std_volatility_detail_1_to_4_ratio'] = 0
-    df['v_detail_1_anomaly'] = feat_df['v_detail_1_anomaly'].values
-    df['range_volatility_detail_1_anomaly'] = feat_df['range_volatility_detail_1_anomaly'].values
-    df['v_detail_4_anomaly'] = feat_df['v_detail_4_anomaly'].values
-    df['range_volatility_detail_4_anomaly'] = feat_df['range_volatility_detail_4_anomaly'].values
-    df['range_volatility_detail_1_to_4_ratio'] = feat_df['range_volatility_detail_1_to_4_ratio'].values
-    df['v_detail_1_to_4_ratio'] = feat_df['v_detail_1_to_4_ratio'].values
+    feature_columns = feat_df.columns
+    for col in feature_columns:
+        df[col] = feat_df[col].values
     return df
 
 # Identify the most recent index where the rolling maximum occurred
