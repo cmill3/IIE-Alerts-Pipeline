@@ -82,32 +82,58 @@ functions:
       - arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:16
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
     name: cdvol-xgboost-classifier-${self:provider.stage}
-  gain-xgboost-classifier:
+  gain-xgboost-classifier-2H:
     handler: xgboost_classifier.invoke_model
     environment:
       PREDICTIONS_BUCKET: "inv-alerts-trading-data"
       ALERTS_BUCKET: "inv-alerts"
-      STRATEGIES: "CDGAINC_1D,CDGAINP_1D"
+      STRATEGIES: "CDGAINC_2H,CDGAINP_2H"
       PORTFOLIO_STRATEGY: "CDVOL_GAIN"
       ENV: ${self:custom.${self:provider.stage}.env}
     layers:
       - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
       - arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:16
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
-    name: cdvol-xgboost-classifier-gain-${self:provider.stage}
-  lose-xgboost-classifier:
+    name: cdvol-xgboost-classifier-gain-2H-${self:provider.stage}
+  lose-xgboost-classifier-2H:
     handler: xgboost_classifier.invoke_model
     environment:
       PREDICTIONS_BUCKET: "inv-alerts-trading-data"
       ALERTS_BUCKET: "inv-alerts"
-      STRATEGIES: "CDLOSEC_1D,CDLOSEP_1D"
+      STRATEGIES: "CDLOSEC_2H,CDLOSEP_2H"
       PORTFOLIO_STRATEGY: "CDVOL_LOSE"
       ENV: ${self:custom.${self:provider.stage}.env}
     layers:
       - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
       - arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:16
     role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
-    name: cdvol-xgboost-classifier-lose-${self:provider.stage}
+    name: cdvol-xgboost-classifier-lose-2H-${self:provider.stage}
+  gain-xgboost-classifier-3D:
+    handler: xgboost_classifier.invoke_model
+    environment:
+      PREDICTIONS_BUCKET: "inv-alerts-trading-data"
+      ALERTS_BUCKET: "inv-alerts"
+      STRATEGIES: "CDGAINC_3D,CDGAINP_3D"
+      PORTFOLIO_STRATEGY: "CDVOL_GAIN"
+      ENV: ${self:custom.${self:provider.stage}.env}
+    layers:
+      - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
+      - arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:16
+    role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
+    name: cdvol-xgboost-classifier-gain-3D-${self:provider.stage}
+  lose-xgboost-classifier-3D:
+    handler: xgboost_classifier.invoke_model
+    environment:
+      PREDICTIONS_BUCKET: "inv-alerts-trading-data"
+      ALERTS_BUCKET: "inv-alerts"
+      STRATEGIES: "CDLOSEC_3D,CDLOSEP_3D"
+      PORTFOLIO_STRATEGY: "CDVOL_LOSE"
+      ENV: ${self:custom.${self:provider.stage}.env}
+    layers:
+      - arn:aws:lambda:us-east-1:456201388658:layer:pytz:1
+      - arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:16
+    role: arn:aws:iam::456201388658:role/batch-scout-lambdaRole
+    name: cdvol-xgboost-classifier-lose-3D-${self:provider.stage}
   data-validator:
     handler: data_validator.run_validation
     environment:
@@ -243,12 +269,12 @@ stepFunctions:
           Modeling:
             Type: Parallel
             Branches:
-              - StartAt: gain-xgboost-classifier
+              - StartAt: gain-xgboost-classifier-2H
                 States:
-                  gain-xgboost-classifier:
+                  gain-xgboost-classifier-2H:
                     Type: Task
                     Resource: 
-                      Fn::GetAtt: [gain-xgboost-classifier, Arn]
+                      Fn::GetAtt: [gain-xgboost-classifier-2H, Arn]
                     Retry:
                       - ErrorEquals:
                         - Lambda.ServiceException
@@ -258,12 +284,42 @@ stepFunctions:
                         MaxAttempts: 3
                         BackoffRate: 2
                     End: true
-              - StartAt: lose-xgboost-classifier
+              - StartAt: lose-xgboost-classifier-2H
                 States:
-                  lose-xgboost-classifier:
+                  lose-xgboost-classifier-2H:
                     Type: Task
                     Resource: 
-                      Fn::GetAtt: [lose-xgboost-classifier, Arn]
+                      Fn::GetAtt: [lose-xgboost-classifier-2H, Arn]
+                    Retry:
+                      - ErrorEquals:
+                        - Lambda.ServiceException
+                        - Lambda.AWSLambdaException
+                        - Lambda.SdkClientException
+                        IntervalSeconds: 5
+                        MaxAttempts: 3
+                        BackoffRate: 2
+                    End: true
+              - StartAt: gain-xgboost-classifier-3D
+                States:
+                  gain-xgboost-classifier-3D:
+                    Type: Task
+                    Resource: 
+                      Fn::GetAtt: [gain-xgboost-classifier-3D, Arn]
+                    Retry:
+                      - ErrorEquals:
+                        - Lambda.ServiceException
+                        - Lambda.AWSLambdaException
+                        - Lambda.SdkClientException
+                        IntervalSeconds: 5
+                        MaxAttempts: 3
+                        BackoffRate: 2
+                    End: true
+              - StartAt: lose-xgboost-classifier-3D
+                States:
+                  lose-xgboost-classifier-3D:
+                    Type: Task
+                    Resource: 
+                      Fn::GetAtt: [lose-xgboost-classifier-3D, Arn]
                     Retry:
                       - ErrorEquals:
                         - Lambda.ServiceException
