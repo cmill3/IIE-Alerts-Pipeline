@@ -27,13 +27,13 @@ s3 = boto3.client('s3')
 logger = logging.getLogger()
 
 def run_process(date_str):
-    # try:
+    try:
         print(f"Starting {date_str}")
         build_historic_data(date_str)
-    # except Exception as e:
-    #     print(f"{date_str} {e}")
-    #     build_historic_data(date_str)
-    # print(f"Finished {date_str}")
+    except Exception as e:
+        print(f"retry {date_str} {e}")
+        build_historic_data(date_str)
+    print(f"Finished {date_str}")
 
 def build_historic_data(date_str):
     hours = ["10","11","12","13","14","15"]
@@ -106,7 +106,7 @@ def generate_dates_historic(date_str):
 
 if __name__ == "__main__":
     cpu = os.cpu_count()
-    start_date = datetime(2015,1,1)
+    start_date = datetime(2022,1,31)
     end_date = datetime(2024,8,1)
     date_diff = end_date - start_date
     numdays = date_diff.days 
@@ -118,10 +118,10 @@ if __name__ == "__main__":
             date_str = temp_date.strftime("%Y-%m-%d")
             date_list.append(date_str)
 
-    run_process("2020-09-17")
+    # run_process("2022-01-31")
 
-    # with concurrent.futures.ProcessPoolExecutor(max_workers=36) as executor:
-    #     # Submit the processing tasks to the ThreadPoolExecutor
-    #     processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
+    with concurrent.futures.ProcessPoolExecutor(max_workers=18) as executor:
+        # Submit the processing tasks to the ThreadPoolExecutor
+        processed_weeks_futures = [executor.submit(run_process, date_str) for date_str in date_list]
 
 

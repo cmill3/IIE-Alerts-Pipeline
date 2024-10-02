@@ -69,7 +69,7 @@ def get_pcr_historic(symbol, window, dates):
     return raw_list
 
 def calc_price_action(row):
-    # try:
+    try:
         date = row['date']
         from_stamp = date.strftime("%Y-%m-%d")
         aggs = call_polygon_price(row['symbol'], from_stamp, "hour", 1, row['hour'])
@@ -116,15 +116,15 @@ def calc_price_action(row):
             "symbol": row['symbol']}
         
         return results_dict
-    # except Exception as e:
-    #     print(f"{e} for {row['symbol']} in calc price")
-    #     results_dict =  {
-    #         "one_max": 67, "one_min": 67, "one_pct": 67, 
-    #         "three_max": 67, "three_min": 67, "three_pct": 67,
-    #         "twoH_max": 67, "twoH_min": 67, "twoH_pct": 67,
-    #         "fourH_max": 67, "fourH_min": 67, "fourH_pct": 67,
-    #         "symbol": row['symbol']}
-    #     return results_dict
+    except Exception as e:
+        print(f"{e} for {row['symbol']} in calc price")
+        results_dict =  {
+            "one_max": 67, "one_min": 67, "one_pct": 67, 
+            "three_max": 67, "three_min": 67, "three_pct": 67,
+            "twoH_max": 67, "twoH_min": 67, "twoH_pct": 67,
+            "fourH_max": 67, "fourH_min": 67, "fourH_pct": 67,
+            "symbol": row['symbol']}
+        return results_dict
 
 def build_date_dfs(df, dt):
     sell_1d = calculate_sellby_date(dt, 2)
@@ -375,7 +375,7 @@ def feature_engineering(dfs,date,hour):
         }
     
     for thirty_aggs in dfs:
-        # try:
+        try:
             if len(thirty_aggs) == 0:
                 print("Empty")
                 continue
@@ -515,9 +515,9 @@ def feature_engineering(dfs,date,hour):
             daily_features.drop(['o','h','l','v','c','volume_change_absolute','volume_change'], inplace=True)
             df_combined = pd.concat([thirty_features, hour_features, daily_features])
             features.append(df_combined)
-        # except Exception as e:
-        #     print(f"{e} in feature engineering")
-        #     continue
+        except Exception as e:
+            print(f"{e} in feature engineering")
+            continue
     features_df = pd.DataFrame(features)
     features_df['date'] = date
     features_df['hour'] = hour
@@ -684,9 +684,6 @@ def wavelet_features_vol(df, volatility_columns=['v', 'range_volatility'],
     df_len = len(df)
     feat_len = len(feat_df)
     diff = df_len - feat_len
-    print(diff)
-    print(len(feat_df))
-    print(len(df))
     if diff != 0:
         feat_df = feat_df.iloc[abs(diff):]
         print(feat_df)
