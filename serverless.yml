@@ -299,36 +299,6 @@ stepFunctions:
                         MaxAttempts: 3
                         BackoffRate: 2
                     End: true
-              - StartAt: gain-xgboost-classifier-3D
-                States:
-                  gain-xgboost-classifier-3D:
-                    Type: Task
-                    Resource: 
-                      Fn::GetAtt: [gain-xgboost-classifier-3D, Arn]
-                    Retry:
-                      - ErrorEquals:
-                        - Lambda.ServiceException
-                        - Lambda.AWSLambdaException
-                        - Lambda.SdkClientException
-                        IntervalSeconds: 5
-                        MaxAttempts: 3
-                        BackoffRate: 2
-                    End: true
-              - StartAt: lose-xgboost-classifier-3D
-                States:
-                  lose-xgboost-classifier-3D:
-                    Type: Task
-                    Resource: 
-                      Fn::GetAtt: [lose-xgboost-classifier-3D, Arn]
-                    Retry:
-                      - ErrorEquals:
-                        - Lambda.ServiceException
-                        - Lambda.AWSLambdaException
-                        - Lambda.SdkClientException
-                        IntervalSeconds: 5
-                        MaxAttempts: 3
-                        BackoffRate: 2
-                    End: true
             Next: End
           End:
             Type: Succeed
