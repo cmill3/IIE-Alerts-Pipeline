@@ -39,7 +39,7 @@ nyse = mcal.get_calendar('NYSE')
 holidays = nyse.holidays()
 holidays_multiyear = holidays.holidays
 
-s3 = boto3.client('s3', aws_access_key_id="AKIAWUN5YYJZHGIGMLQJ", aws_secret_access_key="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")
+s3 = boto3.client('s3', aws_access_key_id=os.getenv("AWS_KEY"), aws_secret_access_key="5KLs6xMXkNqirO4bcfccGpWmgJFFjI2ydKMXMG45")
 
 def options_snapshot_runner(monday,symbol):
     fridays = find_fridays(monday)
