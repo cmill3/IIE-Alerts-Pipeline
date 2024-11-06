@@ -16,7 +16,7 @@ index_list = ["SPY","IVV","VOO","VTI","QQQ","VEA","IEFA","VTV","BND","AGG","VUG"
 leveraged_etfs = ["TQQQ","SQQQ","SPXS","SPXL","SOXL","SOXS"]
 # hours = [10,11,12,13,14,15]
 now_str = datetime.now().strftime("%Y/%m/%d/%H:%M")
-s3 = boto3.client('s3', aws_access_key_id="AKIAWUN5YYJZHGIGMLQJ", aws_secret_access_key="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")
+s3 = boto3.client('s3', aws_access_key_id=os.getenv("AWS_KEY"), aws_secret_access_key="5KLs6xMXkNqirO4bcfccGpWmgJFFjI2ydKMXMG45")
 logger = logging.getLogger()
 
 def pull_files_s3(s3, bucket, key):
