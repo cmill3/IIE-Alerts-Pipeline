@@ -13,7 +13,6 @@ import warnings
 warnings.filterwarnings("ignore")
 alerts_bucket = os.getenv("ALERTS_BUCKET")
 env = os.getenv("ENV")
-key = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
 
 
 s3 = get_s3_client()

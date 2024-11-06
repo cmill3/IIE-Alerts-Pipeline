@@ -9,14 +9,15 @@ import warnings
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 import logging
-import pywt
+# import pywt
 import numpy as np
-from statsmodels.tsa.seasonal import seasonal_decompose
-from scipy import stats
+# from statsmodels.tsa.seasonal import seasonal_decompose
+# from scipy import stats
 
 logger = logging.getLogger()
 
 warnings.filterwarnings("ignore")
+
 
 KEY = "XpqF6xBLLrj6WALk4SS1UlkgphXmHQec"
 
@@ -502,8 +503,8 @@ def feature_engineering(dfs,date,hour):
             daily_aggs['roc_vol_15MA_diff'] = (daily_aggs['roc_vol'] - daily_aggs['roc_vol_15MA'])/daily_aggs['roc_vol_15MA']
 
 
-            ## Volatility Wavelet Features
-            thirty_aggs = wavelet_features_vol(thirty_aggs)
+            # ## Volatility Wavelet Features
+            # thirty_aggs = wavelet_features_vol(thirty_aggs)
 
 
 
@@ -541,7 +542,7 @@ def call_polygon_option_snapshot(symbol,expiration_dates):
     symbol_dfs = []
     for expiry in expiration_dates:
         for option_type in ['call','put']:
-            url = f"https://api.polygon.io/v3/snapshot/options/{symbol}?expiration_date={expiry}?contract_type={option_type}&limit=250&apiKey=A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp&apiKey={KEY}"
+            url = f"https://api.polygon.io/v3/snapshot/options/{symbol}?expiration_date={expiry}?contract_type={option_type}&limit=250&&apiKey={KEY}"
             response = execute_polygon_call(url)
             response_data = json.loads(response.text)
             results = response_data['results']
@@ -637,60 +638,60 @@ def compare_cycles(short_cycle, long_cycle, symbol):
 #     total_energy = np.sum(energy)
 #     return np.array(energy) / total_energy
 
-def wavelet_features_vol(df, volatility_columns=['v', 'range_volatility'], 
-                              wavelet='db8', max_level=4):
-    features = {}
+# def wavelet_features_vol(df, volatility_columns=['v', 'range_volatility'], 
+#                               wavelet='db8', max_level=4):
+#     features = {}
     
-    for col in volatility_columns:
-        series = df[col].dropna()
-        coeffs = pywt.wavedec(series, wavelet, level=max_level)
+#     for col in volatility_columns:
+#         series = df[col].dropna()
+#         coeffs = pywt.wavedec(series, wavelet, level=max_level)
         
-        # Reconstruct signals at each level
-        reconstructed = []
-        for i in range(len(coeffs)):
-            coeff_copy = [np.zeros_like(c) for c in coeffs]
-            coeff_copy[i] = coeffs[i]
-            reconstructed.append(pywt.waverec(coeff_copy, wavelet))
+#         # Reconstruct signals at each level
+#         reconstructed = []
+#         for i in range(len(coeffs)):
+#             coeff_copy = [np.zeros_like(c) for c in coeffs]
+#             coeff_copy[i] = coeffs[i]
+#             reconstructed.append(pywt.waverec(coeff_copy, wavelet))
         
-        for level, signal in enumerate(reconstructed):
-            if level == 0:
-                suffix = 'smooth'
-            else:
-                suffix = f'detail_{level}'
+#         for level, signal in enumerate(reconstructed):
+#             if level == 0:
+#                 suffix = 'smooth'
+#             else:
+#                 suffix = f'detail_{level}'
             
-            # Trend features
-            features[f'{col}_{suffix}_trend'] = pd.Series(signal).diff()
+#             # Trend features
+#             features[f'{col}_{suffix}_trend'] = pd.Series(signal).diff()
             
-            # Volatility of the wavelet component
-            features[f'{col}_{suffix}_volatility'] = pd.Series(signal).rolling(window=20).std()
+#             # Volatility of the wavelet component
+#             features[f'{col}_{suffix}_volatility'] = pd.Series(signal).rolling(window=20).std()
             
-            # Anomaly detection using Z-score
-            z_scores = stats.zscore(signal)
-            features[f'{col}_{suffix}_anomaly'] = pd.Series(z_scores)
+#             # Anomaly detection using Z-score
+#             z_scores = stats.zscore(signal)
+#             features[f'{col}_{suffix}_anomaly'] = pd.Series(z_scores)
             
-            # Relative strength of the component
-            total_energy = np.sum([np.sum(np.abs(c)**2) for c in coeffs])
-            component_energy = np.sum(np.abs(coeffs[level])**2)
-            features[f'{col}_{suffix}_relative_strength'] = pd.Series(np.full(len(signal), component_energy / total_energy))
+#             # Relative strength of the component
+#             total_energy = np.sum([np.sum(np.abs(c)**2) for c in coeffs])
+#             component_energy = np.sum(np.abs(coeffs[level])**2)
+#             features[f'{col}_{suffix}_relative_strength'] = pd.Series(np.full(len(signal), component_energy / total_energy))
     
-    # Additional cross-scale features
-    for col in volatility_columns:
-        for i in range(1, max_level + 1):
-            for j in range(i+1, max_level + 1):
-                ratio_name = f'{col}_detail_{i}_to_{j}_ratio'
-                features[ratio_name] = features[f'{col}_detail_{i}_volatility'] / features[f'{col}_detail_{j}_volatility']
+#     # Additional cross-scale features
+#     for col in volatility_columns:
+#         for i in range(1, max_level + 1):
+#             for j in range(i+1, max_level + 1):
+#                 ratio_name = f'{col}_detail_{i}_to_{j}_ratio'
+#                 features[ratio_name] = features[f'{col}_detail_{i}_volatility'] / features[f'{col}_detail_{j}_volatility']
     
-    feat_df = pd.DataFrame(features)
-    df_len = len(df)
-    feat_len = len(feat_df)
-    diff = df_len - feat_len
-    if diff != 0:
-        feat_df = feat_df.iloc[abs(diff):]
-        print(feat_df)
-    feature_columns = feat_df.columns
-    for col in feature_columns:
-        df[col] = feat_df[col].values
-    return df
+    # feat_df = pd.DataFrame(features)
+    # df_len = len(df)
+    # feat_len = len(feat_df)
+    # diff = df_len - feat_len
+    # if diff != 0:
+    #     feat_df = feat_df.iloc[abs(diff):]
+    #     print(feat_df)
+    # feature_columns = feat_df.columns
+    # for col in feature_columns:
+    #     df[col] = feat_df[col].values
+    # return df
 
 # Identify the most recent index where the rolling maximum occurred
 # This involves using apply to check backwards from the current point

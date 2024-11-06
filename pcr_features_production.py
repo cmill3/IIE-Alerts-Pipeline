@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 import pytz
 import json
 
-KEY = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
 est = pytz.timezone('US/Eastern')
 date = datetime.now(est)
 s3 = boto3.client('s3')

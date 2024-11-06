@@ -119,7 +119,7 @@ def call_polygon_hist(symbol, from_stamp, to_stamp, timespan, multiplier):
     headers = {}
     dfs = []
     
-    key = "A_vXSwpuQ4hyNRj_8Rlw1WwVDWGgHbjp"
+    key = os.getenv("POLYGON_API_KEY")
     error_list = []
     url = f"https://api.polygon.io/v2/aggs/ticker/{symbol[0]}/range/{multiplier}/{timespan}/{from_stamp}/{to_stamp}?adjusted=true&sort=asc&limit=50000&apiKey={key}"
 

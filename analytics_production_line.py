@@ -19,6 +19,8 @@ date_est = datetime.now(est)
 now_str = date_est.strftime("%Y/%m/%d/%H")
 logger = logging.getLogger()
 
+idxbig = ["QQQ","SPY","NVDA","IWM","AAPL","TSLA","MSFT","AMD","AMZN","META","GOOGL","VTI"]
+
 def cdvol_analytics_runner(event, context):
     year, month, day, hour = now_str.split("/")
     from_stamp, to_stamp = generate_dates_historic(date_est)
@@ -38,7 +40,7 @@ def trend_analytics_runner(event, context):
     year, month, day, hour = now_str.split("/")
     from_stamp, to_stamp = generate_dates_historic(date_est)
     dt = datetime.strptime(to_stamp, "%Y-%m-%d")
-    thirty_aggs, _ = call_polygon_features(TREND, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour,month=month,day=day,year=year)
+    thirty_aggs, _ = call_polygon_features(idxbig, from_stamp, to_stamp, timespan="minute", multiplier="30", hour=hour,month=month,day=day,year=year)
     df = feature_engineering(thirty_aggs,dt,hour)
     df.reset_index(drop=True, inplace=True)
     df = df.groupby("symbol").tail(1)

@@ -13,8 +13,6 @@ import pandas_market_calendars as mcal
 import os
 from helpers.constants import TRADING_SYMBOLS, WEEKLY_EXP, FULL_SYM,BF3, TREND
 
-api_key = 'XpqF6xBLLrj6WALk4SS1UlkgphXmHQec'
-
 big_fish =  [
             "AMD","NVDA","META","PYPL","GOOG","GOOGL","AMZN","PLTR","BAC","AAPL","NFLX","ABNB","CRWD","SHOP",
             "MSFT","F","V","MA","JNJ","DIS","JPM","INTC","ADBE","BA","CVX","MRNA","PFE","SNOW","SOFI","FB","CRM"
